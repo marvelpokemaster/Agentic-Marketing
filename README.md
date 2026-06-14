@@ -1,4 +1,4 @@
-# Lead Engine — Group 2
+# Agentic Marketing — Group 2
 **Adarsh Binu · Yadhu Vipin**  
 Stack: Playwright · FastAPI · Celery · PostgreSQL · OpenAI/Claude
 
