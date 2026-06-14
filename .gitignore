@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.crawlvenv/
+venv/
+.env/
+
+# Playwright cache
+.playwright/
+
+# Output files
+leads.json
+leads_mode1.json
+campaign_mode2.json
+results/
+
+# OS
+.DS_Store
