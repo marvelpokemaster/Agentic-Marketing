@@ -1,97 +1,36 @@
-# Agentic Marketing — Group 2
+# Agentic Marketing
 
-Stack: Playwright · FastAPI · Celery · PostgreSQL · OpenAI/Claude
+A social campaign generation product: upload product info and images, generate
+ready-to-post content and creatives for Instagram, Facebook, and LinkedIn, then
+publish or schedule to Meta platforms.
 
----
-
-## Project Structure
-
+## Repository layout
 ```
-lead_engine/
-│
-├── main.py                    ← Entry point, choose mode 1 or 2
-│
-├── core/
-│   └── scraper.py             ← Shared Google Maps scraper (both modes use this)
-│
-├── mode1/
-│   └── targeted_leads.py      ← Mode 1: find specific clients + outreach messages
-│
-└── mode2/
-    └── broadcast_ad.py        ← Mode 2: generate ad copy + post to Instagram
+apps/web/                 → Active MVP: Next.js + Supabase social campaign studio
+legacy/fastapi-leadgen/   → Preserved previous app: FastAPI lead generation,
+                            scoring, scraping, outreach, analytics (future modules)
+AgenticMarketing_MVP Goal.pdf → Source spec for the current MVP
 ```
 
----
-
-## Mode 1 — Targeted Lead Discovery
-
-**What it does:**
-- Takes company input (product, location, target types)
-- Scrapes Google Maps for matching businesses
-- Scores each lead out of 100 using hardcoded rules
-- Generates a personalized outreach message per lead
-- Saves ranked leads to `leads_mode1.json`
-
-**Run:**
-```bash
-python main.py --mode 1
-```
-
-**Scoring factors (hardcoded):**
-| Factor | Weight |
-|---|---|
-| Has phone number | 20 |
-| Has website | 15 |
-| Star rating | 25 |
-| Menu alignment keywords | 25 |
-| Currently open | 15 |
-
----
-
-## Mode 2 — Broadcast Ad Campaign
-
-**What it does:**
-- Takes company info (product, tone, contact)
-- Generates ad caption, hashtags, and image prompt
-- Posts to Instagram Business via Facebook Graph API
-- Saves campaign record to `campaign_mode2.json`
-
-**Run:**
-```bash
-python main.py --mode 2
-```
-
-**To post live on Instagram, you need:**
-1. A Facebook Developer account → https://developers.facebook.com
-2. Create an App → get a Page Access Token
-3. Connect your Instagram Business account to a Facebook Page
-4. Fill in `COMPANY_INPUT` in `mode2/broadcast_ad.py`:
-   - `instagram_business_account_id`
-   - `facebook_page_access_token`
-   - `image_url` (must be a public URL)
-
----
-
-## Install
+## Current MVP (apps/web)
+See [`apps/web/README.md`](apps/web/README.md) for setup and usage.
 
 ```bash
-pip install playwright requests
-playwright install chromium
+cd apps/web
+npm install
+cp .env.example .env
+npm run dev    # http://localhost:3000 (works in demo mode without keys)
 ```
 
----
+Flow: **Add product → Select platforms → Generate campaign → Review/edit →
+Publish or schedule** (Instagram/Facebook via Meta Graph API).
 
-## What's Hardcoded (your 60%)
+## Legacy app (legacy/fastapi-leadgen)
+The earlier lead-generation/outreach system is intentionally preserved for future
+agentic capabilities (lead discovery, scoring, outreach automation, analytics)
+that the MVP spec defers. See [`legacy/fastapi-leadgen/LEGACY_NOTE.md`](legacy/fastapi-leadgen/LEGACY_NOTE.md).
 
-- Which sites to scrape (Google Maps only for now)
-- Scoring weights and rules
-- Outreach message templates per tone
-- Hashtag lists
-- Ad caption templates per tone
-
-## What's Dynamic
-
-- Actual business data from scraping
-- Score values per lead (calculated from rules)
-- Message personalization (filled from scraped data)
-- Publish result from Instagram API
+## What this MVP intentionally does not include
+Lead discovery, customer identification, automated DM outreach, lead scoring,
+complex analytics, recommendation engines, ad budget optimization, and multi-agent
+frameworks — these are out of scope per the MVP goal and live in the legacy app.

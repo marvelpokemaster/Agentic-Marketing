@@ -17,6 +17,19 @@ leads.json
 leads_mode1.json
 campaign_mode2.json
 results/
+outputs/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env files
+.env
+.env.local
+.env*.local
 
 # OS
 .DS_Store

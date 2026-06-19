@@ -1,0 +1,23 @@
+{
+  "id": "quickbite",
+  "client_name": "QuickBite Tiffin",
+  "scenario": "Edge case — minimal input, no uploaded images",
+  "product": {
+    "name": "QuickBite Tiffin",
+    "description": "",
+    "features": [],
+    "target_audience": "",
+    "industry": "Food delivery"
+  },
+  "assets": {
+    "logo": null,
+    "images": []
+  },
+  "platforms": ["instagram", "facebook", "linkedin"],
+  "expected": {
+    "card_count": 3,
+    "uses_fallback_copy": true,
+    "product_card_initial": "Q",
+    "must_not_crash": true
+  }
+}

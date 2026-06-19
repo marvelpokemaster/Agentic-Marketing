@@ -1,0 +1,36 @@
+{
+  "id": "glowroot",
+  "client_name": "GlowRoot",
+  "scenario": "D2C skincare — visual Instagram/Facebook launch",
+  "product": {
+    "name": "GlowRoot Vitamin C Serum",
+    "description": "A lightweight ayurvedic-inspired serum with Vitamin C and turmeric extract. Brightens dull skin, fades dark spots, and suits Indian weather — non-sticky, dermatologist-tested.",
+    "features": [
+      "15% Vitamin C",
+      "Turmeric + niacinamide",
+      "Fragrance-free",
+      "Made for humid climates"
+    ],
+    "target_audience": "Women 22–35 in metro cities",
+    "industry": "Beauty / D2C Skincare"
+  },
+  "assets": {
+    "logo": "assets/glowroot-logo.png",
+    "images": [
+      "assets/glowroot-lifestyle.jpg",
+      "assets/glowroot-product-1.jpg",
+      "assets/glowroot-product-2.jpg"
+    ]
+  },
+  "platforms": ["instagram", "facebook"],
+  "suggested_edits": {
+    "facebook": {
+      "cta": "Shop now — link in bio"
+    }
+  },
+  "expected": {
+    "card_count": 2,
+    "copy_themes": ["glow", "skin", "serum", "vitamin"],
+    "linkedin_publish": false
+  }
+}

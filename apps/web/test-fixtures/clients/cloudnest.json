@@ -1,0 +1,33 @@
+{
+  "id": "cloudnest",
+  "client_name": "CloudNest Solutions",
+  "scenario": "B2B IT services — LinkedIn thought-leadership post",
+  "product": {
+    "name": "CloudNest Managed Cloud",
+    "description": "CloudNest helps SMBs migrate to AWS and Azure with zero-downtime deployment, 24/7 monitoring, and predictable monthly pricing. Ideal for companies outgrowing shared hosting.",
+    "features": [
+      "AWS/Azure migration",
+      "24/7 monitoring",
+      "Fixed monthly pricing",
+      "Dedicated solution architect"
+    ],
+    "target_audience": "CTOs and IT heads at 20–200 employee companies",
+    "industry": "B2B / Cloud Infrastructure"
+  },
+  "assets": {
+    "logo": "assets/cloudnest-logo.png",
+    "images": ["assets/cloudnest-product-1.jpg"]
+  },
+  "platforms": ["linkedin"],
+  "suggested_edits": {
+    "linkedin": {
+      "body_append": "Cut infra costs by up to 30% in the first quarter."
+    }
+  },
+  "expected": {
+    "card_count": 1,
+    "tone": "professional, minimal emoji",
+    "hashtag_count_range": [3, 5],
+    "linkedin_publish": false
+  }
+}

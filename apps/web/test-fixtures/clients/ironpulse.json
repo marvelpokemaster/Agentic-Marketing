@@ -1,0 +1,32 @@
+{
+  "id": "ironpulse",
+  "client_name": "IronPulse Fitness",
+  "scenario": "Local gym — Instagram-only promo",
+  "product": {
+    "name": "IronPulse Fitness Studio",
+    "description": "Premium gym in Koramangala with strength training, HIIT classes, and personal coaching. New member offer: 2-week trial with body composition scan included.",
+    "features": [
+      "24/7 access",
+      "Certified trainers",
+      "HIIT + strength zones",
+      "Free trial + body scan"
+    ],
+    "target_audience": "Working professionals 25–40 in Bangalore",
+    "industry": "Fitness / Local services"
+  },
+  "assets": {
+    "logo": "assets/ironpulse-logo.png",
+    "images": ["assets/ironpulse-lifestyle.jpg"]
+  },
+  "platforms": ["instagram"],
+  "suggested_edits": {
+    "instagram": {
+      "headline": "Your strongest version starts here 💪"
+    }
+  },
+  "expected": {
+    "card_count": 1,
+    "hashtag_count_range": [8, 12],
+    "regenerate_creative_twice": true
+  }
+}

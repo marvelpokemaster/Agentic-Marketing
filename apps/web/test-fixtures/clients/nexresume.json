@@ -1,0 +1,33 @@
+{
+  "id": "nexresume",
+  "client_name": "NexResume",
+  "scenario": "SaaS startup launch — full 3-platform campaign",
+  "product": {
+    "name": "NexResume",
+    "description": "NexResume helps students and fresh graduates create ATS-friendly resumes in minutes. Upload your details, pick a template, and get AI suggestions to improve impact and clarity.",
+    "features": [
+      "ATS-optimized templates",
+      "One-click PDF export",
+      "AI bullet point suggestions",
+      "Cover letter generator"
+    ],
+    "target_audience": "Final-year students and job seekers in India",
+    "industry": "EdTech / Career SaaS"
+  },
+  "assets": {
+    "logo": "assets/nexresume-logo.png",
+    "images": ["assets/nexresume-product-1.jpg", "assets/nexresume-product-2.jpg"]
+  },
+  "platforms": ["instagram", "facebook", "linkedin"],
+  "suggested_edits": {
+    "instagram": {
+      "body_append": "🚀 Limited launch offer — first 100 users free"
+    }
+  },
+  "expected": {
+    "card_count": 3,
+    "instagram_tone": "emoji-friendly, more hashtags",
+    "linkedin_tone": "professional, fewer hashtags",
+    "linkedin_publish": false
+  }
+}

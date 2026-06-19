@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "description": "Manual test clients for the Social Campaign MVP. Run ./download-assets.sh first, then use each client JSON when filling /products/new.",
+  "clients": [
+    {
+      "id": "nexresume",
+      "file": "clients/nexresume.json",
+      "title": "SaaS startup — full 3-platform campaign",
+      "platforms": ["instagram", "facebook", "linkedin"]
+    },
+    {
+      "id": "glowroot",
+      "file": "clients/glowroot.json",
+      "title": "D2C skincare — Instagram + Facebook only",
+      "platforms": ["instagram", "facebook"]
+    },
+    {
+      "id": "ironpulse",
+      "file": "clients/ironpulse.json",
+      "title": "Local gym — Instagram only",
+      "platforms": ["instagram"]
+    },
+    {
+      "id": "cloudnest",
+      "file": "clients/cloudnest.json",
+      "title": "B2B cloud services — LinkedIn only",
+      "platforms": ["linkedin"]
+    },
+    {
+      "id": "quickbite",
+      "file": "clients/quickbite.json",
+      "title": "Edge case — minimal fields, no images",
+      "platforms": ["instagram", "facebook", "linkedin"]
+    }
+  ]
+}

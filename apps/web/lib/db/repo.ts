@@ -1,0 +1,45 @@
+import type {
+  Campaign,
+  CampaignAsset,
+  CampaignStatus,
+  Platform,
+  Product,
+  ProductInput,
+} from "@/lib/types";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { MemoryRepo } from "./memory";
+import { SupabaseRepo } from "./supabase-repo";
+
+export interface NewCampaignInput {
+  product: Product;
+  platforms: Platform[];
+  assets: Omit<CampaignAsset, "id" | "campaign_id">[];
+}
+
+export interface Repo {
+  createProduct(userId: string, input: ProductInput): Promise<Product>;
+  listProducts(userId: string): Promise<Product[]>;
+  getProduct(userId: string, id: string): Promise<Product | null>;
+
+  createCampaign(userId: string, input: NewCampaignInput): Promise<Campaign>;
+  listCampaigns(userId: string): Promise<Campaign[]>;
+  getCampaign(userId: string, id: string): Promise<Campaign | null>;
+  updateCampaignStatus(
+    campaignId: string,
+    status: CampaignStatus,
+  ): Promise<void>;
+
+  updateAsset(
+    campaignId: string,
+    assetId: string,
+    patch: Partial<CampaignAsset>,
+  ): Promise<CampaignAsset | null>;
+}
+
+let cached: Repo | null = null;
+
+export function getRepo(): Repo {
+  if (cached) return cached;
+  cached = isSupabaseConfigured() ? new SupabaseRepo() : new MemoryRepo();
+  return cached;
+}
