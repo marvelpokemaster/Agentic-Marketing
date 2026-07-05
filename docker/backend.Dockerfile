@@ -24,7 +24,7 @@ RUN playwright install chromium --with-deps
 # Copy the application code
 COPY marketing_agent ./marketing_agent
 
-EXPOSE 8000
+EXPOSE 8080
 
-# Start command
-CMD ["uvicorn", "marketing_agent.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn marketing_agent.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+
