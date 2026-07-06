@@ -12,7 +12,7 @@ async function isMetaConfiguredOnBackend(): Promise<boolean> {
   try {
     const res = await fetch(
       `${BACKEND_API_URL.replace(/\/$/, "")}/publish/status`,
-      { next: { revalidate: 60 } },
+      { cache: "no-store" },
     );
     if (!res.ok) return false;
     const data = await res.json();
