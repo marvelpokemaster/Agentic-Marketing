@@ -59,7 +59,7 @@ class MetaInstagramPublisher(PublisherService):
         if not asset.creative_url:
             raise ValueError("No creative_url on asset — cannot publish to Instagram.")
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             ig_user_id = await self._resolve_ig_user_id(client)
 
             # Step 1: create container

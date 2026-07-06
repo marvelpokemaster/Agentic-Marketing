@@ -59,7 +59,7 @@ class MetaFacebookPublisher(PublisherService):
         url = f"{self._base}/{self._page_id}/photos"
         logger.info("[MetaFacebookPublisher] POST %s", url)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             res = await client.post(url, data=params)
             data = res.json()
 

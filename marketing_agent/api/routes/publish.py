@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+import httpx
 from pydantic import BaseModel
 
 from marketing_agent.models.content import ContentAsset
@@ -59,6 +60,19 @@ async def publish_asset(platform: str, req: PublishBody) -> dict:
 
     try:
         result: PublishResult = await publisher.publish(publish_request)
+    except httpx.TimeoutException as exc:
+        logger.error("[publish] %s timed out: %s", platform, exc)
+        raise HTTPException(
+            status_code=504,
+            detail=f"Meta API gateway timed out. This often happens because Meta's servers "
+                   f"are downloading the creative asset from Supabase Storage. Try again. Details: {exc}"
+        ) from exc
+    except httpx.HTTPError as exc:
+        logger.error("[publish] %s network error: %s", platform, exc)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Meta API network error: {exc}"
+        ) from exc
     except (RuntimeError, ValueError) as exc:
         logger.error("[publish] %s failed: %s", platform, exc)
         raise HTTPException(status_code=502, detail=str(exc)) from exc

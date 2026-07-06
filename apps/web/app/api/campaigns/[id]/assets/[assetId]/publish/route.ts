@@ -52,10 +52,18 @@ export async function POST(
         }),
       },
     );
-    const data = await res.json();
+    
+    let data: any = null;
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json().catch(() => ({}));
+    } else {
+      const text = await res.text().catch(() => "");
+      data = { detail: text || `API request failed with status ${res.status}` };
+    }
 
     if (!res.ok) {
-      throw new Error(data.detail || data.error || "Publish failed");
+      throw new Error(data.detail || data.error || `Publish failed with status ${res.status}`);
     }
 
     const status: AssetStatus = data.scheduled ? "scheduled" : "published";
