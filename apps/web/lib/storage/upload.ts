@@ -10,25 +10,18 @@ function safeName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80) || "file";
 }
 
-async function toDataUrl(file: File): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const mime = file.type || "image/png";
-  return `data:${mime};base64,${buffer.toString("base64")}`;
-}
-
 /**
  * Upload a single asset and return a usable URL.
- * - Supabase configured: uploads to Storage and returns the public URL.
- * - Demo mode: returns an inline data URL so previews still work.
+ * Uploads to Supabase Storage and returns the public URL.
  */
 export async function uploadAsset(file: File, userId: string): Promise<string> {
   if (!isSupabaseConfigured()) {
-    return toDataUrl(file);
+    throw new Error("Supabase is not configured for storage uploads.");
   }
 
   const supabase = getSupabaseAdmin() ?? createSupabaseServerClient();
   if (!supabase) {
-    return toDataUrl(file);
+    throw new Error("Failed to initialize Supabase client for storage uploads.");
   }
 
   const path = `${userId}/${uid()}-${safeName(file.name)}`;
@@ -60,3 +53,4 @@ export async function uploadAssets(
   }
   return urls;
 }
+

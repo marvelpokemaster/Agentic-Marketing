@@ -1,18 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import {
-  supabaseAnonKey,
-  supabaseUrl,
-  isSupabaseConfigured,
-} from "@/lib/supabase/config";
+import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 
 export async function middleware(request: NextRequest) {
-  // Demo mode: no auth, just continue.
-  if (!isSupabaseConfigured()) {
-    return NextResponse.next();
-  }
-
   let response = NextResponse.next({ request: { headers: request.headers } });
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return response;
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -28,11 +23,33 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refresh session so Server Components get a valid token.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const url = request.nextUrl.clone();
+  const isLoginPage = url.pathname === "/login";
+  const isApiRoute = url.pathname.startsWith("/api/");
+
+  if (!user) {
+    if (!isLoginPage) {
+      if (isApiRoute) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  } else {
+    if (isLoginPage) {
+      url.pathname = "/products";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return response;
 }
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)"],
 };
+

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { getCurrentUser } from "@/lib/auth";
+import HeaderAuth from "@/components/HeaderAuth";
 
 export const metadata: Metadata = {
   title: "Agentic Marketing — Social Campaign Generator",
@@ -8,11 +10,19 @@ export const metadata: Metadata = {
     "Upload a product, generate ready-to-post campaigns, and publish to Instagram & Facebook.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let email: string | null = null;
+  try {
+    const user = await getCurrentUser();
+    email = user.email;
+  } catch {
+    // Not logged in
+  }
+
   return (
     <html lang="en">
       <body className="antialiased">
@@ -25,17 +35,20 @@ export default function RootLayout({
                 · social campaign studio
               </span>
             </Link>
-            <nav className="flex items-center gap-2 text-sm">
-              <Link href="/products" className="chip hover:chip-on">
-                Products
-              </Link>
-              <Link href="/campaigns" className="chip hover:chip-on">
-                Campaigns
-              </Link>
-              <Link href="/products/new" className="btn btn-sm">
-                New product
-              </Link>
-            </nav>
+            {email && (
+              <nav className="flex items-center gap-4 text-sm">
+                <Link href="/products" className="chip hover:chip-on">
+                  Products
+                </Link>
+                <Link href="/campaigns" className="chip hover:chip-on">
+                  Campaigns
+                </Link>
+                <Link href="/products/new" className="btn btn-sm">
+                  New product
+                </Link>
+                <HeaderAuth initialEmail={email} />
+              </nav>
+            )}
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
@@ -43,3 +56,4 @@ export default function RootLayout({
     </html>
   );
 }
+

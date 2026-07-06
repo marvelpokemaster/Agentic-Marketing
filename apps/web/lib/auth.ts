@@ -1,27 +1,29 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { CurrentUser } from "@/lib/types";
 
-export const DEMO_USER: CurrentUser = {
-  id: "demo-user",
-  email: "demo@local",
-  isDemo: true,
-};
-
 /**
- * Resolve the current user. In demo mode (no Supabase) returns a fixed demo user
- * so the full flow is usable without auth setup.
+ * Resolve the current authenticated user.
+ * Throws an error if the user is not authenticated.
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
-  if (!isSupabaseConfigured()) return DEMO_USER;
-
   const supabase = createSupabaseServerClient();
-  if (!supabase) return DEMO_USER;
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  if (!user) return DEMO_USER;
-  return { id: user.id, email: user.email ?? null, isDemo: false };
+  if (error || !user) {
+    throw new Error("Authentication required.");
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    user_metadata: user.user_metadata ?? {},
+  };
 }
+

@@ -115,5 +115,6 @@ export interface Campaign {
 export interface CurrentUser {
   id: string;
   email: string | null;
-  isDemo: boolean;
+  user_metadata: Record<string, any>;
 }
+

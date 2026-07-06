@@ -58,24 +58,18 @@ export default function HomePage() {
       <section className="card">
         <h2 className="text-lg font-bold">Environment status</h2>
         <p className="mt-1 text-sm text-muted">
-          The app runs in demo mode until you connect Supabase and Meta.
+          Active integrations and connection states.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <span className={`chip ${supabase ? "chip-on" : ""}`}>
-            Supabase: {supabase ? "connected" : "demo mode"}
+            Supabase Auth & DB: {supabase ? "connected" : "disconnected"}
           </span>
           <span className={`chip ${meta ? "chip-on" : ""}`}>
-            Meta publishing: {meta ? "configured" : "not configured"}
+            Meta Publishing: {meta ? "configured" : "not configured"}
           </span>
         </div>
-        {!supabase && (
-          <p className="mt-3 text-xs text-muted">
-            Without Supabase, products and campaigns are stored in memory for the
-            current server session. Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and
-            keys in <code>.env</code> to persist data.
-          </p>
-        )}
       </section>
+
     </div>
   );
 }

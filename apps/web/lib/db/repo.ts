@@ -52,6 +52,7 @@ let cached: Repo | null = null;
 
 export function getRepo(): Repo {
   if (cached) return cached;
-  cached = isSupabaseConfigured() ? new SupabaseRepo() : new MemoryRepo();
+  cached = new SupabaseRepo();
   return cached;
 }
+

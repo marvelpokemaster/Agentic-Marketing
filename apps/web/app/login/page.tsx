@@ -16,18 +16,15 @@ export default function LoginPage() {
   if (!supabase) {
     return (
       <div className="mx-auto max-w-md space-y-4">
-        <h1 className="text-2xl font-bold">Demo mode</h1>
+        <h1 className="text-2xl font-bold text-danger">Configuration Error</h1>
         <p className="text-muted">
-          Supabase is not configured, so login is disabled and you are signed in
-          as a demo user. Add Supabase keys in <code>.env</code> to enable real
-          accounts.
+          Supabase keys are missing. Please check your environment variables and
+          ensure <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> are set.
         </p>
-        <a href="/products" className="btn">
-          Continue to products
-        </a>
       </div>
     );
   }
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
