@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getRepo } from "@/lib/db/repo";
-import { publishAsset } from "@/lib/meta/publish";
 import type { AssetStatus, CampaignStatus } from "@/lib/types";
+
+const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
 export async function POST(
   request: Request,
@@ -32,11 +33,35 @@ export async function POST(
   });
 
   try {
-    const result = await publishAsset(asset, scheduledTime);
-    const status: AssetStatus = result.scheduled ? "scheduled" : "published";
+    // Proxy publish request to FastAPI backend
+    const res = await fetch(
+      `${BACKEND_API_URL.replace(/\/$/, "")}/publish/${asset.platform}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform: asset.platform,
+          headline: asset.headline,
+          body: asset.body,
+          hashtags: asset.hashtags,
+          cta: asset.cta,
+          creative_prompt: asset.creative_prompt,
+          creative_url: asset.creative_url,
+          campaign_id: params.id,
+          scheduled_time: scheduledTime,
+        }),
+      },
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail || data.error || "Publish failed");
+    }
+
+    const status: AssetStatus = data.scheduled ? "scheduled" : "published";
     const updated = await repo.updateAsset(params.id, params.assetId, {
       status,
-      external_id: result.externalId,
+      external_id: data.external_id,
       scheduled_time: scheduledTime,
       error: null,
     });
@@ -56,7 +81,7 @@ export async function POST(
       await repo.updateCampaignStatus(params.id, campaignStatus);
     }
 
-    return NextResponse.json({ asset: updated, result });
+    return NextResponse.json({ asset: updated, result: data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Publish failed.";
     const updated = await repo.updateAsset(params.id, params.assetId, {

@@ -1,6 +1,21 @@
 import Link from "next/link";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { isMetaConfigured } from "@/lib/meta/config";
+
+const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
+
+async function isMetaConfiguredOnBackend(): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${BACKEND_API_URL.replace(/\/$/, "")}/publish/status`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.configured === true;
+  } catch {
+    return false;
+  }
+}
 
 const steps = [
   {
@@ -21,9 +36,9 @@ const steps = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
   const supabase = isSupabaseConfigured();
-  const meta = isMetaConfigured();
+  const meta = await isMetaConfiguredOnBackend();
 
   return (
     <div className="space-y-10">
@@ -69,7 +84,6 @@ export default function HomePage() {
           </span>
         </div>
       </section>
-
     </div>
   );
 }
