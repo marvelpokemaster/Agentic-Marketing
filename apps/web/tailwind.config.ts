@@ -9,14 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#0b0f10",
-        panel: "#11181b",
-        surface: "#16211f",
-        border: "#1f2c2a",
-        muted: "#8aa39c",
-        primary: "#4edea3",
-        accent: "#6ea8fe",
-        danger: "#ff6b6b",
+        bg: "#09090B",
+        panel: "#18181B",
+        surface: "#111318",
+        border: "rgba(99, 102, 241, 0.12)",
+        muted: "#a1a1aa",
+        primary: "#6366F1",
+        accent: "#00d2ff",
+        danger: "#f43f5e",
       },
       borderRadius: {
         xl: "14px",

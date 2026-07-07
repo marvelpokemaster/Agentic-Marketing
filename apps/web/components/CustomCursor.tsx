@@ -118,14 +118,14 @@ export function CustomCursor() {
         style={{
           width: magneticElement ? `${magneticElement.width + 12}px` : "24px",
           height: magneticElement ? `${magneticElement.height + 12}px` : "24px",
-          border: "1.5px solid rgba(0, 170, 255, 0.7)",
+          border: "1.5px solid rgba(99, 102, 241, 0.75)",
           transform: `translate3d(${trail.x - (magneticElement ? magneticElement.width / 2 + 6 : 12)}px, ${
             trail.y - (magneticElement ? magneticElement.height / 2 + 6 : 12)
           }px, 0)`,
           borderRadius: magneticElement ? "12px" : "50%",
           transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-          backgroundColor: hovered ? "rgba(0, 85, 255, 0.05)" : "transparent",
-          boxShadow: hovered ? "0 0 16px rgba(0, 85, 255, 0.15)" : "none",
+          backgroundColor: hovered ? "rgba(99, 102, 241, 0.05)" : "transparent",
+          boxShadow: hovered ? "0 0 16px rgba(139, 92, 246, 0.25)" : "none",
         }}
       />
 

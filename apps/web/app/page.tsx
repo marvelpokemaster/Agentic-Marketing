@@ -60,7 +60,7 @@ export default async function HomePage() {
         {/* Cinematic Title */}
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[1.05] max-w-4xl mx-auto">
           Autonomous campaign <br className="hidden sm:inline" />
-          <span className="bg-gradient-to-r from-blue-500 via-[#00d2ff] to-[#0055ff] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
             orchestration.
           </span>
         </h1>
