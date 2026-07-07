@@ -62,7 +62,7 @@ export default async function CampaignsPage() {
         /* Campaigns Grid */
         <div className="grid gap-6 md:grid-cols-2">
           {campaigns.map((c) => (
-            <Link key={c.id} href={`/campaigns/${c.id}`} className="card-interactive block group">
+            <Link key={c.id} href={`/campaigns/${c.id}`} className="glow-card card-interactive block group">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1 truncate">
                   <h3 className="font-semibold text-base text-foreground group-hover:text-primary transition duration-200 truncate">

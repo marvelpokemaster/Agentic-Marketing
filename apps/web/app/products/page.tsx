@@ -54,7 +54,7 @@ export default async function ProductsPage() {
         /* Products Grid */
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <div key={p.id} className="card-interactive flex flex-col justify-between group">
+            <div key={p.id} className="glow-card card-interactive flex flex-col justify-between group">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   {p.logo_url ? (

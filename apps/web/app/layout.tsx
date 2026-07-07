@@ -3,6 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/auth";
 import HeaderAuth from "@/components/HeaderAuth";
+import { InteractiveCanvas } from "@/components/InteractiveCanvas";
+import { MountLoader } from "@/components/MountLoader";
 
 export const metadata: Metadata = {
   title: "Agentic Marketing — Social Campaign Generator",
@@ -25,7 +27,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="antialiased grid-bg">
+      <body className="antialiased grid-bg relative">
+        <MountLoader />
+        <InteractiveCanvas />
         <header className="sticky top-0 z-50 border-b border-border/80 bg-bg/75 backdrop-blur-md">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
             <Link href="/" className="flex items-center gap-2.5 font-bold tracking-tight text-foreground transition hover:opacity-90">

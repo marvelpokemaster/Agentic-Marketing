@@ -19,20 +19,24 @@ async function isMetaConfiguredOnBackend(): Promise<boolean> {
 
 const steps = [
   {
-    title: "1. Add your product",
-    detail: "Name, description, features, audience, industry, plus images and logo.",
+    step: "01",
+    title: "Onboard Products",
+    detail: "Train the marketing agent by uploading branding guides, target audiences, key features, and logos.",
   },
   {
-    title: "2. Pick platforms",
-    detail: "Instagram, Facebook, and LinkedIn — choose where you want to post.",
+    step: "02",
+    title: "Configure Channels",
+    detail: "Choose from organic Instagram, Facebook, and LinkedIn channels or select B2B outreach scrapers.",
   },
   {
-    title: "3. Generate campaign",
-    detail: "AI writes captions, hashtags, and post copy with matching creatives.",
+    step: "03",
+    title: "Generate Campaign",
+    detail: "Orchestrate agent workflows to draft tailored captions, copy, hashtags, and custom AI graphics.",
   },
   {
-    title: "4. Review & publish",
-    detail: "Edit anything, then publish or schedule directly to Meta platforms.",
+    step: "04",
+    title: "Review & Broadcast",
+    detail: "Approve copy edits, regenerate creatives, and publish directly to live social streams.",
   },
 ];
 
@@ -41,88 +45,132 @@ export default async function HomePage() {
   const meta = await isMetaConfiguredOnBackend();
 
   return (
-    <div className="space-y-16 py-4">
+    <div className="space-y-24 py-8 relative">
+      {/* Background spotlights & auroras */}
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-primary/5 rounded-full blur-[140px] pointer-events-none animate-slow-pulse" />
+      <div className="absolute top-[350px] left-1/4 w-[500px] h-[250px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+
       {/* Hero Section */}
-      <section className="space-y-6 text-center max-w-3xl mx-auto py-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-semibold text-primary shadow-sm shadow-primary/5">
+      <section className="space-y-8 text-center max-w-4xl mx-auto py-12 animate-fade-in-up relative z-10">
+        {/* Promotional pill */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary shadow-sm shadow-primary/5">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
-          Next-Gen Social Campaign Studio
+          Campaign Generation Engine v1.0
         </div>
-        <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-foreground">
-          Upload a product. <br />
-          <span className="bg-gradient-to-r from-primary via-[#5ef7bc] to-cyan-400 bg-clip-text text-transparent">
-            Generate a campaign.
+
+        {/* Cinematic Title */}
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-foreground leading-[1.1] max-w-3xl mx-auto">
+          Autopilot your brand. <br className="hidden sm:inline" />
+          <span className="bg-gradient-to-r from-primary via-[#5ef7bc] to-cyan-400 bg-clip-text text-transparent animate-slow-pulse">
+            Generate & Broadcast.
           </span>{" "}
-          <br className="hidden sm:inline" />
-          Publish to social in seconds.
+          <br />
+          Instant social campaigns.
         </h1>
-        <p className="max-w-xl mx-auto text-base text-muted/90 leading-relaxed">
-          Leverage a stateless, workflow-driven AI agent pipeline to draft platform-ready social copy and high-quality creative assets. Directly publish or schedule to Facebook and Instagram.
+
+        {/* Elegant Subtitle */}
+        <p className="max-w-2xl mx-auto text-sm sm:text-base text-muted/90 leading-relaxed font-normal">
+          Draft platform-specific social copy, scrape local B2B business profiles, and render custom AI creative templates using a stateless orchestration model. Direct schedule and publish execution.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-          <Link href="/products/new" className="btn flex items-center gap-2 shadow-lg shadow-primary/10">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+
+        {/* Call to Actions */}
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <Link href="/products/new" className="btn flex items-center gap-2 px-7 py-3 text-sm font-semibold shadow-lg hover:shadow-primary/20">
+            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Add a Product
+            Add New Product
           </Link>
-          <Link href="/campaigns" className="btn-ghost flex items-center gap-2">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <Link href="/campaigns" className="btn-ghost flex items-center gap-2 px-7 py-3 text-sm font-semibold">
+            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            View Campaigns
+            Review Campaigns
           </Link>
+        </div>
+
+        {/* Subtle Scroll Down indicator */}
+        <div className="pt-12 flex justify-center animate-bounce opacity-40">
+          <svg className="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7-7-7m14-6l-7 7-7-7" />
+          </svg>
         </div>
       </section>
 
-      {/* Steps Grid */}
-      <section className="space-y-6">
-        <div className="text-center max-w-md mx-auto">
-          <h2 className="text-xl font-bold tracking-tight">How it works</h2>
-          <p className="text-xs text-muted/80 mt-1">Four automated steps to go from code to published content.</p>
+      {/* Steps Reveal Grid */}
+      <section className="space-y-10 relative z-10">
+        <div className="text-center max-w-lg mx-auto space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Orchestrated Workflow</h2>
+          <p className="text-xs text-muted/80 leading-normal">
+            Four automated steps execution pipeline linking AI generation to live social networks.
+          </p>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, idx) => (
-            <div key={s.title} className="card relative overflow-hidden group hover:border-primary/20">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full bg-primary/5 blur-xl group-hover:bg-primary/10 transition duration-300" />
-              <div className="text-xs font-bold text-primary/80 uppercase tracking-widest mb-3">Step 0{idx + 1}</div>
-              <h3 className="font-semibold text-base text-foreground/90">{s.title.substring(3)}</h3>
-              <p className="mt-2.5 text-xs text-muted/80 leading-relaxed">{s.detail}</p>
+            <div
+              key={s.title}
+              className="glow-card card flex flex-col justify-between group h-full border-border/40 hover:-translate-y-1 transition-all duration-300"
+              style={{ animationDelay: `${idx * 150}ms` }}
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-primary/75 tracking-wider">
+                    {s.step}
+                  </span>
+                  <div className="h-2 w-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300" />
+                </div>
+                <h3 className="font-bold text-base text-foreground/90 group-hover:text-primary transition-colors duration-200">
+                  {s.title}
+                </h3>
+                <p className="text-xs text-muted/85 leading-relaxed">
+                  {s.detail}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Status Section */}
-      <section className="card max-w-xl mx-auto border-border/60 shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      {/* Integration Health Panel */}
+      <section className="glow-card card max-w-xl mx-auto border-border/50 shadow-2xl relative overflow-hidden bg-panel/90 z-10">
+        <div className="absolute top-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+        
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-surface border border-border/80 text-primary">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <div className="p-2.5 rounded-lg bg-surface border border-border/80 text-primary">
+            <svg className="h-5.5 w-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.25">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-base font-bold text-foreground">Integration Health</h2>
-            <p className="text-xs text-muted">Current connection status of your external integrations.</p>
+            <h2 className="text-base font-bold text-foreground">API Integration Metrics</h2>
+            <p className="text-[11px] text-muted">Verification logs for database engines and external publishing relays.</p>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div className={`flex items-center justify-between rounded-lg border p-3 bg-surface/50 ${supabase ? "border-emerald-500/20" : "border-border"}`}>
-            <span className="text-xs font-medium text-muted/90">Supabase DB</span>
-            <span className={`badge ${supabase ? "badge-success" : "badge-danger"}`}>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${supabase ? "border-emerald-500/20" : "border-border"}`}>
+            <div className="space-y-0.5">
+              <span className="text-xs font-semibold text-foreground/90 block">Supabase Storage</span>
+              <span className="text-[10px] text-muted/70 block">Database campaign sync</span>
+            </div>
+            <span className={`badge ${supabase ? "badge-success" : "badge-danger"} flex items-center gap-1`}>
               <span className={`h-1.5 w-1.5 rounded-full ${supabase ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
               {supabase ? "Connected" : "Offline"}
             </span>
           </div>
-          <div className={`flex items-center justify-between rounded-lg border p-3 bg-surface/50 ${meta ? "border-emerald-500/20" : "border-border"}`}>
-            <span className="text-xs font-medium text-muted/90">Meta API Endpoint</span>
-            <span className={`badge ${meta ? "badge-success" : "badge-danger"}`}>
+
+          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${meta ? "border-emerald-500/20" : "border-border"}`}>
+            <div className="space-y-0.5">
+              <span className="text-xs font-semibold text-foreground/90 block">Meta Page Node</span>
+              <span className="text-[10px] text-muted/70 block">Facebook / Instagram publishing</span>
+            </div>
+            <span className={`badge ${meta ? "badge-success" : "badge-danger"} flex items-center gap-1`}>
               <span className={`h-1.5 w-1.5 rounded-full ${meta ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
-              {meta ? "Configured" : "Not Configured"}
+              {meta ? "Configured" : "Offline"}
             </span>
           </div>
         </div>
