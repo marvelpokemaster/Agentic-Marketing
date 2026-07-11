@@ -14,6 +14,14 @@ export function CampaignDashboard({
   campaign: Campaign;
   metaConfigured: boolean;
 }) {
+  if (!campaign) {
+    return (
+      <div className="card text-center py-12 text-muted flex flex-col items-center justify-center gap-3">
+        <span>No campaign data available.</span>
+      </div>
+    );
+  }
+
   if (campaign.workflow === "lead_generation") {
     const leads = campaign.results && campaign.results.workflow === "lead_generation"
       ? campaign.results.leads
@@ -21,11 +29,24 @@ export function CampaignDashboard({
     return <LeadsDashboard leads={leads} />;
   }
 
+  const assets = Array.isArray(campaign.assets) ? campaign.assets : [];
+
+  if (assets.length === 0) {
+    return (
+      <div className="card text-center py-12 text-muted col-span-2 flex flex-col items-center justify-center gap-3 border-dashed border-2">
+        <svg className="h-10 w-10 text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <span>No campaign assets generated. Try running the generator again.</span>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {campaign.assets.map((asset) => (
+      {assets.map((asset) => (
         <AssetCard
-          key={asset.id}
+          key={asset?.id}
           campaignId={campaign.id}
           initial={asset}
           metaConfigured={metaConfigured}
@@ -36,7 +57,9 @@ export function CampaignDashboard({
 }
 
 function LeadsDashboard({ leads }: { leads: any[] }) {
-  if (!leads || leads.length === 0) {
+  const safeLeads = Array.isArray(leads) ? leads : [];
+
+  if (safeLeads.length === 0) {
     return (
       <div className="card text-center py-12 text-muted col-span-2 flex flex-col items-center justify-center gap-3">
         <svg className="h-10 w-10 text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -54,12 +77,12 @@ function LeadsDashboard({ leads }: { leads: any[] }) {
           <svg className="h-5.5 w-5.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Discovered Leads <span className="text-sm font-normal text-muted">({leads.length} matches)</span>
+          Discovered Leads <span className="text-sm font-normal text-muted">({safeLeads.length} matches)</span>
         </h2>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        {leads.map((lead, idx) => (
-          <LeadCard key={lead.id || idx} lead={lead} />
+        {safeLeads.map((lead, idx) => (
+          <LeadCard key={lead?.id || idx} lead={lead} />
         ))}
       </div>
     </div>
@@ -68,6 +91,8 @@ function LeadsDashboard({ leads }: { leads: any[] }) {
 
 function LeadCard({ lead }: { lead: any }) {
   const [activeTab, setActiveTab] = useState<"email" | "whatsapp">("email");
+
+  if (!lead) return null;
 
   const isHighPriority = lead.priority === "high";
   const hasOutreach = lead.outreach?.email || lead.outreach?.whatsapp;
@@ -78,7 +103,7 @@ function LeadCard({ lead }: { lead: any }) {
         {/* Card Header Info */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-bold text-base text-foreground tracking-tight">{lead.name}</h3>
+            <h3 className="font-bold text-base text-foreground tracking-tight">{lead.name || "Unnamed Lead"}</h3>
             {lead.category && (
               <span className="inline-block text-[10px] text-primary bg-primary/10 border border-primary/20 font-bold px-2 py-0.5 rounded mt-1.5 uppercase tracking-wide">
                 {lead.category}
@@ -91,7 +116,7 @@ function LeadCard({ lead }: { lead: any }) {
                 {lead.priority} Priority
               </span>
             )}
-            {lead.score !== null && (
+            {lead.score !== null && lead.score !== undefined && (
               <span className="text-[11px] text-muted font-medium">
                 Match Fit: <strong className={lead.score >= 80 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>{lead.score}%</strong>
               </span>
@@ -109,13 +134,13 @@ function LeadCard({ lead }: { lead: any }) {
 
         {/* Directory Fields */}
         <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-border/40">
-          {lead.rating !== null && (
+          {lead.rating !== null && lead.rating !== undefined && (
             <div className="col-span-2 flex items-center gap-1.5 text-muted">
               <span>Rating:</span>
               <strong className="text-amber-400 flex items-center gap-0.5">
                 ★ {lead.rating}
               </strong>
-              {lead.reviews !== null && <span className="text-[10px] text-muted/70">({lead.reviews} reviews)</span>}
+              {lead.reviews !== null && lead.reviews !== undefined && <span className="text-[10px] text-muted/70">({lead.reviews} reviews)</span>}
             </div>
           )}
           {lead.phone && (
@@ -243,18 +268,18 @@ function AssetCard({
   initial: CampaignAsset;
   metaConfigured: boolean;
 }) {
-  const [asset, setAsset] = useState<CampaignAsset>(initial);
-  const [headline, setHeadline] = useState(initial.headline);
-  const [body, setBody] = useState(initial.body);
-  const [hashtags, setHashtags] = useState(initial.hashtags.join(" "));
-  const [cta, setCta] = useState(initial.cta);
+  const [asset, setAsset] = useState<CampaignAsset>(initial || ({} as CampaignAsset));
+  const [headline, setHeadline] = useState(initial?.headline || "");
+  const [body, setBody] = useState(initial?.body || "");
+  const [hashtags, setHashtags] = useState(Array.isArray(initial?.hashtags) ? initial.hashtags.join(" ") : "");
+  const [cta, setCta] = useState(initial?.cta || "");
   const [scheduledTime, setScheduledTime] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const base = `/api/campaigns/${campaignId}/assets/${asset.id}`;
-  const canPublishHere = asset.platform === "instagram" || asset.platform === "facebook";
+  const base = `/api/campaigns/${campaignId}/assets/${asset?.id}`;
+  const canPublishHere = asset?.platform === "instagram" || asset?.platform === "facebook";
 
   async function save() {
     setBusy("save");
@@ -268,8 +293,10 @@ function AssetCard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
-      setAsset(data.asset);
-      setHashtags(data.asset.hashtags.join(" "));
+      if (data.asset) {
+        setAsset(data.asset);
+        setHashtags(Array.isArray(data.asset.hashtags) ? data.asset.hashtags.join(" ") : "");
+      }
       setMessage("Edits saved successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -286,11 +313,13 @@ function AssetCard({
       const res = await fetch(`${base}/creative`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ creative_prompt: asset.creative_prompt }),
+        body: JSON.stringify({ creative_prompt: asset?.creative_prompt || "" }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Regenerate failed");
-      setAsset(data.asset);
+      if (data.asset) {
+        setAsset(data.asset);
+      }
       setMessage("Creative generated successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Regenerate failed");
@@ -319,9 +348,11 @@ function AssetCard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Publish failed");
-      setAsset(data.asset);
+      if (data.asset) {
+        setAsset(data.asset);
+      }
       setMessage(
-        data.asset.status === "scheduled"
+        data.asset?.status === "scheduled"
           ? "Scheduled successfully."
           : "Published successfully.",
       );
@@ -337,13 +368,13 @@ function AssetCard({
       {/* Platform & Status Header */}
       <div className="flex items-center justify-between border-b border-border/40 pb-3">
         <h3 className="font-bold text-base text-foreground tracking-tight flex items-center gap-2">
-          {asset.platform === "instagram" ? (
+          {asset?.platform === "instagram" ? (
             <svg className="h-5 w-5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
               <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
             </svg>
-          ) : asset.platform === "facebook" ? (
+          ) : asset?.platform === "facebook" ? (
             <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
               <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
             </svg>
@@ -353,20 +384,20 @@ function AssetCard({
               <circle cx="4" cy="4" r="2" />
             </svg>
           )}
-          {PLATFORM_LABELS[asset.platform]}
+          {asset?.platform && PLATFORM_LABELS[asset.platform] ? PLATFORM_LABELS[asset.platform] : "Social Post"}
         </h3>
-        <span className={`badge ${STATUS_BADGES[asset.status] ?? "badge-muted"} capitalize`}>
-          {asset.status}
+        <span className={`badge ${STATUS_BADGES[asset?.status || "draft"] ?? "badge-muted"} capitalize`}>
+          {asset?.status || "draft"}
         </span>
       </div>
 
       {/* Asset Creative Box */}
-      {asset.creative_url ? (
+      {asset?.creative_url ? (
         <div className="relative aspect-square w-full rounded-lg overflow-hidden border border-border/50 bg-surface shadow-inner group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset.creative_url}
-            alt={`${asset.platform} creative`}
+            alt={`${asset.platform || "platform"} creative`}
             className="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-102"
             loading="lazy"
           />
@@ -474,7 +505,7 @@ function AssetCard({
           )}
         </div>
 
-        {canPublishHere && asset.platform === "facebook" && (
+        {canPublishHere && asset?.platform === "facebook" && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 rounded-lg bg-surface/50 border border-border/50">
             <div className="flex-1 space-y-1">
               <label className="label text-[10px] tracking-wider mb-0 text-muted/80">Schedule Publish Time</label>
@@ -498,9 +529,9 @@ function AssetCard({
       </div>
 
       {/* Post URL Link */}
-      {asset.external_id && (
+      {asset?.external_id && (
         <div className="pt-1.5 text-xs font-semibold flex items-center">
-          {asset.external_id.startsWith("http") ? (
+          {String(asset.external_id).startsWith("http") ? (
             <a
               href={asset.external_id}
               target="_blank"
@@ -523,9 +554,9 @@ function AssetCard({
           {message}
         </div>
       )}
-      {(error || asset.error) && (
+      {(error || asset?.error) && (
         <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-400 leading-normal break-words">
-          {error || asset.error}
+          {error || asset?.error}
         </div>
       )}
     </div>

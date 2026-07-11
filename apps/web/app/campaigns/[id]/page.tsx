@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getRepo } from "@/lib/db/repo";
 import { CampaignDashboard } from "@/components/CampaignDashboard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,9 @@ export default async function CampaignPage({
         </div>
       )}
 
-      <CampaignDashboard campaign={campaign} metaConfigured={metaConfigured} />
+      <ErrorBoundary>
+        <CampaignDashboard campaign={campaign} metaConfigured={metaConfigured} />
+      </ErrorBoundary>
     </div>
   );
 }
