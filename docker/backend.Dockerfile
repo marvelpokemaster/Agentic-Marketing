@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir .
 RUN playwright install chromium --with-deps
 
 # Copy the application code
-COPY marketing_agent ./marketing_agent
+COPY . .
 
 EXPOSE 8080
 
