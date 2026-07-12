@@ -12,8 +12,8 @@ from marketing_agent.state import CampaignState
 from marketing_agent.services.storage.base import StorageService
 
 from research.orchestrator.workflow import ResearchWorkflow
-from research.providers import ProviderRegistry
-from research.providers.gemini.gemini_service import GeminiLLMService
+from research.orchestrator import ProviderRegistry
+from marketing_agent.services.llm.gemini import GeminiLLMService
 from research.orchestrator.executor import ResearchExecutor
 from research.orchestrator.aggregator import ResultAggregator
 
@@ -59,22 +59,30 @@ def map_config_to_state(state: CampaignState, config: dict) -> None:
         state.instructions = config["instructions"]
 
 
+from research.providers.serpapi import SerpAPIProvider
+from research.models.context import ResearchContext
+
 async def execute_serp_research(product_name: str, target_audience: str) -> dict:
     """Helper to run the research subsystem standalone for the UI."""
     registry = ProviderRegistry()
-    registry.register_llm(GeminiLLMService())
+    registry.register(SerpAPIProvider())
     
-    executor = ResearchExecutor(registry)
-    aggregator = ResultAggregator(registry)
-    workflow = ResearchWorkflow(executor, aggregator)
+    executor = ResearchExecutor(concurrency_limit=5)
+    aggregator = ResultAggregator()
+    workflow = ResearchWorkflow(registry, executor, aggregator)
     
-    context = {
-        "product_name": product_name,
-        "target_audience": target_audience,
-    }
+    context = ResearchContext(
+        product_description=product_name,
+        company_name=None,
+        industry=None,
+        country=None,
+        language=None,
+        deep_research=False,
+        metadata={"target_audience": target_audience}
+    )
     
     report = await workflow.run(context)
-    return report
+    return report.model_dump()
 
 
 async def run_research_task(campaign_id: str, state: CampaignState, storage: StorageService):
