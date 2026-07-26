@@ -24,7 +24,7 @@ class CampaignModel(Base):
     __tablename__ = "campaigns"
 
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    user_id = Column(String(28), nullable=False)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
     product_name = Column(String, nullable=False, default="")
     platforms = Column(JSON, nullable=False, default=list)

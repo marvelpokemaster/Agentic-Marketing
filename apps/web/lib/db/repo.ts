@@ -9,7 +9,7 @@ import type {
   CampaignConfig,
   CampaignResults,
 } from "@/lib/types";
-import { SupabaseRepo } from "./supabase-repo";
+import { FdcRepo } from "./fdc-repo";
 
 export interface NewCampaignInput {
   product: Product;
@@ -50,7 +50,7 @@ let cached: Repo | null = null;
 
 export function getRepo(): Repo {
   if (cached) return cached;
-  cached = new SupabaseRepo();
+  cached = new FdcRepo();
   return cached;
 }
 

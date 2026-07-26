@@ -65,7 +65,7 @@ async def publish_asset(platform: str, req: PublishBody) -> dict:
         raise HTTPException(
             status_code=504,
             detail=f"Meta API gateway timed out. This often happens because Meta's servers "
-                   f"are downloading the creative asset from Supabase Storage. Try again. Details: {exc}"
+                   f"are downloading the creative asset from Firebase Storage. Try again. Details: {exc}"
         ) from exc
     except httpx.HTTPError as exc:
         logger.error("[publish] %s network error: %s", platform, exc)

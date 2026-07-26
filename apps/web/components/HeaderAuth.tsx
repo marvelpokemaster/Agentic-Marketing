@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { auth } from "@/lib/firebase/client";
 
 interface HeaderAuthProps {
   initialEmail: string | null;
@@ -9,12 +9,12 @@ interface HeaderAuthProps {
 
 export default function HeaderAuth({ initialEmail }: HeaderAuthProps) {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
 
-  if (!initialEmail || !supabase) return null;
+  if (!initialEmail) return null;
 
   async function handleLogout() {
-    await supabase!.auth.signOut();
+    await auth.signOut();
+    await fetch("/api/logout", { method: "GET" });
     router.push("/login");
     router.refresh();
   }

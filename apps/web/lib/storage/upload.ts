@@ -1,6 +1,5 @@
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { supabaseStorageBucket, isSupabaseConfigured } from "@/lib/supabase/config";
+import { getFirebaseAdminApp } from "@/lib/firebase/admin";
+import { getStorage } from "firebase-admin/storage";
 
 function uid(): string {
   return globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -12,33 +11,24 @@ function safeName(name: string): string {
 
 /**
  * Upload a single asset and return a usable URL.
- * Uploads to Supabase Storage and returns the public URL.
+ * Uploads to Firebase Storage and returns the public URL.
  */
 export async function uploadAsset(file: File, userId: string): Promise<string> {
-  if (!isSupabaseConfigured()) {
-    throw new Error("Supabase is not configured for storage uploads.");
-  }
-
-  const supabase = getSupabaseAdmin() ?? createSupabaseServerClient();
-  if (!supabase) {
-    throw new Error("Failed to initialize Supabase client for storage uploads.");
-  }
-
+  const app = getFirebaseAdminApp();
+  const bucket = getStorage(app).bucket();
   const path = `${userId}/${uid()}-${safeName(file.name)}`;
+  
   const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await supabase.storage
-    .from(supabaseStorageBucket)
-    .upload(path, buffer, {
+  const fileRef = bucket.file(path);
+  
+  await fileRef.save(buffer, {
+    metadata: {
       contentType: file.type || "application/octet-stream",
-      upsert: false,
-    });
-  if (error) throw new Error(`Storage upload failed: ${error.message}`);
-
-  const { data } = supabase.storage
-    .from(supabaseStorageBucket)
-    .getPublicUrl(path);
-  return data.publicUrl;
+    },
+    public: true, // Make it publicly accessible
+  });
+  
+  return fileRef.publicUrl();
 }
 
 export async function uploadAssets(

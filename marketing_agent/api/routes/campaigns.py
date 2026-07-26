@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from marketing_agent.api.dependencies import get_orchestrator, get_db
+from marketing_agent.api.auth import get_current_user
 from marketing_agent.orchestrator import MarketingOrchestrator
 from marketing_agent.state import CampaignState
 from marketing_agent.services.storage.postgres_storage import get_session
@@ -162,6 +163,7 @@ async def run_campaign_workflow_task(
 async def create_campaign(
     body: CreateCampaignRequest,
     db: Session = Depends(get_db),
+    uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Create or register a persistent campaign and store workflow and config parameters."""
     repo = CampaignRepository(db)
@@ -171,6 +173,8 @@ async def create_campaign(
             status_code=404,
             detail=f"Campaign {body.id} not found in the database. Please create it via the frontend first."
         )
+    if campaign.user_id != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this campaign")
 
     # Update config and status to draft
     campaign = repo.update_campaign(
@@ -186,12 +190,15 @@ async def create_campaign(
 async def get_campaign(
     campaign_id: str,
     db: Session = Depends(get_db),
+    uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Retrieve metadata, config, status, and results for a campaign."""
     repo = CampaignRepository(db)
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign.user_id != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to access this campaign")
     return CampaignResponse.from_orm_model(campaign)
 
 
@@ -200,12 +207,15 @@ async def update_campaign(
     campaign_id: str,
     body: UpdateCampaignRequest,
     db: Session = Depends(get_db),
+    uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Update campaign metadata and configuration."""
     repo = CampaignRepository(db)
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign.user_id != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this campaign")
 
     update_data = {}
     if body.name is not None:
@@ -228,12 +238,15 @@ async def run_campaign(
     background_tasks: BackgroundTasks,
     orchestrator: MarketingOrchestrator = Depends(get_orchestrator),
     db: Session = Depends(get_db),
+    uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Execute the configured campaign workflow using stored inputs."""
     repo = CampaignRepository(db)
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign.user_id != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to run this campaign")
 
     state = CampaignState(
         campaign_id=campaign_id,
@@ -259,12 +272,15 @@ async def run_campaign_research(
     campaign_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Trigger the research phase for a campaign in the background."""
     repo = CampaignRepository(db)
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign.user_id != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to research this campaign")
         
     repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHING)
     background_tasks.add_task(run_research_task, campaign_id)

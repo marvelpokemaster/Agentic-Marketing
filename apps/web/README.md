@@ -9,7 +9,7 @@ This is the active MVP, built from `AgenticMarketing_MVP Goal.pdf`.
 ## Stack
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
-- Supabase (auth, Postgres, Storage)
+- Firebase (Authentication, Data Connect, Cloud SQL, Storage)
 - AI content: Gemini / OpenAI / Anthropic (pluggable, with deterministic fallback)
 - Creatives: Pollinations (default, keyless) / OpenAI Images / Stability
 - Publishing: Meta Graph API (Facebook Pages + Instagram Business)
@@ -23,7 +23,7 @@ npm run dev                # http://localhost:3000
 ```
 
 ### Demo mode (no setup)
-With no Supabase keys, the app runs in demo mode:
+With no Firebase keys, the app runs in demo mode:
 - A fixed demo user is used (no login).
 - Products and campaigns are stored in memory for the server session.
 - AI falls back to deterministic copy if no AI key is set.
@@ -32,10 +32,9 @@ With no Supabase keys, the app runs in demo mode:
 This lets you click through Add product → Generate campaign → Review immediately.
 
 ## Full setup
-1. Create a Supabase project. Run the root `supabase/schema.sql` in the SQL editor.
-2. Create a public Storage bucket `product-assets` (the SQL also does this).
-3. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY`.
+1. Set up a Firebase project with Authentication (Email/Password), Data Connect, and Storage.
+2. Deploy the Data Connect schema: `firebase deploy --only dataconnect`.
+3. Set `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` in `.env`.
 4. Set an AI provider key (`AI_PROVIDER`, `AI_PROVIDER_API_KEY`).
 5. For publishing, set `META_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`.
 

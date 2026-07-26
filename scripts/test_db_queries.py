@@ -1,7 +1,7 @@
 import os
 import psycopg
 
-db_url = "postgresql://postgres:6Kui6oesHRTBJtwv@db.ughladkskmwfgeadjhvt.supabase.co:5432/postgres"
+db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
 
 def main():
     print("Connecting to DB...")

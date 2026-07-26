@@ -1,2 +1,0 @@
--- Seed data for Agentic Marketing
--- Insert initial test products or configurations here if needed.

@@ -2,45 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  if (!supabase) {
-    return (
-      <div className="mx-auto max-w-md p-6 card border-rose-500/20 bg-rose-500/5 text-center space-y-4">
-        <div className="inline-flex items-center justify-center p-3 rounded-full bg-rose-500/10 text-rose-400">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <h1 className="text-xl font-bold text-rose-400">Configuration Error</h1>
-        <p className="text-xs text-muted leading-relaxed">
-          Supabase keys are missing. Please verify your workspace environment configuration variables. 
-          Make sure <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> are correctly defined in your environment.
-        </p>
-      </div>
-    );
-  }
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const fn =
-        mode === "signin"
-          ? supabase!.auth.signInWithPassword({ email, password })
-          : supabase!.auth.signUp({ email, password });
-      const { error } = await fn;
-      if (error) throw error;
+      const userCredential = mode === "signin"
+        ? await signInWithEmailAndPassword(auth, email, password)
+        : await createUserWithEmailAndPassword(auth, email, password);
+      
+      const idToken = await userCredential.user.getIdToken();
+
+      // Hit the middleware to set the cookie
+      await fetch("/api/login", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
       router.push("/products");
       router.refresh();
     } catch (err) {

@@ -1,55 +1,54 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
+import { NextRequest, NextResponse } from "next/server";
+import { authMiddleware, redirectToHome, redirectToLogin } from "next-firebase-auth-edge";
+import { clientConfig, serverConfig } from "@/lib/firebase/config";
+
+const PUBLIC_PATHS = ["/login"];
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request: { headers: request.headers } });
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return response;
-  }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: CookieOptions) {
-        response.cookies.set({ name, value: "", ...options });
-      },
+  return authMiddleware(request, {
+    loginPath: "/api/login",
+    logoutPath: "/api/logout",
+    apiKey: clientConfig.apiKey,
+    cookieName: "AuthToken",
+    cookieSignatureKeys: ["secret1", "secret2"],
+    cookieSerializeOptions: {
+      path: "/",
+      httpOnly: true,
+      secure: serverConfig.useSecureCookies,
+      sameSite: "lax" as const,
+      maxAge: 12 * 60 * 60 * 24,
+    },
+    serviceAccount: serverConfig.serviceAccount,
+    handleValidToken: async ({ token, decodedToken }, headers) => {
+      if (PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
+        return redirectToHome(request);
+      }
+      return NextResponse.next({
+        request: { headers },
+      });
+    },
+    handleInvalidToken: async (reason) => {
+      console.info("Missing or malformed credentials", { reason });
+      return redirectToLogin(request, {
+        path: "/login",
+        publicPaths: PUBLIC_PATHS,
+      });
+    },
+    handleError: async (error) => {
+      console.error("Unhandled authentication error", { error });
+      return redirectToLogin(request, {
+        path: "/login",
+        publicPaths: PUBLIC_PATHS,
+      });
     },
   });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const url = request.nextUrl.clone();
-  const isLoginPage = url.pathname === "/login";
-  const isApiRoute = url.pathname.startsWith("/api/");
-
-  if (!user) {
-    if (!isLoginPage) {
-      if (isApiRoute) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-  } else {
-    if (isLoginPage) {
-      url.pathname = "/products";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)"],
+  matcher: [
+    "/",
+    "/((?!_next|favicon.ico|api|.*\\.).*)",
+    "/api/login",
+    "/api/logout",
+  ],
 };
-

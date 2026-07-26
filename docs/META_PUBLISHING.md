@@ -99,7 +99,7 @@ Gotchas:
 - **Page Publishing Authorization (PPA):** some Pages require PPA + 2FA before
   publishing works. Finish the prompt in Page settings if you hit a PPA error.
 - **IG `image_url` must be public HTTPS.** Pollinations ✅. Demo-mode data URLs ❌.
-  For uploaded images, configure Supabase Storage (public bucket) first.
+  For uploaded images, configure Firebase Storage (public bucket) first.
 
 ## Setup — Tier 2 (Sandbox Ad Account, free)
 
@@ -199,7 +199,7 @@ const img = await fetch(`https://graph.facebook.com/${V}/${ACT}/adimages`, {
 ```
 
 Note: `image_hash` works for **ads** only. Organic IG requires a public
-`image_url` (no hash option) — that's why uploaded images need Supabase Storage.
+`image_url` (no hash option) — that's why uploaded images need Firebase Storage.
 
 ### Insights
 
@@ -265,7 +265,7 @@ Process:
 
 Do build/polish instead:
 - ✅ Tier 1 organic publishing on a real test Page
-- ✅ Supabase public Storage so uploaded images get public URLs (unblocks IG)
+- ✅ Firebase public Storage so uploaded images get public URLs (unblocks IG)
 - ✅ FB native scheduling (done) + a simple worker for IG scheduled posts
 - ✅ Organic post insights fetch (free; makes the feedback loop real)
 

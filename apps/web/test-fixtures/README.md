@@ -50,7 +50,7 @@ List all: `./print-client.sh`
 
 Requires `.env` with `META_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`.
 
-Use **glowroot** or **nexresume** with Pollinations creatives (public URLs). Uploaded fixture images in demo mode are data URLs and will **not** publish to Meta until Supabase storage is configured.
+Use **glowroot** or **nexresume** with Pollinations creatives (public URLs). Uploaded fixture images in demo mode are data URLs and will **not** publish to Meta until Firebase Storage is configured.
 
 ## File layout
 

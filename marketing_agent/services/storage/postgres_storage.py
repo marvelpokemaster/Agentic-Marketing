@@ -27,7 +27,7 @@ def get_engine():
     if _engine is None:
         settings = get_settings()
         db_url = settings.database_url
-        # Handle standard Pydantic/Supabase URL scheme
+        # Handle standard PostgreSQL URL scheme variants (Cloud SQL, etc.)
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
         elif db_url.startswith("postgresql://"):

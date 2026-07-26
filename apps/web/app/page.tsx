@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { firebaseConfig } from "@/lib/firebase/config";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
@@ -41,7 +41,7 @@ const steps = [
 ];
 
 export default async function HomePage() {
-  const supabase = isSupabaseConfigured();
+  const firebase = Boolean(firebaseConfig.projectId);
   const meta = await isMetaConfiguredOnBackend();
 
   return (
@@ -139,14 +139,14 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${supabase ? "border-primary/25" : "border-border"}`}>
+          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${firebase ? "border-primary/25" : "border-border"}`}>
             <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">Supabase Node</span>
+              <span className="text-xs font-semibold text-foreground block">Firebase Node</span>
               <span className="text-[10px] text-muted/70 block">Database campaign sync</span>
             </div>
-            <span className={`badge ${supabase ? "bg-primary/10 text-primary border-primary/20" : "badge-danger"} flex items-center gap-1.5`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${supabase ? "bg-primary animate-pulse" : "bg-rose-400"}`} />
-              {supabase ? "Connected" : "Offline"}
+            <span className={`badge ${firebase ? "bg-primary/10 text-primary border-primary/20" : "badge-danger"} flex items-center gap-1.5`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${firebase ? "bg-primary animate-pulse" : "bg-rose-400"}`} />
+              {firebase ? "Connected" : "Offline"}
             </span>
           </div>
 

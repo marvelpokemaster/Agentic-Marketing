@@ -1,0 +1,11 @@
+specVersion: "v1alpha"
+serviceId: "agentic-marketing"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "agentic_marketing_db"
+      cloudSql:
+        instanceId: "agentic-marketing-db"
+connectorDirs: ["./connector"]

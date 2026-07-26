@@ -73,12 +73,12 @@ List all clients: `./print-client.sh`
 
 Say upfront:
 
-> "This runs in demo mode — no Supabase or Meta keys needed. Products and
+> "This runs in demo mode — no Firebase or Meta keys needed. Products and
 > campaigns persist for this session. AI uses fallback copy if no API key;
 > creatives come from Pollinations (free)."
 
 On the home page, point at the status chips:
-- Supabase: demo mode
+- Database: demo mode
 - Meta publishing: not configured
 
 ## Main demo script (~8–10 min) — client: NexResume
@@ -217,7 +217,7 @@ Restart dev server (Ctrl+C → `npm run dev`).
 
 > "With Gemini, copy is LLM-generated. With Meta tokens, Publish now posts to the
 > Page/IG account. Pollinations creatives are public URLs and work for Meta;
-> uploaded images need Supabase storage for real publish."
+> uploaded images need Firebase Storage for real publish."
 
 See `docs/META_PUBLISHING.md` for the full free Meta setup.
 

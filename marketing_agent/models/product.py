@@ -6,7 +6,7 @@ class ProductModel(Base):
     __tablename__ = "products"
 
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    user_id = Column(String(28), nullable=False)
     name = Column(String, nullable=False)
     description = Column(String, nullable=False, default="")
     features = Column(JSON, nullable=False, default=list)

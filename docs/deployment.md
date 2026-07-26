@@ -3,32 +3,28 @@
 This document describes how to deploy the **Agentic Marketing Lead Engine** to production.
 
 ## Architecture Overview
-- **Frontend**: Next.js (Standalone build mode) deployed to **Vercel**.
-- **Backend**: FastAPI web app (Chromium/Playwright scraping layer) deployed to **Railway** (runs via Docker container).
-- **Database**: **Supabase** PostgreSQL database and PostgREST client API.
+- **Frontend**: Next.js (Standalone build mode) deployed to **Vercel** or **Firebase App Hosting**.
+- **Backend**: FastAPI web app (Chromium/Playwright scraping layer) deployed to **Cloud Run** or **Railway** (runs via Docker container).
+- **Database**: **Firebase Data Connect** + **Cloud SQL** PostgreSQL database.
 
 ---
 
-## 1. Database Setup (Supabase)
+## 1. Database Setup (Firebase Data Connect)
 
-### A. Apply the Database Schema
-Apply the authoritative schema file to your Supabase PostgreSQL instance:
-1. Open the [Supabase Dashboard](https://supabase.com).
-2. Go to the **SQL Editor** tab of your project.
-3. Open the file `supabase/schema.sql`.
-4. Copy the complete SQL statement and run it in the SQL Editor. This will create:
-   - `public.products` (Product metadata and branding configs)
-   - `public.campaigns` (Campaign details, platforms, and orchestrator inputs)
-   - `public.campaign_assets` (Generated images, ad copy, and social media media records)
+### A. Deploy the Data Connect Schema
+Apply the authoritative schema file to your Firebase project, which will provision the Cloud SQL instance automatically:
+1. Initialize a Firebase project if you haven't already (`firebase init`).
+2. Run `firebase deploy --only dataconnect`.
+3. This creates the underlying PostgreSQL database and compiles the queries in `dataconnect/connector/`.
 
 ### B. Create the Storage Bucket
-1. Open the Supabase Dashboard and navigate to the **Storage** tab.
-2. Create a new public bucket named `product-assets` (or whatever value you configure in `SUPABASE_STORAGE_BUCKET`).
-3. Ensure the bucket's access policies allow public reads (and authenticated/anonymous uploads depending on your auth scope).
+1. Open the Firebase Console and navigate to **Storage**.
+2. Initialize Firebase Storage.
+3. Deploy the storage security rules: `firebase deploy --only storage`.
 
 ---
 
-## 2. Backend Deployment (Railway)
+## 2. Backend Deployment (Railway or Cloud Run)
 
 The backend is configured to build automatically via Docker.
 
@@ -43,7 +39,9 @@ Configure the following variables in the Railway service settings:
 
 | Variable Name | Description | Example Value |
 |---|---|---|
-| `DATABASE_URL` | Supabase direct PostgreSQL connection string | `postgresql://postgres:[password]@db.ughladkskmwfgeadjhvt.supabase.co:5432/postgres` |
+| `DATABASE_URL` | Cloud SQL PostgreSQL connection string | `postgresql://postgres:[password]@[host]:5432/postgres` |
+| `FIREBASE_CLIENT_EMAIL` | Firebase Admin service account email | `firebase-adminsdk-...@...` |
+| `FIREBASE_PRIVATE_KEY` | Firebase Admin private key | `-----BEGIN PRIVATE KEY-----\n...` |
 | `AI_PROVIDER` | AI provider for ad-copy and marketing content generation | `gemini` (or `openai` / `anthropic`) |
 | `AI_PROVIDER_API_KEY` | API key for the AI provider | `AIzaSy...` (Gemini API key) |
 | `AI_MODEL` | AI Model override (Optional) | `gemini-2.5-flash` |
@@ -69,12 +67,11 @@ Configure these variables in Vercel project settings:
 
 | Variable Name | Description | Example Value |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project HTTP gateway URL | `https://ughladkskmwfgeadjhvt.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`| Supabase anon public API key | `sb_publishable_...` |
-| `DATABASE_URL` | Supabase direct connection string (shared with Next.js API) | `postgresql://postgres:[password]@db...` |
+| `DATABASE_URL` | Cloud SQL direct connection string (if using raw SQL) | `postgresql://postgres:[password]@[host]...` |
+| `FIREBASE_CLIENT_EMAIL` | Firebase Admin service account email | `firebase-adminsdk-...@...` |
+| `FIREBASE_PRIVATE_KEY` | Firebase Admin private key | `-----BEGIN PRIVATE KEY-----\n...` |
 | `BACKEND_API_URL` | Public HTTP URL of your deployed Railway Backend | `https://agentic-marketing-production.up.railway.app` |
 | `NEXT_PUBLIC_APP_URL` | Public HTTP URL of your Vercel Frontend app | `https://agentic-marketing.vercel.app` |
-| `SUPABASE_STORAGE_BUCKET` | Storage bucket name | `product-assets` |
 
 ---
 

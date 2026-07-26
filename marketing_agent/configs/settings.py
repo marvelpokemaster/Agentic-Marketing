@@ -37,11 +37,9 @@ class Settings(BaseSettings):
     meta_page_id: str = ""
     meta_ig_user_id: str = ""
 
-    # ── Supabase ─────────────────────────────────────────────────────────────────
-    next_public_supabase_url: str = ""
-    next_public_supabase_anon_key: str = ""
-    supabase_service_role_key: str = ""
-    supabase_storage_bucket: str = "product-assets"
+    # ── Firebase ─────────────────────────────────────────────────────────────────
+    firebase_client_email: str = ""
+    firebase_private_key: str = ""
 
     # ── Scrapers ─────────────────────────────────────────────────────────────────
     serpapi_api_key: str = ""

@@ -1,3 +1,6 @@
+import { getTokens } from "next-firebase-auth-edge";
+import { cookies } from "next/headers";
+import { authConfig } from "@/lib/auth";
 import type { WorkflowType } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
@@ -42,12 +45,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
+    const tokens = await getTokens(cookies(), authConfig);
+    const authHeaders = tokens ? { Authorization: `Bearer ${tokens.token}` } : {};
+
     const response = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
+        ...(tokens ? { Authorization: `Bearer ${tokens.token}` } : {}),
+        ...(options.headers as Record<string, string> || {}),
+      } as Record<string, string>,
       signal: controller.signal,
     });
 
