@@ -10,6 +10,7 @@ import type {
   CampaignConfig,
   CampaignResults,
 } from "@/lib/types";
+import "@/lib/firebase/client";
 import { Repo, NewCampaignInput } from "./repo";
 import { 
   listProducts, 
