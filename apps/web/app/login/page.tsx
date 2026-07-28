@@ -26,6 +26,7 @@ export default function LoginPage() {
 
       // Hit the middleware to set the cookie
       await fetch("/api/login", {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
