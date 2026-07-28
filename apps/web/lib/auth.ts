@@ -15,6 +15,15 @@ export const authConfig = {
  * Throws an error if the user is not authenticated.
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
+  // Demo mode fallback
+  if (!serverConfig.serviceAccount.privateKey) {
+    return {
+      id: "demo-user-123",
+      email: "demo@agentic-marketing.local",
+      user_metadata: {},
+    };
+  }
+
   const tokens = await getTokens(cookies(), authConfig);
 
   if (!tokens) {

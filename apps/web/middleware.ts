@@ -5,6 +5,11 @@ import { clientConfig, serverConfig } from "@/lib/firebase/config";
 const PUBLIC_PATHS = ["/login"];
 
 export async function middleware(request: NextRequest) {
+  // Demo mode fallback: if Firebase is not fully configured, bypass auth
+  if (!serverConfig.serviceAccount.privateKey) {
+    return NextResponse.next();
+  }
+
   return authMiddleware(request, {
     loginPath: "/api/login",
     logoutPath: "/api/logout",

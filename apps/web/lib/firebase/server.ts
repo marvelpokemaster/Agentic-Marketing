@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { firebaseConfig } from "./config";
 import { authConfig } from "@/lib/auth";
 import { connectorConfig } from "@/lib/dataconnect";
+import { serverConfig } from "@/lib/firebase/config";
 
 /**
  * Creates a request-scoped, authenticated DataConnect instance for use in
@@ -19,6 +20,11 @@ import { connectorConfig } from "@/lib/dataconnect";
  * Returns `null` if no valid authentication tokens are found in cookies.
  */
 export async function getAuthenticatedDataConnect(): Promise<DataConnect | null> {
+  // Demo mode fallback
+  if (!serverConfig.serviceAccount.privateKey) {
+    return null;
+  }
+
   const tokens = await getTokens(cookies(), authConfig);
 
   if (!tokens) {
