@@ -64,13 +64,18 @@ class ResearchCapability(Capability):
         )
 
         collected: list[Lead] = []
+        errors = []
         for s, res in zip(scrapers, results):
             if isinstance(res, (Exception, BaseException)):
                 msg = f"[pipeline] {s.name} error: {res}"
                 state.add_log(msg)
                 logger.error(msg)
+                errors.append(msg)
             elif isinstance(res, list):
                 collected.extend(res)
+
+        if not collected and errors:
+            raise Exception(f"All scrapers failed: {'; '.join(errors)}")
 
         # 4. Deduplicate collected leads
         state.leads = deduplicate(collected)

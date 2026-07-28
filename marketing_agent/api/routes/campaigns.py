@@ -117,6 +117,11 @@ async def run_research_task(campaign_id: str):
             target_audience=target_audience
         )
 
+        # Validate that research actually succeeded
+        if not report["metadata"]["completed_providers"]:
+            failed = report["metadata"]["failed_providers"]
+            raise Exception(f"All research providers failed: {', '.join(failed)}")
+
         # Store research results
         results = {
             "research_report": report
