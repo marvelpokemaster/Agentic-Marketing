@@ -90,9 +90,67 @@ export type CampaignConfig =
   | { workflow: "organic_campaign" | "content_only"; data: { platforms: Platform[]; instructions?: string; image_mode?: string } }
   | { workflow: "lead_generation"; data: { location: string; target_audience?: string; scrapers?: string[]; instructions?: string } };
 
+export interface BaseEntity {
+  confidence?: number | null;
+  provider?: string | null;
+  source_url?: string | null;
+}
+
+export interface CompetitorResult extends BaseEntity {
+  name: string;
+  domain?: string | null;
+  similarity_score?: number | null;
+}
+
+export interface TrendResult extends BaseEntity {
+  keyword: string;
+  volume?: number | null;
+  region?: string | null;
+}
+
+export interface AudienceResult extends BaseEntity {
+  segment: string;
+  size?: number | null;
+}
+
+export interface NewsResult extends BaseEntity {
+  title: string;
+  url: string;
+  source: string;
+  published_at?: string | null;
+}
+
+export interface TechnologyResult extends BaseEntity {
+  name: string;
+  category?: string | null;
+  maturity?: string | null;
+}
+
+export interface ResearchMetadata {
+  completed_providers: string[];
+  failed_providers: string[];
+  partial_providers: string[];
+  execution_time: number;
+  generated_at?: string;
+  schema_version?: string;
+}
+
+export interface ResearchIntelligence {
+  competitors: CompetitorResult[];
+  audience: AudienceResult[];
+  trends: TrendResult[];
+  news: NewsResult[];
+  technologies: TechnologyResult[];
+}
+
+export interface ResearchReport {
+  metadata: ResearchMetadata;
+  intelligence: ResearchIntelligence;
+}
+
 export type CampaignResults =
   | { workflow: "organic_campaign" | "content_only"; assets: CampaignAsset[] }
-  | { workflow: "lead_generation"; leads: Lead[]; research_report?: any };
+  | { workflow: "lead_generation"; leads: Lead[]; research_report?: ResearchReport };
 
 export interface Campaign {
   id: string;
@@ -112,7 +170,7 @@ export interface Campaign {
   assets: CampaignAsset[];
 
   // Phase 2 Demo Fields
-  research_report?: any;
+  research_report?: ResearchReport;
 }
 
 export interface CurrentUser {

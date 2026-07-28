@@ -5,6 +5,11 @@ import {
   PLATFORM_LABELS,
   type Campaign,
   type CampaignAsset,
+  type CompetitorResult,
+  type AudienceResult,
+  type NewsResult,
+  type TrendResult,
+  type TechnologyResult,
 } from "@/lib/types";
 
 export function CampaignDashboard({
@@ -60,7 +65,17 @@ export function CampaignDashboard({
     setTriggeringResearch(false);
   };
   
-  const researchReport = (campaign.results as any)?.research_report;
+  const researchReport = campaign.results.workflow === "lead_generation" ? campaign.results.research_report : campaign.research_report;
+
+  const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
+    if (!url) return null;
+    const href = url.startsWith('http') ? url : `https://${url}`;
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline block mb-2 break-all line-clamp-1">
+        {label === "View Source" ? label : url}
+      </a>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -97,35 +112,157 @@ export function CampaignDashboard({
              </div>
            )}
            {researchReport && campaign.status !== "researching" && (
-             <div className="grid gap-6 md:grid-cols-2">
+             <div className="space-y-8">
+                {/* Metadata Section */}
+                {researchReport.metadata && (
+                  <div className="card space-y-3">
+                    <h3 className="font-bold text-primary">Research Metadata</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted">Generated At</p>
+                        <p className="font-medium">{researchReport.metadata.generated_at ? new Date(researchReport.metadata.generated_at).toLocaleString() : 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted">Execution Time</p>
+                        <p className="font-medium">{researchReport.metadata.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted">Providers Used</p>
+                        <p className="font-medium">{researchReport.metadata.completed_providers?.length ? researchReport.metadata.completed_providers.join(", ") : 'None'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted">Failed Providers</p>
+                        <p className="font-medium text-destructive">{researchReport.metadata.failed_providers?.length ? researchReport.metadata.failed_providers.join(", ") : 'None'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Competitors Section */}
                 <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Overview</h3>
-                   <p className="text-sm text-foreground/80 leading-relaxed">{researchReport.overview || "No overview available."}</p>
-                </div>
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Target Audience</h3>
-                   <p className="text-sm text-foreground/80 leading-relaxed">{researchReport.target_audience || "No target audience defined."}</p>
-                </div>
-                <div className="card space-y-3 col-span-1 md:col-span-2">
-                   <h3 className="font-bold text-primary">Competitor Analysis</h3>
-                   {researchReport.competitors && researchReport.competitors.length > 0 ? (
+                   <h3 className="font-bold text-primary">Competitors</h3>
+                   {researchReport.intelligence?.competitors?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-3">
-                       {researchReport.competitors.map((c: any, i: number) => (
+                       {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
                          <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
                            <h4 className="font-semibold text-sm mb-1">{c.name}</h4>
-                           <p className="text-xs text-muted mb-2">{c.description}</p>
-                           <p className="text-[11px] text-primary/80"><span className="font-bold">Weakness:</span> {c.weakness}</p>
+                           {renderExternalLink(c.domain, "URL")}
+                           {c.similarity_score != null && <p className="text-xs text-muted">Similarity: {c.similarity_score}</p>}
+                           {c.confidence != null && <p className="text-[11px] text-muted">Confidence: {c.confidence}</p>}
+                           {c.provider && <p className="text-[11px] text-muted">Source: {c.provider}</p>}
+                           {renderExternalLink(c.source_url, "View Source")}
                          </div>
                        ))}
                      </div>
                    ) : (
-                     <p className="text-sm text-foreground/80">No competitor analysis available.</p>
+                     <p className="text-sm text-foreground/80">No competitors found.</p>
                    )}
                 </div>
-                <div className="card space-y-3 col-span-1 md:col-span-2">
-                   <h3 className="font-bold text-primary">Strategic Angle</h3>
-                   <p className="text-sm text-foreground/80 leading-relaxed">{researchReport.strategic_angle || "No strategy provided."}</p>
+
+                {/* Audience Section */}
+                <div className="card space-y-3">
+                   <h3 className="font-bold text-primary">Target Audience</h3>
+                   {researchReport.intelligence?.audience?.length > 0 ? (
+                     <div className="grid gap-4 md:grid-cols-3">
+                       {researchReport.intelligence.audience.map((a: AudienceResult, i: number) => (
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
+                           <h4 className="font-semibold text-sm mb-1">{a.segment}</h4>
+                           {a.size != null && <p className="text-xs text-muted">Size: {a.size}</p>}
+                           {a.confidence != null && <p className="text-[11px] text-muted">Confidence: {a.confidence}</p>}
+                           {a.provider && <p className="text-[11px] text-muted">Source: {a.provider}</p>}
+                           {renderExternalLink(a.source_url, "View Source")}
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-foreground/80">No audience segments found.</p>
+                   )}
                 </div>
+
+                {/* News Section */}
+                <div className="card space-y-3">
+                   <h3 className="font-bold text-primary">Recent News</h3>
+                   {researchReport.intelligence?.news?.length > 0 ? (
+                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                       {researchReport.intelligence.news.map((n: NewsResult, i: number) => (
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
+                           <h4 className="font-semibold text-sm mb-1">{n.title}</h4>
+                           <p className="text-xs text-muted mb-2">{n.source} {n.published_at ? `• ${n.published_at}` : ''}</p>
+                           {renderExternalLink(n.url, "Read Article")}
+                           {n.confidence != null && <p className="text-[11px] text-muted mt-2">Confidence: {n.confidence}</p>}
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-foreground/80">No recent news found.</p>
+                   )}
+                </div>
+
+                {/* Trends Section */}
+                <div className="card space-y-3">
+                   <h3 className="font-bold text-primary">Trends</h3>
+                   {researchReport.intelligence?.trends?.length > 0 ? (
+                     <div className="grid gap-4 md:grid-cols-3">
+                       {researchReport.intelligence.trends.map((t: TrendResult, i: number) => (
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
+                           <h4 className="font-semibold text-sm mb-1">{t.keyword}</h4>
+                           {t.volume != null && <p className="text-xs text-muted">Volume: {t.volume}</p>}
+                           {t.region && <p className="text-xs text-muted">Region: {t.region}</p>}
+                           {t.confidence != null && <p className="text-[11px] text-muted">Confidence: {t.confidence}</p>}
+                           {t.provider && <p className="text-[11px] text-muted">Source: {t.provider}</p>}
+                           {renderExternalLink(t.source_url, "View Source")}
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-foreground/80">No trends found.</p>
+                   )}
+                </div>
+
+                {/* Technologies Section */}
+                <div className="card space-y-3">
+                   <h3 className="font-bold text-primary">Technologies</h3>
+                   {researchReport.intelligence?.technologies?.length > 0 ? (
+                     <div className="grid gap-4 md:grid-cols-3">
+                       {researchReport.intelligence.technologies.map((tech: TechnologyResult, i: number) => (
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
+                           <h4 className="font-semibold text-sm mb-1">{tech.name}</h4>
+                           {tech.category && <p className="text-xs text-muted">Category: {tech.category}</p>}
+                           {tech.maturity && <p className="text-xs text-muted">Maturity: {tech.maturity}</p>}
+                           {tech.confidence != null && <p className="text-[11px] text-muted">Confidence: {tech.confidence}</p>}
+                           {tech.provider && <p className="text-[11px] text-muted">Source: {tech.provider}</p>}
+                           {renderExternalLink(tech.source_url, "View Source")}
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-foreground/80">No technologies found.</p>
+                   )}
+                </div>
+                
+                {/* Fallback for Summary when added */}
+                {(researchReport as any).summary && (
+                  <div className="grid gap-6 md:grid-cols-2 mt-8">
+                    {(researchReport as any).summary.overview && (
+                      <div className="card space-y-3">
+                         <h3 className="font-bold text-primary">Overview</h3>
+                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.overview}</p>
+                      </div>
+                    )}
+                    {(researchReport as any).summary.target_audience && (
+                      <div className="card space-y-3">
+                         <h3 className="font-bold text-primary">Synthesized Target Audience</h3>
+                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.target_audience}</p>
+                      </div>
+                    )}
+                    {(researchReport as any).summary.strategic_angle && (
+                      <div className="card space-y-3 col-span-1 md:col-span-2">
+                         <h3 className="font-bold text-primary">Strategic Angle</h3>
+                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.strategic_angle}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
              </div>
            )}
          </div>
