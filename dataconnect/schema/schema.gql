@@ -1,4 +1,4 @@
-type Product @table {
+type Product @table(name: "products") {
   id: UUID! @default(expr: "uuidV4()")
   userId: String! @col(name: "user_id")
   name: String!
@@ -11,7 +11,7 @@ type Product @table {
   createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
 }
 
-type Campaign @table {
+type Campaign @table(name: "campaigns") {
   id: UUID! @default(expr: "uuidV4()")
   userId: String! @col(name: "user_id")
   product: Product!
