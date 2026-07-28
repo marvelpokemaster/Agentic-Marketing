@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { backendClient } from "@/lib/backend";
 
 export async function POST(
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const user = await getCurrentUser();
-    const repo = getRepo();
+    const repo = await getServerRepo();
     const campaignId = params.id;
     
     // Check if campaign exists

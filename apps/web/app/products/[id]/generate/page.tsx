@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { GenerateForm } from "@/components/GenerateForm";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,8 @@ export default async function GenerateCampaignPage({
   params: { id: string };
 }) {
   const user = await getCurrentUser();
-  const product = await getRepo().getProduct(user.id, params.id);
+  const repo = await getServerRepo();
+  const product = await repo.getProduct(user.id, params.id);
   if (!product) notFound();
 
   return (

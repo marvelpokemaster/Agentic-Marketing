@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import type { CampaignAsset } from "@/lib/types";
 
 export async function PATCH(
@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   try {
     const user = await getCurrentUser();
-    const repo = getRepo();
+    const repo = await getServerRepo();
 
     const campaign = await repo.getCampaign(user.id, params.id);
     if (!campaign) {

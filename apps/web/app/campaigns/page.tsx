@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { PLATFORM_LABELS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,8 @@ const STATUS_BADGES: Record<string, string> = {
 
 export default async function CampaignsPage() {
   const user = await getCurrentUser();
-  const campaigns = await getRepo().listCampaigns(user.id);
+  const repo = await getServerRepo();
+  const campaigns = await repo.listCampaigns(user.id);
 
   return (
     <div className="space-y-8">

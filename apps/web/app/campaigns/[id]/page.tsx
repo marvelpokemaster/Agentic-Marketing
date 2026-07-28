@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { CampaignDashboard } from "@/components/CampaignDashboard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -29,7 +29,8 @@ export default async function CampaignPage({
   params: { id: string };
 }) {
   const user = await getCurrentUser();
-  const campaign = await getRepo().getCampaign(user.id, params.id);
+  const repo = await getServerRepo();
+  const campaign = await repo.getCampaign(user.id, params.id);
   if (!campaign) notFound();
 
   const metaConfigured = await isMetaConfiguredOnBackend();

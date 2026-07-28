@@ -54,3 +54,23 @@ export function getRepo(): Repo {
   return cached;
 }
 
+/**
+ * Create a request-scoped, authenticated `Repo` for use in Next.js
+ * Server Components and API Route Handlers.
+ *
+ * This factory reads the user's Firebase ID token from the request
+ * cookies (via `next-firebase-auth-edge`), creates a request-scoped
+ * `FirebaseServerApp`, and injects the resulting `DataConnect` instance
+ * into `FdcRepo`. The returned repo carries the user's authentication
+ * context so Data Connect queries with `@auth(level: USER)` succeed
+ * during SSR.
+ *
+ * Falls back to an unauthenticated `FdcRepo` if no valid tokens are
+ * found in cookies (same behavior as `getRepo()`).
+ */
+export async function getServerRepo(): Promise<Repo> {
+  const { getAuthenticatedDataConnect } = await import("@/lib/firebase/server");
+  const dc = await getAuthenticatedDataConnect();
+  return new FdcRepo(dc ?? undefined);
+}
+

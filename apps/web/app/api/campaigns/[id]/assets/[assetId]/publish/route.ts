@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import type { AssetStatus, CampaignStatus } from "@/lib/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
@@ -10,7 +10,7 @@ export async function POST(
   { params }: { params: { id: string; assetId: string } },
 ) {
   const user = await getCurrentUser();
-  const repo = getRepo();
+  const repo = await getServerRepo();
 
   const campaign = await repo.getCampaign(user.id, params.id);
   if (!campaign) {

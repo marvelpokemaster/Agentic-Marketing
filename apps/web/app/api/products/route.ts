@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { uploadAsset, uploadAssets } from "@/lib/storage/upload";
 
 export async function GET() {
   const user = await getCurrentUser();
-  const products = await getRepo().listProducts(user.id);
+  const repo = await getServerRepo();
+  const products = await repo.listProducts(user.id);
   return NextResponse.json({ products });
 }
 
@@ -38,7 +39,8 @@ export async function POST(request: Request) {
       .filter((f): f is File => f instanceof File && f.size > 0);
     const image_urls = await uploadAssets(imageFiles, user.id);
 
-    const product = await getRepo().createProduct(user.id, {
+    const repo = await getServerRepo();
+    const product = await repo.createProduct(user.id, {
       name,
       description,
       features,

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
   const user = await getCurrentUser();
-  const products = await getRepo().listProducts(user.id);
+  const repo = await getServerRepo();
+  const products = await repo.listProducts(user.id);
 
   return (
     <div className="space-y-8">

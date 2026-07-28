@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getRepo } from "@/lib/db/repo";
+import { getServerRepo } from "@/lib/db/repo";
 import { generateCampaignContent } from "@/lib/ai/campaign";
 import { generateCreative } from "@/lib/creative/generate";
 import { ALL_PLATFORMS, type CampaignAsset, type Platform, type WorkflowType } from "@/lib/types";
@@ -8,7 +8,8 @@ import { backendClient } from "@/lib/backend";
 
 export async function GET() {
   const user = await getCurrentUser();
-  const campaigns = await getRepo().listCampaigns(user.id);
+  const repo = await getServerRepo();
+  const campaigns = await repo.listCampaigns(user.id);
   return NextResponse.json({ campaigns });
 }
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "product_id is required." }, { status: 400 });
     }
 
-    const repo = getRepo();
+    const repo = await getServerRepo();
     const product = await repo.getProduct(user.id, productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
