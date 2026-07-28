@@ -1,16 +1,7 @@
 from enum import Enum
-from datetime import datetime
-from typing import Optional, List, Dict, Any, TYPE_CHECKING
+from datetime import datetime, timezone
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
-
-from sqlalchemy import Column, String, JSON, DateTime, func, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
-
-from marketing_agent.services.storage.postgres_storage import Base
-
-if TYPE_CHECKING:
-    from marketing_agent.models.product import ProductModel
 
 
 class CampaignStatus(str, Enum):
@@ -20,21 +11,7 @@ class CampaignStatus(str, Enum):
     RUNNING = "running"
     FAILED = "failed"
 
-class CampaignModel(Base):
-    __tablename__ = "campaigns"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id = Column(String(28), nullable=False)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
-    product_name = Column(String, nullable=False, default="")
-    platforms = Column(JSON, nullable=False, default=list)
-    status = Column(String, nullable=False, default="draft")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    workflow = Column(String, nullable=False, default="organic_campaign")
-    config = Column(JSON, nullable=False, default=dict)
-    results = Column(JSON, nullable=False, default=dict)
-
-    product = relationship("ProductModel", backref="campaigns")
 
 class CampaignResponse(BaseModel):
     campaign_id: str
@@ -58,30 +35,39 @@ class CampaignResponse(BaseModel):
     log: List[str] = []
 
     @classmethod
-    def from_orm_model(cls, campaign: CampaignModel) -> "CampaignResponse":
-        config_data = campaign.config.get("data", {}) if campaign.config else {}
-        results_data = campaign.results if campaign.results else {}
+    def from_firestore_doc(cls, campaign: Dict[str, Any], product: Optional[Dict[str, Any]] = None) -> "CampaignResponse":
+        config_data = campaign.get("config", {}).get("data", {}) if campaign.get("config") else {}
+        results_data = campaign.get("results", {}) if campaign.get("results") else {}
         
         product_desc = ""
         product_ind = ""
         product_target = None
-        if campaign.product:
-            product_desc = campaign.product.description or ""
-            product_ind = campaign.product.industry or ""
-            product_target = campaign.product.target_audience
+        if product:
+            product_desc = product.get("description", "")
+            product_ind = product.get("industry", "")
+            product_target = product.get("target_audience")
             
         target_audience = config_data.get("target_audience") or product_target
         
+        created_at = campaign.get("created_at")
+        if isinstance(created_at, str):
+            try:
+                created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except:
+                created_at = datetime.now(timezone.utc)
+        elif not created_at:
+            created_at = datetime.now(timezone.utc)
+
         return cls(
-            campaign_id=str(campaign.id),
-            workflow_name=campaign.workflow,
-            created_at=campaign.created_at,
-            product_name=campaign.product_name or (campaign.product.name if campaign.product else ""),
+            campaign_id=campaign.get("id", ""),
+            workflow_name=campaign.get("workflow", ""),
+            created_at=created_at,
+            product_name=campaign.get("product_name") or (product.get("name") if product else ""),
             product_description=product_desc,
             target_audience=target_audience,
             industry=product_ind,
             location=config_data.get("location"),
-            platforms=campaign.platforms or [],
+            platforms=campaign.get("platforms", []),
             scrapers=config_data.get("scrapers", []),
             image_mode=config_data.get("image_mode", "none"),
             instructions=config_data.get("instructions", ""),
@@ -89,7 +75,7 @@ class CampaignResponse(BaseModel):
             assets=results_data.get("assets", []),
             research_summary=results_data.get("research_summary"),
             research_report=results_data.get("research_report"),
-            status=campaign.status,
+            status=campaign.get("status", "draft"),
             errors=results_data.get("errors", []),
             log=results_data.get("log", []),
         )

@@ -1,5 +1,0 @@
-connectorId: "default"
-generate:
-  javascriptSdk:
-    outputDir: "../../apps/web/lib/dataconnect"
-    package: "@agentic-marketing/dataconnect"

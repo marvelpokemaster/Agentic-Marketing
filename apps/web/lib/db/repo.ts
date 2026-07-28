@@ -9,7 +9,7 @@ import type {
   CampaignConfig,
   CampaignResults,
 } from "@/lib/types";
-import { FdcRepo } from "./fdc-repo";
+import { FirestoreRepo } from "./firestore-repo";
 
 export interface NewCampaignInput {
   product: Product;
@@ -50,27 +50,21 @@ let cached: Repo | null = null;
 
 export function getRepo(): Repo {
   if (cached) return cached;
-  cached = new FdcRepo();
+  cached = new FirestoreRepo();
   return cached;
 }
 
 /**
- * Create a request-scoped, authenticated `Repo` for use in Next.js
- * Server Components and API Route Handlers.
- *
- * This factory reads the user's Firebase ID token from the request
- * cookies (via `next-firebase-auth-edge`), creates a request-scoped
- * `FirebaseServerApp`, and injects the resulting `DataConnect` instance
- * into `FdcRepo`. The returned repo carries the user's authentication
- * context so Data Connect queries with `@auth(level: USER)` succeed
- * during SSR.
- *
- * Falls back to an unauthenticated `FdcRepo` if no valid tokens are
- * found in cookies (same behavior as `getRepo()`).
+ * Create a request-scoped `Repo` for use in Next.js Server Components.
+ * For Firestore, the standard client SDK handles caching and offline
+ * automatically, and since we enforce Row Level Security via rules,
+ * we can rely on standard auth state.
  */
 export async function getServerRepo(): Promise<Repo> {
-  const { getAuthenticatedDataConnect } = await import("@/lib/firebase/server");
-  const dc = await getAuthenticatedDataConnect();
-  return new FdcRepo(dc ?? undefined);
+  const { getAuthenticatedApp } = await import("@/lib/firebase/server");
+  const { getFirestore } = await import("firebase/firestore");
+  const app = await getAuthenticatedApp();
+  const db = getFirestore(app);
+  return new FirestoreRepo(db);
 }
 

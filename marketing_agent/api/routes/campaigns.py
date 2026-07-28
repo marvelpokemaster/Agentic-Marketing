@@ -6,13 +6,12 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from google.cloud.firestore_v1.client import Client
 
 from marketing_agent.api.dependencies import get_orchestrator, get_db
 from marketing_agent.api.auth import get_current_user
 from marketing_agent.orchestrator import MarketingOrchestrator
 from marketing_agent.state import CampaignState
-from marketing_agent.services.storage.postgres_storage import get_session
 from marketing_agent.services.storage.campaign_repository import CampaignRepository
 from marketing_agent.models import CampaignResponse, CampaignStatus
 
@@ -102,12 +101,12 @@ async def run_research_task(campaign_id: str):
             return
 
         # Build ResearchContext directly from the campaign and product relation
-        product = campaign.product
-        product_name = campaign.product_name or (product.name if product else "")
-        product_description = product.description if product else ""
+        product = repo.get_product(campaign.get("product_id"))
+        product_name = campaign.get("product_name") or (product.get("name") if product else "")
+        product_description = product.get("description") if product else ""
         
-        config_data = campaign.config.get("data", {}) if campaign.config else {}
-        target_audience = config_data.get("target_audience") or (product.target_audience if product else "General audience")
+        config_data = campaign.get("config", {}).get("data", {}) if campaign.get("config") else {}
+        target_audience = config_data.get("target_audience") or (product.get("target_audience") if product else "General audience")
 
         logger.info(f"Running SerpAPI research for campaign {campaign_id} ({product_name})")
 
@@ -130,8 +129,6 @@ async def run_research_task(campaign_id: str):
         repo.update_campaign(campaign_id, status=CampaignStatus.FAILED)
         # Store error in results JSON
         repo.save_results(campaign_id, {"errors": [str(e)]})
-    finally:
-        db.close()
 
 
 async def run_campaign_workflow_task(
@@ -139,7 +136,8 @@ async def run_campaign_workflow_task(
     state: CampaignState,
     orchestrator: MarketingOrchestrator,
 ):
-    db = get_session()
+    from firebase_admin import firestore
+    db = firestore.client()
     repo = CampaignRepository(db)
     try:
         result = await orchestrator.run(state.workflow_name, state)
@@ -153,8 +151,6 @@ async def run_campaign_workflow_task(
         state.fail(f"Unhandled error during execution: {str(exc)}")
         repo.save_results(campaign_id, state.model_dump(mode="json"))
         repo.update_campaign(campaign_id, status=CampaignStatus.FAILED)
-    finally:
-        db.close()
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -162,7 +158,7 @@ async def run_campaign_workflow_task(
 @router.post("", response_model=CampaignResponse, status_code=201)
 async def create_campaign(
     body: CreateCampaignRequest,
-    db: Session = Depends(get_db),
+    db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Create or register a persistent campaign and store workflow and config parameters."""
@@ -173,7 +169,7 @@ async def create_campaign(
             status_code=404,
             detail=f"Campaign {body.id} not found in the database. Please create it via the frontend first."
         )
-    if campaign.user_id != uid:
+    if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to modify this campaign")
 
     # Update config and status to draft
@@ -183,13 +179,14 @@ async def create_campaign(
         config=body.config,
         status=CampaignStatus.DRAFT
     )
-    return CampaignResponse.from_orm_model(campaign)
+    product = repo.get_product(campaign.get("product_id"))
+    return CampaignResponse.from_firestore_doc(campaign, product)
 
 
 @router.get("/{campaign_id}", response_model=CampaignResponse)
 async def get_campaign(
     campaign_id: str,
-    db: Session = Depends(get_db),
+    db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Retrieve metadata, config, status, and results for a campaign."""
@@ -197,16 +194,17 @@ async def get_campaign(
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    if campaign.user_id != uid:
+    if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to access this campaign")
-    return CampaignResponse.from_orm_model(campaign)
+    product = repo.get_product(campaign.get("product_id"))
+    return CampaignResponse.from_firestore_doc(campaign, product)
 
 
 @router.patch("/{campaign_id}", response_model=CampaignResponse)
 async def update_campaign(
     campaign_id: str,
     body: UpdateCampaignRequest,
-    db: Session = Depends(get_db),
+    db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Update campaign metadata and configuration."""
@@ -214,7 +212,7 @@ async def update_campaign(
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    if campaign.user_id != uid:
+    if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to modify this campaign")
 
     update_data = {}
@@ -224,12 +222,13 @@ async def update_campaign(
         update_data["workflow"] = body.workflow
     if body.config is not None:
         # Merge config
-        current_config = dict(campaign.config) if campaign.config else {}
+        current_config = dict(campaign.get("config", {})) if campaign.get("config") else {}
         current_config.update(body.config)
         update_data["config"] = current_config
 
     campaign = repo.update_campaign(campaign_id, **update_data)
-    return CampaignResponse.from_orm_model(campaign)
+    product = repo.get_product(campaign.get("product_id"))
+    return CampaignResponse.from_firestore_doc(campaign, product)
 
 
 @router.post("/{campaign_id}/run", response_model=CampaignResponse)
@@ -237,7 +236,7 @@ async def run_campaign(
     campaign_id: str,
     background_tasks: BackgroundTasks,
     orchestrator: MarketingOrchestrator = Depends(get_orchestrator),
-    db: Session = Depends(get_db),
+    db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Execute the configured campaign workflow using stored inputs."""
@@ -245,17 +244,17 @@ async def run_campaign(
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    if campaign.user_id != uid:
+    if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to run this campaign")
 
     state = CampaignState(
         campaign_id=campaign_id,
-        workflow_name=campaign.workflow or "default",
+        workflow_name=campaign.get("workflow") or "default",
         status="running",
-        product_name=campaign.product_name or "",
+        product_name=campaign.get("product_name") or "",
     )
     
-    config_data = campaign.config.get("data", {}) if campaign.config else {}
+    config_data = campaign.get("config", {}).get("data", {}) if campaign.get("config") else {}
     if config_data:
         map_config_to_state(state, config_data)
         
@@ -264,14 +263,15 @@ async def run_campaign(
     campaign = repo.update_campaign(campaign_id, status=CampaignStatus.RUNNING)
     background_tasks.add_task(run_campaign_workflow_task, campaign_id, state, orchestrator)
     
-    return CampaignResponse.from_orm_model(campaign)
+    product = repo.get_product(campaign.get("product_id"))
+    return CampaignResponse.from_firestore_doc(campaign, product)
 
 
 @router.post("/{campaign_id}/research", response_model=CampaignResponse)
 async def run_campaign_research(
     campaign_id: str,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
+    db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
     """Trigger the research phase for a campaign in the background."""
@@ -279,10 +279,11 @@ async def run_campaign_research(
     campaign = repo.get_campaign(campaign_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    if campaign.user_id != uid:
+    if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to research this campaign")
         
     repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHING)
     background_tasks.add_task(run_research_task, campaign_id)
     
-    return CampaignResponse.from_orm_model(campaign)
+    product = repo.get_product(campaign.get("product_id"))
+    return CampaignResponse.from_firestore_doc(campaign, product)

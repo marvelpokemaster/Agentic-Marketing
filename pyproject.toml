@@ -22,9 +22,7 @@ dependencies = [
     "playwright>=1.44",
     "requests>=2.32",
     # Database
-    "sqlalchemy>=2.0",
-    "psycopg>=3.0",
-    "psycopg-binary>=3.0",
+
     # Auth
     "firebase-admin>=6.5.0",
 ]

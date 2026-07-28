@@ -6,10 +6,7 @@ import time
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
-
-from marketing_agent.services.storage.postgres_storage import get_engine
+from firebase_admin import firestore
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["health"])
@@ -30,11 +27,11 @@ async def health_db() -> JSONResponse:
     """Check database connectivity and measure latency."""
     start_time = time.perf_counter()
     try:
-        engine = get_engine()
+        db = firestore.client()
 
         def check_conn():
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
+            # Perform a simple read to check connectivity
+            db.collection("health_check").limit(1).get()
 
         # Run connection check in a threadpool to keep FastAPI async event loop non-blocking
         await asyncio.to_thread(check_conn)
@@ -46,21 +43,11 @@ async def health_db() -> JSONResponse:
             content={
                 "status": "ok",
                 "database": "connected",
-                "provider": "postgres",
+                "provider": "firestore",
                 "latency_ms": latency_ms
             }
         )
-    except (OperationalError, SQLAlchemyError) as e:
-        error_msg = str(e)
-        logger.error(f"Database health check: FAILED (SQLAlchemy/OperationalError): {error_msg}")
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "error",
-                "database": "unreachable",
-                "error": error_msg
-            }
-        )
+
     except Exception as e:
         error_msg = str(e)
         logger.error(f"Database health check: FAILED (Unexpected error): {error_msg}")
