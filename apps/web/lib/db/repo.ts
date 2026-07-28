@@ -55,16 +55,16 @@ export function getRepo(): Repo {
 }
 
 /**
- * Create a request-scoped `Repo` for use in Next.js Server Components.
- * For Firestore, the standard client SDK handles caching and offline
- * automatically, and since we enforce Row Level Security via rules,
- * we can rely on standard auth state.
+ * Create a request-scoped `Repo` for use in Next.js Server Components and API Routes.
+ * This uses the Firebase Admin SDK to ensure writes do not hang in Node.js environments.
  */
 export async function getServerRepo(): Promise<Repo> {
-  const { getAuthenticatedApp } = await import("@/lib/firebase/server");
-  const { getFirestore } = await import("firebase/firestore");
-  const app = await getAuthenticatedApp();
+  const { getFirebaseAdminApp } = await import("@/lib/firebase/admin");
+  const { getFirestore } = await import("firebase-admin/firestore");
+  const { AdminFirestoreRepo } = await import("./admin-firestore-repo");
+  
+  const app = getFirebaseAdminApp();
+  // Using the named database 'marketing'
   const db = getFirestore(app, "marketing");
-  return new FirestoreRepo(db);
+  return new AdminFirestoreRepo(db);
 }
-
