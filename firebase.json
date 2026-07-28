@@ -2,7 +2,14 @@
   "storage": {
     "rules": "storage.rules"
   },
-  "firestore": {
-    "rules": "firestore.rules"
-  }
+  "firestore": [
+    {
+      "database": "(default)",
+      "rules": "firestore.rules"
+    },
+    {
+      "database": "marketing",
+      "rules": "firestore.rules"
+    }
+  ]
 }
