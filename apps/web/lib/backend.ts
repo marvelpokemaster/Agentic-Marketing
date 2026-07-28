@@ -164,8 +164,9 @@ export const backendClient = {
   /**
    * Trigger research phase for a campaign in the backend.
    */
-  async runCampaignResearch(id: string): Promise<BackendCampaignState> {
-    return request<BackendCampaignState>(`/campaigns/${id}/research`, {
+  async runCampaignResearch(id: string, forceRefresh: boolean = false): Promise<BackendCampaignState> {
+    const url = `/campaigns/${id}/research` + (forceRefresh ? "?force_refresh=true" : "");
+    return request<BackendCampaignState>(url, {
       method: "POST",
     });
   },

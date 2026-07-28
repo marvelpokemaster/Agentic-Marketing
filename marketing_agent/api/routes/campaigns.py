@@ -3,6 +3,7 @@
 import logging
 from typing import Optional, Any
 import asyncio
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
@@ -127,7 +128,11 @@ async def run_research_task(campaign_id: str):
             "research_report": report
         }
         repo.save_results(campaign_id, results)
-        repo.update_campaign(campaign_id, status=CampaignStatus.DRAFT)
+        repo.update_campaign(
+            campaign_id, 
+            status=CampaignStatus.DRAFT,
+            last_research_at=datetime.now(timezone.utc).isoformat()
+        )
         logger.info(f"Research completed successfully for campaign {campaign_id}")
     except Exception as e:
         logger.error(f"Research failed for campaign {campaign_id}: {e}", exc_info=True)
@@ -277,6 +282,7 @@ async def run_campaign(
 async def run_campaign_research(
     campaign_id: str,
     background_tasks: BackgroundTasks,
+    force_refresh: bool = False,
     db: Client = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
@@ -288,7 +294,18 @@ async def run_campaign_research(
     if campaign.get("user_id") != uid:
         raise HTTPException(status_code=403, detail="Not authorized to research this campaign")
         
-    repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHING)
+    if campaign.get("status") == CampaignStatus.RESEARCHING:
+        raise HTTPException(status_code=409, detail="Research already in progress")
+        
+    results = campaign.get("results", {})
+    if "research_report" in results and not force_refresh:
+        logger.info(f"Research report already exists for campaign {campaign_id}, skipping SerpAPI. (from cache)")
+        campaign = repo.update_campaign(campaign_id, status=CampaignStatus.DRAFT)
+        product = repo.get_product(campaign.get("product_id"))
+        return CampaignResponse.from_firestore_doc(campaign, product)
+        
+    logger.info(f"Triggering fresh SerpAPI execution for campaign {campaign_id}")
+    campaign = repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHING)
     background_tasks.add_task(run_research_task, campaign_id)
     
     product = repo.get_product(campaign.get("product_id"))

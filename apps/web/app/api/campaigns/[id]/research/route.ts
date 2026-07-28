@@ -18,11 +18,12 @@ export async function POST(
       return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
     }
 
-    // Trigger research on backend
-    await backendClient.runCampaignResearch(campaignId);
-    
-    // Update local status
-    await repo.updateCampaignStatus(campaignId, "researching" as any);
+    // Parse optional force_refresh parameter
+    const body = await request.json().catch(() => ({}));
+    const forceRefresh = !!body.force_refresh;
+
+    // Trigger research on backend (backend handles setting status to researching or draft)
+    await backendClient.runCampaignResearch(campaignId, forceRefresh);
     
     // Return updated campaign
     const updatedCampaign = await repo.getCampaign(user.id, campaignId);
