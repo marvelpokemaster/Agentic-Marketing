@@ -92,7 +92,8 @@ async def execute_serp_research(product_name: str, target_audience: str) -> dict
 
 async def run_research_task(campaign_id: str):
     """Background task to run research and update the campaigns table."""
-    db = get_session()
+    from firebase_admin import firestore
+    db = firestore.client(database_id="marketing")
     repo = CampaignRepository(db)
     try:
         campaign = repo.get_campaign(campaign_id)
@@ -137,12 +138,12 @@ async def run_campaign_workflow_task(
     orchestrator: MarketingOrchestrator,
 ):
     from firebase_admin import firestore
-    db = firestore.client()
+    db = firestore.client(database_id="marketing")
     repo = CampaignRepository(db)
     try:
         result = await orchestrator.run(state.workflow_name, state)
         repo.save_results(campaign_id, result.model_dump(mode="json"))
-        repo.update_campaign(campaign_id, status=CampaignStatus.COMPLETED)
+        repo.update_campaign(campaign_id, status=CampaignStatus.READY)
     except ValueError as exc:
         state.fail(str(exc))
         repo.save_results(campaign_id, state.model_dump(mode="json"))

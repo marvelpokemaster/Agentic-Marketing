@@ -32,7 +32,7 @@ export class FirestoreRepo implements Repo {
       this.db = db;
     } else {
       const { app } = require("@/lib/firebase/client");
-      this.db = getFirestore(app);
+      this.db = getFirestore(app, "marketing");
     }
   }
 

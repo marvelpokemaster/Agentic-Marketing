@@ -64,7 +64,7 @@ export async function getServerRepo(): Promise<Repo> {
   const { getAuthenticatedApp } = await import("@/lib/firebase/server");
   const { getFirestore } = await import("firebase/firestore");
   const app = await getAuthenticatedApp();
-  const db = getFirestore(app);
+  const db = getFirestore(app, "marketing");
   return new FirestoreRepo(db);
 }
 

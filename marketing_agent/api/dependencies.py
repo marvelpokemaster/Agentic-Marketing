@@ -15,5 +15,5 @@ def get_orchestrator() -> MarketingOrchestrator:
 
 def get_db():
     """Database session dependency (Firestore) for routing."""
-    return firestore.client()
+    return firestore.client(database_id="marketing")
 

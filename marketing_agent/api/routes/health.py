@@ -27,7 +27,7 @@ async def health_db() -> JSONResponse:
     """Check database connectivity and measure latency."""
     start_time = time.perf_counter()
     try:
-        db = firestore.client()
+        db = firestore.client(database_id="marketing")
 
         def check_conn():
             # Perform a simple read to check connectivity
