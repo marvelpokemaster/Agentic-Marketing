@@ -16,8 +16,10 @@ if TYPE_CHECKING:
 class CampaignStatus(str, Enum):
     DRAFT = "draft"
     RESEARCHING = "researching"
+    RESEARCHED = "researched"
     READY = "ready"
     RUNNING = "running"
+    COMPLETED = "completed"
     FAILED = "failed"
 
 class CampaignModel(Base):
@@ -49,10 +51,19 @@ class CampaignResponse(BaseModel):
     scrapers: List[str] = []
     image_mode: str = "none"
     instructions: str = ""
+    goal: str = "awareness"
+    monthly_budget: float = 0.0
+    daily_spend_cap: float = 0.0
+    allowed_platforms: List[str] = []
+    approval_mode: str = "plan_only"
+    autopublish: bool = False
     leads: List[Any] = []
     assets: List[Any] = []
     research_summary: Optional[str] = None
     research_report: Optional[Dict[str, Any]] = None
+    journey: List[Dict[str, Any]] = []
+    decisions: List[Dict[str, Any]] = []
+    paid_campaign_plan: Optional[Dict[str, Any]] = None
     status: str
     errors: List[str] = []
     log: List[str] = []
@@ -85,10 +96,19 @@ class CampaignResponse(BaseModel):
             scrapers=config_data.get("scrapers", []),
             image_mode=config_data.get("image_mode", "none"),
             instructions=config_data.get("instructions", ""),
+            goal=results_data.get("goal", config_data.get("goal", "awareness")),
+            monthly_budget=results_data.get("monthly_budget", config_data.get("monthly_budget", 0.0)),
+            daily_spend_cap=results_data.get("daily_spend_cap", config_data.get("daily_spend_cap", 0.0)),
+            allowed_platforms=results_data.get("allowed_platforms", config_data.get("allowed_platforms", [])),
+            approval_mode=results_data.get("approval_mode", config_data.get("approval_mode", "plan_only")),
+            autopublish=results_data.get("autopublish", config_data.get("autopublish", False)),
             leads=results_data.get("leads", []),
             assets=results_data.get("assets", []),
             research_summary=results_data.get("research_summary"),
             research_report=results_data.get("research_report"),
+            journey=results_data.get("journey", []),
+            decisions=results_data.get("decisions", []),
+            paid_campaign_plan=results_data.get("paid_campaign_plan"),
             status=campaign.status,
             errors=results_data.get("errors", []),
             log=results_data.get("log", []),

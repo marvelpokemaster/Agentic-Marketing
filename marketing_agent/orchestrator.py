@@ -59,11 +59,13 @@ class MarketingOrchestrator:
         from marketing_agent.workflows.lead_generation import LeadGenerationWorkflow
         from marketing_agent.workflows.content_only import ContentOnlyWorkflow
         from marketing_agent.workflows.performance_campaign import PerformanceCampaignWorkflow
+        from marketing_agent.workflows.autopilot_campaign import AutopilotCampaignWorkflow
 
         for wf in [
             OrganicCampaignWorkflow(),
             LeadGenerationWorkflow(),
             ContentOnlyWorkflow(),
             PerformanceCampaignWorkflow(),
+            AutopilotCampaignWorkflow(),
         ]:
             self.register(wf)

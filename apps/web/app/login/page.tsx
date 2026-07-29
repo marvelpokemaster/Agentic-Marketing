@@ -14,30 +14,35 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const userCredential = mode === "signin"
-        ? await signInWithEmailAndPassword(auth, email, password)
-        : await createUserWithEmailAndPassword(auth, email, password);
-      
-      const idToken = await userCredential.user.getIdToken();
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
+  try {
+    const userCredential = mode === "signin"
+      ? await signInWithEmailAndPassword(auth, email, password)
+      : await createUserWithEmailAndPassword(auth, email, password);
+    
+    const idToken = await userCredential.user.getIdToken();
 
-      // Hit the middleware to set the cookie
-      await fetch("/api/login", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+    // Send POST request with the Bearer token to trigger authMiddleware
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
 
-      router.push("/products");
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error("Failed to set authentication cookies.");
     }
+
+    router.push("/products");
+    router.refresh();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Authentication failed");
+    setLoading(false);
   }
+}
 
   return (
     <div className="mx-auto max-w-md py-8">

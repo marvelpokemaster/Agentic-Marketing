@@ -4,7 +4,7 @@ import logging
 from typing import Optional, Any
 import asyncio
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -66,6 +66,18 @@ def map_config_to_state(state: CampaignState, config: dict) -> None:
         state.image_mode = config["image_mode"]
     if "instructions" in config:
         state.instructions = config["instructions"]
+    if "goal" in config:
+        state.goal = config["goal"]
+    if "monthly_budget" in config:
+        state.monthly_budget = max(0, float(config["monthly_budget"] or 0))
+    if "daily_spend_cap" in config:
+        state.daily_spend_cap = max(0, float(config["daily_spend_cap"] or 0))
+    if "allowed_platforms" in config:
+        state.allowed_platforms = config["allowed_platforms"]
+    if "approval_mode" in config:
+        state.approval_mode = config["approval_mode"]
+    if "autopublish" in config:
+        state.autopublish = bool(config["autopublish"])
 
 
 async def execute_serp_research(product_name: str, target_audience: str) -> dict:
@@ -122,7 +134,7 @@ async def run_research_task(campaign_id: str):
             "research_report": report
         }
         repo.save_results(campaign_id, results)
-        repo.update_campaign(campaign_id, status=CampaignStatus.DRAFT)
+        repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHED)
         logger.info(f"Research completed successfully for campaign {campaign_id}")
     except Exception as e:
         logger.error(f"Research failed for campaign {campaign_id}: {e}", exc_info=True)
@@ -271,6 +283,7 @@ async def run_campaign(
 async def run_campaign_research(
     campaign_id: str,
     background_tasks: BackgroundTasks,
+    force: bool = Query(False, description="Ignore a previously stored research report"),
     db: Session = Depends(get_db),
     uid: str = Depends(get_current_user),
 ) -> CampaignResponse:
@@ -281,7 +294,15 @@ async def run_campaign_research(
         raise HTTPException(status_code=404, detail="Campaign not found")
     if campaign.user_id != uid:
         raise HTTPException(status_code=403, detail="Not authorized to research this campaign")
-        
+
+    if campaign.status == CampaignStatus.RESEARCHING:
+        raise HTTPException(status_code=409, detail="Research is already running for this campaign")
+
+    existing_report = (campaign.results or {}).get("research_report")
+    if existing_report and not force:
+        logger.info("Using cached research report for campaign %s", campaign_id)
+        return CampaignResponse.from_orm_model(campaign)
+
     repo.update_campaign(campaign_id, status=CampaignStatus.RESEARCHING)
     background_tasks.add_task(run_research_task, campaign_id)
     

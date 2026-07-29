@@ -89,6 +89,50 @@ export async function POST(request: Request) {
         );
       }
 
+    } else if (workflow === "autopilot_campaign") {
+      const configData = body.config || {};
+      const platforms: Platform[] = Array.isArray(configData.platforms)
+        ? configData.platforms.filter((p: Platform) => ALL_PLATFORMS.includes(p))
+        : [];
+      if (platforms.length === 0) {
+        return NextResponse.json({ error: "Select at least one platform." }, { status: 400 });
+      }
+      const data = {
+        platforms,
+        allowed_platforms: platforms,
+        goal: String(configData.goal || "awareness"),
+        monthly_budget: Math.max(0, Number(configData.monthly_budget) || 0),
+        daily_spend_cap: Math.max(0, Number(configData.daily_spend_cap) || 0),
+        approval_mode: String(configData.approval_mode || "plan_only"),
+        autopublish: Boolean(configData.autopublish),
+      };
+      const campaign = await repo.createCampaign(user.id, {
+        product,
+        platforms,
+        workflow: "autopilot_campaign",
+        config: { workflow: "autopilot_campaign", data },
+        results: { workflow: "autopilot_campaign", assets: [], journey: [], decisions: [] },
+        assets: [],
+      });
+      try {
+        await backendClient.createCampaign(campaign.id, campaign.product_name, "autopilot_campaign", {
+          product_name: product.name,
+          product_description: product.description,
+          target_audience: product.target_audience,
+          industry: product.industry,
+          ...data,
+        });
+        await backendClient.runCampaign(campaign.id);
+        await repo.updateCampaignStatus(campaign.id, "running");
+        return NextResponse.json({ campaign: { ...campaign, status: "running" }, usedAi: true });
+      } catch (backendError) {
+        console.error("[autopilot] backend execution failed:", backendError);
+        await repo.updateCampaignStatus(campaign.id, "failed");
+        return NextResponse.json(
+          { error: backendError instanceof Error ? backendError.message : "Autopilot failed to start." },
+          { status: 502 },
+        );
+      }
     } else {
       // Legacy Organic Campaign flow
       const platforms: Platform[] = Array.isArray(body.platforms)

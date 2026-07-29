@@ -19,6 +19,15 @@ export interface BackendCampaignState {
   scrapers: string[];
   image_mode: string;
   instructions: string;
+  goal?: string;
+  monthly_budget?: number;
+  daily_spend_cap?: number;
+  allowed_platforms?: string[];
+  approval_mode?: string;
+  autopublish?: boolean;
+  journey?: any[];
+  decisions?: any[];
+  paid_campaign_plan?: any;
   leads: any[];
   assets: any[];
   research_summary?: string;
@@ -164,8 +173,8 @@ export const backendClient = {
   /**
    * Trigger research phase for a campaign in the backend.
    */
-  async runCampaignResearch(id: string): Promise<BackendCampaignState> {
-    return request<BackendCampaignState>(`/campaigns/${id}/research`, {
+  async runCampaignResearch(id: string, force = false): Promise<BackendCampaignState> {
+    return request<BackendCampaignState>(`/campaigns/${id}/research${force ? "?force=true" : ""}`, {
       method: "POST",
     });
   },

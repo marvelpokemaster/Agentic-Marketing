@@ -33,6 +33,19 @@ class CampaignState(BaseModel):
     image_mode: str = "none"
     instructions: str = ""
 
+    # ── Autopilot controls (optional; existing workflows ignore these) ───────────
+    goal: str = "awareness"          # awareness | leads | sales | content
+    monthly_budget: float = 0.0
+    daily_spend_cap: float = 0.0
+    allowed_platforms: list[str] = []
+    approval_mode: str = "plan_only" # plan_only | approve_spend | fully_automatic
+    autopublish: bool = False
+
+    # ── Autopilot outputs ───────────────────────────────────────────────────────
+    journey: list[dict] = []          # ordered agent-owned actions and status
+    decisions: list[dict] = []        # auditable decision records
+    paid_campaign_plan: Optional[dict] = None
+
     # ── Research outputs (written by ResearchCapability) ─────────────────────────
     leads: list[Any] = []           # list[Lead] — Any to avoid circular import
     research_summary: Optional[str] = None
@@ -62,3 +75,14 @@ class CampaignState(BaseModel):
         self.status = "failed"
         self.errors.append(msg)
         self.add_log(f"FAILED: {msg}")
+
+    def add_decision(self, decision: str, reason: str, **details: Any) -> None:
+        """Record a planner choice that users can inspect in campaign results."""
+        self.decisions.append(
+            {
+                "at": datetime.utcnow().isoformat(),
+                "decision": decision,
+                "reason": reason,
+                "details": details,
+            }
+        )

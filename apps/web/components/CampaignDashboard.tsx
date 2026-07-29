@@ -21,7 +21,7 @@ export function CampaignDashboard({
 
   // Poll campaign status if researching
   useEffect(() => {
-    if (campaign.status === "researching" || isPolling) {
+    if (campaign.status === "researching" || campaign.status === "running" || isPolling) {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/campaigns/${campaign.id}`);
@@ -29,7 +29,7 @@ export function CampaignDashboard({
             const data = await res.json();
             if (data.campaign) {
               setCampaign(data.campaign);
-              if (data.campaign.status !== "researching") {
+              if (data.campaign.status !== "researching" && data.campaign.status !== "running") {
                 setIsPolling(false);
               }
             }
@@ -61,6 +61,8 @@ export function CampaignDashboard({
   };
   
   const researchReport = (campaign.results as any)?.research_report;
+  const journey = campaign.workflow === "autopilot_campaign" ? ((campaign.results as any)?.journey || []) : [];
+  const paidPlan = campaign.workflow === "autopilot_campaign" ? (campaign.results as any)?.paid_campaign_plan : null;
 
   return (
     <div className="space-y-6">
@@ -82,6 +84,15 @@ export function CampaignDashboard({
 
       {activeTab === "research" && (
          <div className="space-y-6">
+           {campaign.workflow === "autopilot_campaign" && (
+             <div className="card space-y-4">
+               <div><h3 className="font-bold text-primary">Autopilot journey</h3><p className="text-xs text-muted mt-1">Each agent-owned action and its current state.</p></div>
+               <div className="grid gap-2 sm:grid-cols-5">
+                 {journey.map((item: any) => <div key={item.step} className="rounded-lg border border-border/50 bg-surface p-3"><p className="text-xs font-semibold capitalize">{item.step}</p><p className="text-[11px] text-muted mt-1 capitalize">{String(item.status).replaceAll("_", " ")}</p></div>)}
+               </div>
+               {paidPlan && <div className="rounded-lg border border-border/50 bg-surface p-3 text-xs"><span className="font-semibold">Paid plan: </span>{paidPlan.status} {paidPlan.daily_spend_cap ? `— daily cap ₹${paidPlan.daily_spend_cap}` : ""}</div>}
+             </div>
+           )}
            {!researchReport && campaign.status !== "researching" && (
              <div className="card py-12 flex flex-col items-center gap-4 text-center">
                 <p className="text-muted text-sm">Research has not been executed yet.</p>
@@ -136,7 +147,7 @@ export function CampaignDashboard({
           {campaign.workflow === "lead_generation" ? (
              <LeadsDashboard leads={campaign.results && campaign.results.workflow === "lead_generation" ? campaign.results.leads : []} />
           ) : (
-             <AssetsDashboard assets={campaign.assets || []} campaignId={campaign.id} metaConfigured={metaConfigured} />
+            <AssetsDashboard assets={(campaign.assets || []).length ? campaign.assets : ((campaign.results as any)?.assets || [])} campaignId={campaign.id} metaConfigured={metaConfigured} />
           )}
         </>
       )}

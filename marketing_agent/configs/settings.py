@@ -44,6 +44,11 @@ class Settings(BaseSettings):
 
     # ── Scrapers ─────────────────────────────────────────────────────────────────
     serpapi_api_key: str = ""
+    bright_data_api_token: str = ""
+    bright_data_collector_id: str = ""
+    bright_data_input_field: str = "keyword"
+    bright_data_poll_interval_seconds: float = 5.0
+    bright_data_max_wait_seconds: int = 300
     scraper_headless: bool = False  # Set to False to watch scraping in a visible browser window
     max_results_per_target: int = 5
 
@@ -114,6 +119,10 @@ class Settings(BaseSettings):
     def has_serpapi(self) -> bool:
         return bool(self.serpapi_api_key)
 
+    @property
+    def has_bright_data_studio(self) -> bool:
+        return bool(self.bright_data_api_token and self.bright_data_collector_id)
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -122,4 +131,3 @@ def get_settings() -> Settings:
     os.makedirs(settings.outputs_dir, exist_ok=True)
     os.makedirs(os.path.join(settings.outputs_dir, "serpapi_logs"), exist_ok=True)
     return settings
-

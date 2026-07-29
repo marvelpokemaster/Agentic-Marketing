@@ -31,7 +31,7 @@ export interface ProductInput {
   image_urls?: string[];
 }
 
-export type CampaignStatus = "draft" | "researching" | "ready" | "partially_published" | "published" | "running" | "failed";
+export type CampaignStatus = "draft" | "researching" | "researched" | "ready" | "partially_published" | "published" | "running" | "failed";
 
 export type AssetStatus =
   | "draft"
@@ -84,15 +84,17 @@ export interface Lead {
   error?: string | null;
 }
 
-export type WorkflowType = "organic_campaign" | "lead_generation" | "content_only";
+export type WorkflowType = "organic_campaign" | "lead_generation" | "content_only" | "autopilot_campaign";
 
 export type CampaignConfig =
   | { workflow: "organic_campaign" | "content_only"; data: { platforms: Platform[]; instructions?: string; image_mode?: string } }
-  | { workflow: "lead_generation"; data: { location: string; target_audience?: string; scrapers?: string[]; instructions?: string } };
+  | { workflow: "lead_generation"; data: { location: string; target_audience?: string; scrapers?: string[]; instructions?: string } }
+  | { workflow: "autopilot_campaign"; data: { platforms: Platform[]; goal: string; monthly_budget: number; daily_spend_cap: number; approval_mode: string; autopublish: boolean; allowed_platforms: Platform[]; scrapers?: string[] } };
 
 export type CampaignResults =
   | { workflow: "organic_campaign" | "content_only"; assets: CampaignAsset[] }
-  | { workflow: "lead_generation"; leads: Lead[]; research_report?: any };
+  | { workflow: "lead_generation"; leads: Lead[]; research_report?: any }
+  | { workflow: "autopilot_campaign"; assets: CampaignAsset[]; leads?: Lead[]; journey?: any[]; decisions?: any[]; paid_campaign_plan?: any };
 
 export interface Campaign {
   id: string;
@@ -120,4 +122,3 @@ export interface CurrentUser {
   email: string | null;
   user_metadata: Record<string, any>;
 }
-

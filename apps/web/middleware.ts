@@ -5,6 +5,11 @@ import { clientConfig, serverConfig } from "@/lib/firebase/config";
 const PUBLIC_PATHS = ["/login"];
 
 export async function middleware(request: NextRequest) {
+  console.log("Middleware running on path:", request.nextUrl.pathname);
+  console.log("Config check:", {
+    apiKey: clientConfig.apiKey,
+    serviceAccount: serverConfig.serviceAccount,
+  });
   return authMiddleware(request, {
     loginPath: "/api/login",
     logoutPath: "/api/logout",

@@ -16,8 +16,17 @@ export const serverConfig = {
   useSecureCookies: process.env.NODE_ENV === "production",
   firebaseApiKey: firebaseConfig.apiKey,
   serviceAccount: {
-    projectId: firebaseConfig.projectId,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || firebaseConfig.projectId || "",
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL ?? "",
-    privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n") : ""
+    // Strip wrapping quotes if present, then convert literal \n to actual newlines
+    privateKey: process.env.FIREBASE_PRIVATE_KEY
+      ? process.env.FIREBASE_PRIVATE_KEY.replace(/^"|"$/g, "").replace(/\\n/g, "\n")
+      : ""
   }
 };
+console.log("Service Account Check:", {
+  hasProjectId: !!serverConfig.serviceAccount.projectId,
+  hasClientEmail: !!serverConfig.serviceAccount.clientEmail,
+  hasPrivateKey: !!serverConfig.serviceAccount.privateKey,
+  keyLength: serverConfig.serviceAccount.privateKey.length,
+});

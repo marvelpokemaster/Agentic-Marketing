@@ -17,6 +17,10 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
   const [scrapers] = useState<string[]>(["google_maps"]);
   const [imageMode, setImageMode] = useState<"none" | "campaign" | "per_lead">("none");
   const [instructions, setInstructions] = useState("");
+  const [goal, setGoal] = useState("awareness");
+  const [monthlyBudget, setMonthlyBudget] = useState("0");
+  const [dailySpendCap, setDailySpendCap] = useState("");
+  const [autopublish, setAutopublish] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +53,19 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
           image_mode: imageMode,
           instructions,
         };
+      } else if (workflow === "autopilot_campaign") {
+        if (selected.length === 0) throw new Error("Select at least one platform.");
+        const budget = Math.max(0, Number(monthlyBudget) || 0);
+        const dailyCap = Math.max(0, Number(dailySpendCap) || 0);
+        body.config = {
+          platforms: selected,
+          allowed_platforms: selected,
+          goal,
+          monthly_budget: budget,
+          daily_spend_cap: dailyCap,
+          approval_mode: budget > 0 ? "approve_spend" : "plan_only",
+          autopublish,
+        };
       } else {
         if (selected.length === 0) {
           throw new Error("Select at least one platform.");
@@ -78,16 +95,27 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
           type="button"
           onClick={() => !loading && setWorkflow("organic_campaign")}
           className={`pb-3 font-semibold text-sm transition-all relative ${
-            workflow !== "lead_generation"
+            workflow === "organic_campaign"
               ? "text-primary"
               : "text-muted hover:text-foreground"
           }`}
           disabled={loading}
         >
           Organic Social Media
-          {workflow !== "lead_generation" && (
+          {workflow === "organic_campaign" && (
             <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />
           )}
+        </button>
+        <button
+          type="button"
+          onClick={() => !loading && setWorkflow("autopilot_campaign")}
+          className={`pb-3 font-semibold text-sm transition-all relative ${
+            workflow === "autopilot_campaign" ? "text-primary" : "text-muted hover:text-foreground"
+          }`}
+          disabled={loading}
+        >
+          Autopilot
+          {workflow === "autopilot_campaign" && <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />}
         </button>
         <button
           type="button"
@@ -106,7 +134,41 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
         </button>
       </div>
 
-      {workflow !== "lead_generation" ? (
+      {workflow === "autopilot_campaign" ? (
+        <div className="space-y-5 animate-in fade-in duration-300">
+          <div>
+            <h3 className="font-semibold text-foreground/90">Set the guardrails. The agents handle the journey.</h3>
+            <p className="text-xs text-muted">Research, plan, create, and optionally publish—without changing your existing campaign flows.</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="label">Primary goal</label>
+              <select className="select" value={goal} onChange={(e) => setGoal(e.target.value)} disabled={loading}>
+                <option value="awareness">Awareness</option><option value="leads">Leads</option><option value="sales">Sales</option><option value="content">Content</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="label">Monthly budget (₹)</label>
+              <input className="input" type="number" min="0" value={monthlyBudget} onChange={(e) => setMonthlyBudget(e.target.value)} disabled={loading} />
+              <p className="text-[11px] text-muted">₹0 runs organic work only.</p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="label">Daily spend cap (₹, optional)</label>
+              <input className="input" type="number" min="0" value={dailySpendCap} onChange={(e) => setDailySpendCap(e.target.value)} disabled={loading} />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-foreground/90 pt-6 cursor-pointer">
+              <input type="checkbox" checked={autopublish} onChange={(e) => setAutopublish(e.target.checked)} disabled={loading} />
+              Publish automatically to connected platforms
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-2.5 pt-1">
+            {ALL_PLATFORMS.map((p) => {
+              const on = selected.includes(p);
+              return <button key={p} type="button" onClick={() => !loading && toggle(p)} className={`chip cursor-pointer py-1.5 px-4 font-semibold text-xs ${on ? "chip-on" : "hover:border-primary/30"}`} disabled={loading}>{PLATFORM_LABELS[p]}</button>;
+            })}
+          </div>
+        </div>
+      ) : workflow !== "lead_generation" ? (
         /* Organic Social Media Form */
         <div className="space-y-4 animate-in fade-in duration-300">
           <div>
@@ -234,6 +296,8 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
             <span>
               {workflow === "lead_generation"
                 ? "Executing Lead Discovery Pipeline..."
+                : workflow === "autopilot_campaign"
+                  ? "Starting Autopilot..."
                 : "Generating Campaign..."}
             </span>
           </>
@@ -243,7 +307,7 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span>
-              {workflow === "lead_generation" ? "Start Lead Discovery" : "Generate Campaign"}
+              {workflow === "lead_generation" ? "Start Lead Discovery" : workflow === "autopilot_campaign" ? "Start Autopilot" : "Generate Campaign"}
             </span>
           </>
         )}
@@ -253,6 +317,8 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
         <p className="text-[11px] text-muted/75 text-center leading-normal max-w-sm mx-auto">
           {workflow === "lead_generation"
             ? "Executing B2B scraper, ranking lead profile fit, and drafting tailored copies. This takes 15-45 seconds."
+            : workflow === "autopilot_campaign"
+              ? "Agents are mapping the journey, researching, creating, and applying your publishing guardrails."
             : "Formulating templates, running copywriting agents, and rendering creatives. Please wait..."}
         </p>
       )}
