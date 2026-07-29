@@ -23,6 +23,7 @@ export function CampaignDashboard({
   const [activeTab, setActiveTab] = useState<"research" | "content">("research");
   const [isPolling, setIsPolling] = useState(false);
   const [triggeringResearch, setTriggeringResearch] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
 
   // Poll campaign status if researching
   useEffect(() => {
@@ -50,22 +51,34 @@ export function CampaignDashboard({
     window.scrollTo(0, 0);
   }, []);
 
-  const handleRunResearch = async () => {
+  const handleRunResearch = async (forceRefresh: boolean = false) => {
     setTriggeringResearch(true);
+    setResearchError(null);
     try {
-      const res = await fetch(`/api/campaigns/${campaign.id}/research`, { method: "POST" });
+      const res = await fetch(`/api/campaigns/${campaign.id}/research`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force_refresh: forceRefresh }),
+      });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const data = await res.json();
-        setCampaign(data.campaign);
+        if (data.campaign) {
+          setCampaign(data.campaign);
+        }
         setIsPolling(true);
+      } else {
+        const errorMsg = data.error || data.detail || "Failed to start research execution.";
+        setResearchError(errorMsg);
       }
     } catch (e) {
-       console.error("Failed to run research", e);
+      console.error("Failed to run research", e);
+      setResearchError("Network error: Unable to reach research backend service.");
+    } finally {
+      setTriggeringResearch(false);
     }
-    setTriggeringResearch(false);
   };
   
-  const researchReport = campaign.results.workflow === "lead_generation" ? campaign.results.research_report : campaign.research_report;
+  const researchReport = campaign.results?.research_report;
 
   const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
     if (!url) return null;
@@ -97,27 +110,61 @@ export function CampaignDashboard({
 
       {activeTab === "research" && (
          <div className="space-y-6">
-           {!researchReport && campaign.status !== "researching" && (
-             <div className="card py-12 flex flex-col items-center gap-4 text-center">
-                <p className="text-muted text-sm">Research has not been executed yet.</p>
-                <button className="btn px-6 py-2" onClick={handleRunResearch} disabled={triggeringResearch}>
-                  {triggeringResearch ? "Starting..." : "Run Research"}
+           {/* Error Display */}
+           {(researchError || campaign.status === "failed") && (
+             <div className="card border-destructive/40 bg-destructive/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-bold text-destructive text-base">Research Failed</h3>
+                  <p className="text-sm text-foreground/80 mt-1">
+                    {researchError || campaign.results?.errors?.[0] || "An error occurred while executing the research workflow."}
+                  </p>
+                </div>
+                <button
+                  className="btn px-5 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0"
+                  onClick={() => handleRunResearch(true)}
+                  disabled={triggeringResearch}
+                >
+                  {triggeringResearch ? "Retrying..." : "Retry Research"}
                 </button>
              </div>
            )}
+
+           {!researchReport && campaign.status !== "researching" && campaign.status !== "failed" && (
+             <div className="card py-12 flex flex-col items-center gap-4 text-center">
+                <p className="text-muted text-sm">Research has not been executed yet.</p>
+                <button
+                  className="btn px-6 py-2"
+                  onClick={() => handleRunResearch(false)}
+                  disabled={triggeringResearch}
+                >
+                  {triggeringResearch ? "Research in Progress..." : "Run Research"}
+                </button>
+             </div>
+           )}
+
            {campaign.status === "researching" && (
              <div className="card py-12 flex flex-col items-center gap-4 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-muted text-sm animate-pulse">Running Research Agents... This may take a minute.</p>
+                <p className="text-muted text-sm animate-pulse">Research Running... This may take a minute.</p>
              </div>
            )}
+
            {researchReport && campaign.status !== "researching" && (
              <div className="space-y-8">
                 {/* Metadata Section */}
                 {researchReport.metadata && (
                   <div className="card space-y-3">
-                    <h3 className="font-bold text-primary">Research Metadata</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-primary">Research Metadata</h3>
+                      <button
+                        className="btn-outline text-xs px-3 py-1"
+                        onClick={() => handleRunResearch(true)}
+                        disabled={triggeringResearch}
+                      >
+                        {triggeringResearch ? "Refreshing..." : "Re-run Research"}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
                       <div>
                         <p className="text-muted">Generated At</p>
                         <p className="font-medium">{researchReport.metadata.generated_at ? new Date(researchReport.metadata.generated_at).toLocaleString() : 'N/A'}</p>
@@ -127,8 +174,16 @@ export function CampaignDashboard({
                         <p className="font-medium">{researchReport.metadata.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : 'N/A'}</p>
                       </div>
                       <div>
+                        <p className="text-muted">Schema Version</p>
+                        <p className="font-medium">{researchReport.metadata.schema_version || 'N/A'}</p>
+                      </div>
+                      <div>
                         <p className="text-muted">Providers Used</p>
                         <p className="font-medium">{researchReport.metadata.completed_providers?.length ? researchReport.metadata.completed_providers.join(", ") : 'None'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted">Partial Providers</p>
+                        <p className="font-medium text-yellow-600">{researchReport.metadata.partial_providers?.length ? researchReport.metadata.partial_providers.join(", ") : 'None'}</p>
                       </div>
                       <div>
                         <p className="text-muted">Failed Providers</p>
@@ -137,7 +192,6 @@ export function CampaignDashboard({
                     </div>
                   </div>
                 )}
-                
                 {/* Competitors Section */}
                 <div className="card space-y-3">
                    <h3 className="font-bold text-primary">Competitors</h3>
@@ -190,6 +244,8 @@ export function CampaignDashboard({
                            <p className="text-xs text-muted mb-2">{n.source} {n.published_at ? `• ${n.published_at}` : ''}</p>
                            {renderExternalLink(n.url, "Read Article")}
                            {n.confidence != null && <p className="text-[11px] text-muted mt-2">Confidence: {n.confidence}</p>}
+                           {n.provider && <p className="text-[11px] text-muted">Source Provider: {n.provider}</p>}
+                           {renderExternalLink(n.source_url, "View Source")}
                          </div>
                        ))}
                      </div>
@@ -240,29 +296,6 @@ export function CampaignDashboard({
                    )}
                 </div>
                 
-                {/* Fallback for Summary when added */}
-                {(researchReport as any).summary && (
-                  <div className="grid gap-6 md:grid-cols-2 mt-8">
-                    {(researchReport as any).summary.overview && (
-                      <div className="card space-y-3">
-                         <h3 className="font-bold text-primary">Overview</h3>
-                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.overview}</p>
-                      </div>
-                    )}
-                    {(researchReport as any).summary.target_audience && (
-                      <div className="card space-y-3">
-                         <h3 className="font-bold text-primary">Synthesized Target Audience</h3>
-                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.target_audience}</p>
-                      </div>
-                    )}
-                    {(researchReport as any).summary.strategic_angle && (
-                      <div className="card space-y-3 col-span-1 md:col-span-2">
-                         <h3 className="font-bold text-primary">Strategic Angle</h3>
-                         <p className="text-sm text-foreground/80 leading-relaxed">{(researchReport as any).summary.strategic_angle}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
              </div>
            )}
          </div>
@@ -271,7 +304,7 @@ export function CampaignDashboard({
       {activeTab === "content" && (
         <>
           {campaign.workflow === "lead_generation" ? (
-             <LeadsDashboard leads={campaign.results && campaign.results.workflow === "lead_generation" ? campaign.results.leads : []} />
+             <LeadsDashboard leads={campaign.results?.leads || []} />
           ) : (
              <AssetsDashboard assets={campaign.assets || []} campaignId={campaign.id} metaConfigured={metaConfigured} />
           )}

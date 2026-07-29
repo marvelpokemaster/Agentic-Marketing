@@ -1,7 +1,7 @@
 import { getTokens } from "next-firebase-auth-edge";
 import { cookies } from "next/headers";
 import { authConfig } from "@/lib/auth";
-import type { WorkflowType } from "./types";
+import type { WorkflowType, ResearchReport } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 300_000; // 5 minutes — Google Maps scraping + LLM can take a while
@@ -22,7 +22,7 @@ export interface BackendCampaignState {
   leads: any[];
   assets: any[];
   research_summary?: string;
-  research_report?: any;
+  research_report?: ResearchReport;
   status: string;
   errors: string[];
   log: string[];

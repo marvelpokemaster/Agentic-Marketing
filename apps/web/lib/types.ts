@@ -148,9 +148,12 @@ export interface ResearchReport {
   intelligence: ResearchIntelligence;
 }
 
-export type CampaignResults =
-  | { workflow: "organic_campaign" | "content_only"; assets: CampaignAsset[] }
-  | { workflow: "lead_generation"; leads: Lead[]; research_report?: ResearchReport };
+export interface CampaignResults {
+  assets?: CampaignAsset[];
+  leads?: Lead[];
+  research_report?: ResearchReport;
+  [key: string]: any;
+}
 
 export interface Campaign {
   id: string;
@@ -168,9 +171,6 @@ export interface Campaign {
 
   // Legacy / Organic compatibility
   assets: CampaignAsset[];
-
-  // Phase 2 Demo Fields
-  research_report?: ResearchReport;
 }
 
 export interface CurrentUser {
