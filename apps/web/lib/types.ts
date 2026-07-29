@@ -148,10 +148,34 @@ export interface ResearchReport {
   intelligence: ResearchIntelligence;
 }
 
+export interface ResearchPlan {
+  search_queries: string[];
+  keywords: string[];
+  competitor_hypotheses: string[];
+  industry_summary: string;
+  research_focus: string;
+}
+
+export interface MarketingStrategy {
+  campaign_objective: string;
+  target_audience: string;
+  value_proposition: string;
+  positioning: string;
+  messaging_angle: string;
+  tone: string;
+  content_pillars: string[];
+  recommended_platforms: string[];
+  organic_vs_paid: string;
+  recommended_budget: string;
+  cta_strategy: string;
+}
+
 export interface CampaignResults {
   assets?: CampaignAsset[];
   leads?: Lead[];
   research_report?: ResearchReport;
+  planner?: ResearchPlan;
+  strategy?: MarketingStrategy;
   [key: string]: any;
 }
 

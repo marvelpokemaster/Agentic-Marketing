@@ -20,6 +20,18 @@ class ContentCapability(Capability):
         plans = state.content_plan or [{"platform": p} for p in state.platforms]
         assets: list[ContentAsset] = []
 
+        strat = state.strategy or {}
+        strat_context = ""
+        if strat:
+            strat_context = (
+                f"Marketing Strategy Context:\n"
+                f"- Value Proposition: {strat.get('value_proposition', 'N/A')}\n"
+                f"- Messaging Angle: {strat.get('messaging_angle', 'N/A')}\n"
+                f"- Tone: {strat.get('tone', 'N/A')}\n"
+                f"- Content Pillars: {', '.join(strat.get('content_pillars', []))}\n"
+                f"- CTA Strategy: {strat.get('cta_strategy', 'N/A')}\n"
+            )
+
         for plan in plans:
             platform = plan.get("platform", "instagram")
             prompt = (
@@ -27,6 +39,7 @@ class ContentCapability(Capability):
                 f"Product: {state.product_name}\n"
                 f"Description: {state.product_description}\n"
                 f"Audience: {state.target_audience or 'general'}\n"
+                f"{strat_context}\n"
                 f"Brief: {plan}\n\n"
                 "Return JSON with keys: headline, body, hashtags (list), cta, creative_prompt."
             )

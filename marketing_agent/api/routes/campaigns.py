@@ -23,6 +23,8 @@ from research.orchestrator.executor import ResearchExecutor
 from research.orchestrator.aggregator import ResultAggregator
 from research.providers.serpapi import SerpAPIProvider
 from research.models.context import ResearchContext
+from marketing_agent.capabilities.research_planner import ResearchPlannerCapability
+from marketing_agent.capabilities.strategy import StrategyCapability
 
 logger = logging.getLogger(__name__)
 
@@ -68,31 +70,40 @@ def map_config_to_state(state: CampaignState, config: dict) -> None:
         state.instructions = config["instructions"]
 
 
-async def execute_serp_research(product_name: str, target_audience: str) -> dict:
-    """Helper to run the research subsystem standalone for the UI."""
-    registry = ProviderRegistry()
-    registry.register(SerpAPIProvider())
-    
-    executor = ResearchExecutor(concurrency_limit=5)
+async def execute_serp_research(queries: list[str], target_audience: str) -> dict:
+    """Execute SerpAPI searches for inferred planner queries and aggregate responses."""
+    provider = SerpAPIProvider()
     aggregator = ResultAggregator()
-    workflow = ResearchWorkflow(registry, executor, aggregator)
+    provider_results = []
     
-    context = ResearchContext(
-        product_description=product_name,
-        company_name=None,
-        industry=None,
-        country=None,
-        language=None,
-        deep_research=False,
-        metadata={"target_audience": target_audience}
-    )
+    # Cap at 5 queries max
+    queries_to_run = queries[:5] if queries else ["market overview"]
     
-    report = await workflow.run(context)
+    for q in queries_to_run:
+        context = ResearchContext(
+            product_description=q,
+            company_name=None,
+            industry=None,
+            country=None,
+            language=None,
+            deep_research=False,
+            metadata={"target_audience": target_audience}
+        )
+        try:
+            res = await provider.fetch(context)
+            provider_results.append(res)
+        except Exception as exc:
+            logger.warning(f"SerpAPI query failed for '{q}': {exc}")
+            
+    await provider.close()
+    
+    # Aggregate and deduplicate
+    report = aggregator.aggregate(provider_results)
     return report.model_dump()
 
 
 async def run_research_task(campaign_id: str):
-    """Background task to run research and update the campaigns table."""
+    """Background task to run Research Planner -> SerpAPI -> Strategy Agent pipeline."""
     from firebase_admin import firestore
     db = firestore.client(database_id="marketing")
     repo = CampaignRepository(db)
@@ -102,30 +113,47 @@ async def run_research_task(campaign_id: str):
             logger.error(f"Campaign {campaign_id} not found in background task")
             return
 
-        # Build ResearchContext directly from the campaign and product relation
+        # Fetch product and campaign config context
         product = repo.get_product(campaign.get("product_id"))
         product_name = campaign.get("product_name") or (product.get("name") if product else "")
         product_description = product.get("description") if product else ""
         
         config_data = campaign.get("config", {}).get("data", {}) if campaign.get("config") else {}
         target_audience = config_data.get("target_audience") or (product.get("target_audience") if product else "General audience")
+        industry = config_data.get("industry") or (product.get("industry") if product else "")
+        platforms = config_data.get("platforms") or campaign.get("platforms") or []
 
-        logger.info(f"Running SerpAPI research for campaign {campaign_id} ({product_name})")
-
-        # Run research workflow
-        report = await execute_serp_research(
+        logger.info(f"[Phase 2] Step 1: Running Research Planner Agent for campaign {campaign_id} ({product_name})")
+        planner_agent = ResearchPlannerCapability()
+        plan = await planner_agent.generate_plan(
             product_name=product_name,
+            product_description=product_description,
+            industry=industry,
+            target_audience=target_audience,
+        )
+
+        logger.info(f"[Phase 2] Step 2: Executing SerpAPI searches for queries: {plan.search_queries}")
+        report = await execute_serp_research(
+            queries=plan.search_queries,
             target_audience=target_audience
         )
 
-        # Validate that research actually succeeded
-        if not report["metadata"]["completed_providers"]:
-            failed = report["metadata"]["failed_providers"]
-            raise Exception(f"All research providers failed: {', '.join(failed)}")
+        logger.info(f"[Phase 2] Step 3: Running Marketing Strategy Agent for campaign {campaign_id}")
+        strategy_agent = StrategyCapability()
+        strategy = await strategy_agent.generate_strategy(
+            product_name=product_name,
+            product_description=product_description,
+            research_report=report,
+            planner_output=plan.model_dump(),
+            target_audience=target_audience,
+            platforms=platforms,
+        )
 
-        # Store research results
+        # Store complete Phase 2 results
         results = {
-            "research_report": report
+            "research_report": report,
+            "planner": plan.model_dump(),
+            "strategy": strategy.model_dump()
         }
         repo.save_results(campaign_id, results)
         repo.update_campaign(
@@ -133,12 +161,10 @@ async def run_research_task(campaign_id: str):
             status=CampaignStatus.DRAFT,
             last_research_at=datetime.now(timezone.utc).isoformat()
         )
-        logger.info(f"Research completed successfully for campaign {campaign_id}")
+        logger.info(f"Phase 2 Research & Strategy pipeline completed successfully for campaign {campaign_id}")
     except Exception as e:
-        logger.error(f"Research failed for campaign {campaign_id}: {e}", exc_info=True)
-        # Update status to failed
+        logger.error(f"Research pipeline failed for campaign {campaign_id}: {e}", exc_info=True)
         repo.update_campaign(campaign_id, status=CampaignStatus.FAILED)
-        # Store error in results JSON
         repo.save_results(campaign_id, {"errors": [str(e)]})
 
 
@@ -298,8 +324,8 @@ async def run_campaign_research(
         raise HTTPException(status_code=409, detail="Research already in progress")
         
     results = campaign.get("results", {})
-    if "research_report" in results and not force_refresh:
-        logger.info(f"Research report already exists for campaign {campaign_id}, skipping SerpAPI. (from cache)")
+    if "research_report" in results and "strategy" in results and not force_refresh:
+        logger.info(f"Research report and strategy already exist for campaign {campaign_id}, skipping execution. (from cache)")
         campaign = repo.update_campaign(campaign_id, status=CampaignStatus.DRAFT)
         product = repo.get_product(campaign.get("product_id"))
         return CampaignResponse.from_firestore_doc(campaign, product)

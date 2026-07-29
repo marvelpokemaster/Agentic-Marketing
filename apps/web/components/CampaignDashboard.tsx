@@ -10,6 +10,8 @@ import {
   type NewsResult,
   type TrendResult,
   type TechnologyResult,
+  type ResearchPlan,
+  type MarketingStrategy,
 } from "@/lib/types";
 
 export function CampaignDashboard({
@@ -20,7 +22,9 @@ export function CampaignDashboard({
   metaConfigured: boolean;
 }) {
   const [campaign, setCampaign] = useState(initialCampaign);
-  const [activeTab, setActiveTab] = useState<"research" | "content">("research");
+  const [activeTab, setActiveTab] = useState<"strategy" | "research" | "content">(
+    initialCampaign.results?.strategy ? "strategy" : "research"
+  );
   const [isPolling, setIsPolling] = useState(false);
   const [triggeringResearch, setTriggeringResearch] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
@@ -79,6 +83,8 @@ export function CampaignDashboard({
   };
   
   const researchReport = campaign.results?.research_report;
+  const strategy = campaign.results?.strategy;
+  const planner = campaign.results?.planner;
 
   const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
     if (!url) return null;
@@ -95,10 +101,16 @@ export function CampaignDashboard({
       {/* Tabs */}
       <div className="flex border-b border-border/40">
         <button
+          className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "strategy" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
+          onClick={() => setActiveTab("strategy")}
+        >
+          Marketing Strategy
+        </button>
+        <button
           className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "research" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
           onClick={() => setActiveTab("research")}
         >
-          Research & Strategy
+          Research Intelligence
         </button>
         <button
           className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "content" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
@@ -107,6 +119,175 @@ export function CampaignDashboard({
           {campaign.workflow === "lead_generation" ? "Discovered Leads" : "Generated Content"}
         </button>
       </div>
+
+      {activeTab === "strategy" && (
+        <div className="space-y-6">
+          {/* Error Display */}
+          {(researchError || campaign.status === "failed") && (
+            <div className="card border-destructive/40 bg-destructive/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-bold text-destructive text-base">Strategy Generation Failed</h3>
+                <p className="text-sm text-foreground/80 mt-1">
+                  {researchError || campaign.results?.errors?.[0] || "An error occurred while executing the strategy pipeline."}
+                </p>
+              </div>
+              <button
+                className="btn px-5 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0"
+                onClick={() => handleRunResearch(true)}
+                disabled={triggeringResearch}
+              >
+                {triggeringResearch ? "Retrying..." : "Retry Strategy Execution"}
+              </button>
+            </div>
+          )}
+
+          {campaign.status === "researching" && (
+            <div className="card py-12 flex flex-col items-center gap-4 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-muted text-sm animate-pulse">Running Research & Strategy Agents... Generating search intents & GTM strategy.</p>
+            </div>
+          )}
+
+          {!strategy && campaign.status !== "researching" && campaign.status !== "failed" && (
+            <div className="card py-12 flex flex-col items-center gap-4 text-center">
+              <p className="text-muted text-sm">Marketing strategy has not been generated yet.</p>
+              <button
+                className="btn px-6 py-2"
+                onClick={() => handleRunResearch(false)}
+                disabled={triggeringResearch}
+              >
+                {triggeringResearch ? "Research in Progress..." : "Run Research & Strategy Agent"}
+              </button>
+            </div>
+          )}
+
+          {strategy && campaign.status !== "researching" && (
+            <div className="space-y-6">
+              {/* Strategy Header Card */}
+              <div className="card space-y-4 border-l-4 border-l-primary">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg text-primary">Marketing Strategy & GTM Positioning</h3>
+                  <button
+                    className="btn-outline text-xs px-3 py-1"
+                    onClick={() => handleRunResearch(true)}
+                    disabled={triggeringResearch}
+                  >
+                    {triggeringResearch ? "Refreshing..." : "Re-run Strategy Agent"}
+                  </button>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted font-semibold">Campaign Objective</p>
+                  <p className="text-base font-medium text-foreground mt-1">{strategy.campaign_objective}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted font-semibold">Core Value Proposition</p>
+                  <p className="text-sm font-medium text-foreground/90 mt-1">{strategy.value_proposition}</p>
+                </div>
+              </div>
+
+              {/* Grid of Strategy Attributes */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Card 1: Positioning & Tone */}
+                <div className="card space-y-3">
+                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Positioning & Tone</h4>
+                  <div>
+                    <p className="text-xs text-muted">Market Positioning</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.positioning}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Messaging Angle</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.messaging_angle}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Brand Tone & Voice</p>
+                    <span className="inline-block px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold mt-1">
+                      {strategy.tone}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card 2: Target Audience & CTA */}
+                <div className="card space-y-3">
+                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Audience & CTA Strategy</h4>
+                  <div>
+                    <p className="text-xs text-muted">Target Audience Persona</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.target_audience}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Call-To-Action (CTA) Strategy</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.cta_strategy}</p>
+                  </div>
+                </div>
+
+                {/* Card 3: Content Pillars & Mix */}
+                <div className="card space-y-3">
+                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Content Strategy</h4>
+                  <div>
+                    <p className="text-xs text-muted mb-2">Strategic Content Pillars</p>
+                    <div className="flex flex-wrap gap-2">
+                      {strategy.content_pillars?.map((pillar, i) => (
+                        <span key={i} className="px-2.5 py-1 bg-surface border border-border/60 rounded-md text-xs font-medium text-foreground">
+                          {pillar}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted mt-2">Organic vs Paid Mix</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.organic_vs_paid}</p>
+                  </div>
+                </div>
+
+                {/* Card 4: Recommended Channels & Budget */}
+                <div className="card space-y-3">
+                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Distribution & Budget</h4>
+                  <div>
+                    <p className="text-xs text-muted mb-2">Recommended Channels</p>
+                    <div className="flex flex-wrap gap-2">
+                      {strategy.recommended_platforms?.map((plat, i) => (
+                        <span key={i} className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-semibold capitalize">
+                          {plat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted mt-2">Budget Recommendation</p>
+                    <p className="text-sm font-semibold text-foreground">{strategy.recommended_budget}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Research Planner Insights Card */}
+              {planner && (
+                <div className="card space-y-3 bg-surface/50 border-border/60">
+                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Research Planner Insights</h4>
+                  <div className="grid gap-4 md:grid-cols-2 text-sm">
+                    <div>
+                      <p className="text-xs text-muted">Industry Context</p>
+                      <p className="font-medium">{planner.industry_summary}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted">Research Objective Focus</p>
+                      <p className="font-medium">{planner.research_focus}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted mb-1.5">Inferred Search Queries Executed by SerpAPI</p>
+                    <div className="flex flex-wrap gap-2">
+                      {planner.search_queries?.map((q, i) => (
+                        <span key={i} className="px-2.5 py-1 bg-blue-500/10 text-blue-600 rounded text-xs font-mono">
+                          {`"${q}"`}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === "research" && (
          <div className="space-y-6">
@@ -190,6 +371,18 @@ export function CampaignDashboard({
                         <p className="font-medium text-destructive">{researchReport.metadata.failed_providers?.length ? researchReport.metadata.failed_providers.join(", ") : 'None'}</p>
                       </div>
                     </div>
+                    {(planner?.search_queries?.length || 0) > 0 && (
+                      <div className="pt-2 border-t border-border/40">
+                        <p className="text-xs text-muted mb-1 font-semibold">Planner Search Queries Executed (SerpAPI):</p>
+                        <div className="flex flex-wrap gap-2">
+                          {planner?.search_queries?.map((q: string, i: number) => (
+                            <span key={i} className="px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded text-xs font-mono">
+                              {`"${q}"`}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 {/* Competitors Section */}
