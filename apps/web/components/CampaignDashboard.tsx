@@ -391,11 +391,16 @@ export function CampaignDashboard({
                    {researchReport.intelligence?.competitors?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-3">
                        {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
-                           <h4 className="font-semibold text-sm mb-1">{c.name}</h4>
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                           <h4 className="font-semibold text-sm">{c.name}</h4>
                            {renderExternalLink(c.domain, "URL")}
+                           {c.reason && (
+                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                               <span className="font-semibold text-primary">Analyst Rationale: </span>{c.reason}
+                             </p>
+                           )}
                            {c.similarity_score != null && <p className="text-xs text-muted">Similarity: {c.similarity_score}</p>}
-                           {c.confidence != null && <p className="text-[11px] text-muted">Confidence: {c.confidence}</p>}
+                           {c.confidence != null && <p className="text-[11px] text-muted">Confidence: {(c.confidence * 100).toFixed(0)}%</p>}
                            {c.provider && <p className="text-[11px] text-muted">Source: {c.provider}</p>}
                            {renderExternalLink(c.source_url, "View Source")}
                          </div>
@@ -412,8 +417,13 @@ export function CampaignDashboard({
                    {researchReport.intelligence?.audience?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-3">
                        {researchReport.intelligence.audience.map((a: AudienceResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
-                           <h4 className="font-semibold text-sm mb-1">{a.segment}</h4>
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                           <h4 className="font-semibold text-sm">{a.segment}</h4>
+                           {a.reason && (
+                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                               <span className="font-semibold text-primary">Persona Rationale: </span>{a.reason}
+                             </p>
+                           )}
                            {a.size != null && <p className="text-xs text-muted">Size: {a.size}</p>}
                            {a.confidence != null && <p className="text-[11px] text-muted">Confidence: {a.confidence}</p>}
                            {a.provider && <p className="text-[11px] text-muted">Source: {a.provider}</p>}
@@ -432,11 +442,19 @@ export function CampaignDashboard({
                    {researchReport.intelligence?.news?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                        {researchReport.intelligence.news.map((n: NewsResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
-                           <h4 className="font-semibold text-sm mb-1">{n.title}</h4>
-                           <p className="text-xs text-muted mb-2">{n.source} {n.published_at ? `• ${n.published_at}` : ''}</p>
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                           <h4 className="font-semibold text-sm">{n.title}</h4>
+                           <p className="text-xs text-muted">{n.source} {n.published_at ? `• ${n.published_at}` : ''}</p>
+                           {n.summary && (
+                             <p className="text-xs text-foreground/90 font-medium leading-snug">{n.summary}</p>
+                           )}
+                           {n.reason && (
+                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                               <span className="font-semibold text-primary">Impact Rationale: </span>{n.reason}
+                             </p>
+                           )}
                            {renderExternalLink(n.url, "Read Article")}
-                           {n.confidence != null && <p className="text-[11px] text-muted mt-2">Confidence: {n.confidence}</p>}
+                           {n.confidence != null && <p className="text-[11px] text-muted">Confidence: {n.confidence}</p>}
                            {n.provider && <p className="text-[11px] text-muted">Source Provider: {n.provider}</p>}
                            {renderExternalLink(n.source_url, "View Source")}
                          </div>
@@ -453,8 +471,13 @@ export function CampaignDashboard({
                    {researchReport.intelligence?.trends?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-3">
                        {researchReport.intelligence.trends.map((t: TrendResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
-                           <h4 className="font-semibold text-sm mb-1">{t.keyword}</h4>
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                           <h4 className="font-semibold text-sm">{t.keyword}</h4>
+                           {t.reason && (
+                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                               <span className="font-semibold text-primary">Trend Rationale: </span>{t.reason}
+                             </p>
+                           )}
                            {t.volume != null && <p className="text-xs text-muted">Volume: {t.volume}</p>}
                            {t.region && <p className="text-xs text-muted">Region: {t.region}</p>}
                            {t.confidence != null && <p className="text-[11px] text-muted">Confidence: {t.confidence}</p>}
@@ -474,8 +497,13 @@ export function CampaignDashboard({
                    {researchReport.intelligence?.technologies?.length > 0 ? (
                      <div className="grid gap-4 md:grid-cols-3">
                        {researchReport.intelligence.technologies.map((tech: TechnologyResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40">
-                           <h4 className="font-semibold text-sm mb-1">{tech.name}</h4>
+                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                           <h4 className="font-semibold text-sm">{tech.name}</h4>
+                           {tech.reason && (
+                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                               <span className="font-semibold text-primary">Tech Rationale: </span>{tech.reason}
+                             </p>
+                           )}
                            {tech.category && <p className="text-xs text-muted">Category: {tech.category}</p>}
                            {tech.maturity && <p className="text-xs text-muted">Maturity: {tech.maturity}</p>}
                            {tech.confidence != null && <p className="text-[11px] text-muted">Confidence: {tech.confidence}</p>}
@@ -488,6 +516,37 @@ export function CampaignDashboard({
                      <p className="text-sm text-foreground/80">No technologies found.</p>
                    )}
                 </div>
+                
+                {/* Strategic Opportunities & Risks Section */}
+                {((researchReport.intelligence?.opportunities?.length || 0) > 0 || (researchReport.intelligence?.risks?.length || 0) > 0) && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* Opportunities */}
+                    <div className="card space-y-3 border-l-4 border-l-emerald-500">
+                      <h3 className="font-bold text-emerald-600">Strategic Opportunities</h3>
+                      <div className="space-y-3">
+                        {researchReport.intelligence.opportunities?.map((opp, i) => (
+                          <div key={i} className="p-3 bg-surface rounded-lg border border-emerald-500/20 space-y-1">
+                            <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">{opp.opportunity}</h4>
+                            {opp.reason && <p className="text-xs text-foreground/80 leading-snug">{opp.reason}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Risks */}
+                    <div className="card space-y-3 border-l-4 border-l-amber-500">
+                      <h3 className="font-bold text-amber-600">Market Risks & Threats</h3>
+                      <div className="space-y-3">
+                        {researchReport.intelligence.risks?.map((r, i) => (
+                          <div key={i} className="p-3 bg-surface rounded-lg border border-amber-500/20 space-y-1">
+                            <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400">{r.risk}</h4>
+                            {r.reason && <p className="text-xs text-foreground/80 leading-snug">{r.reason}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
              </div>
            )}

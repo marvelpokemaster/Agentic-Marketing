@@ -94,6 +94,7 @@ export interface BaseEntity {
   confidence?: number | null;
   provider?: string | null;
   source_url?: string | null;
+  reason?: string | null;
 }
 
 export interface CompetitorResult extends BaseEntity {
@@ -118,12 +119,21 @@ export interface NewsResult extends BaseEntity {
   url: string;
   source: string;
   published_at?: string | null;
+  summary?: string | null;
 }
 
 export interface TechnologyResult extends BaseEntity {
   name: string;
   category?: string | null;
   maturity?: string | null;
+}
+
+export interface OpportunityResult extends BaseEntity {
+  opportunity: string;
+}
+
+export interface RiskResult extends BaseEntity {
+  risk: string;
 }
 
 export interface ResearchMetadata {
@@ -141,6 +151,8 @@ export interface ResearchIntelligence {
   trends: TrendResult[];
   news: NewsResult[];
   technologies: TechnologyResult[];
+  opportunities?: OpportunityResult[];
+  risks?: RiskResult[];
 }
 
 export interface ResearchReport {

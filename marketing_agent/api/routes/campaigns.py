@@ -25,6 +25,7 @@ from research.providers.serpapi import SerpAPIProvider
 from research.models.context import ResearchContext
 from marketing_agent.capabilities.research_planner import ResearchPlannerCapability
 from marketing_agent.capabilities.strategy import StrategyCapability
+from marketing_agent.capabilities.analyst import ResearchAnalystCapability
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def map_config_to_state(state: CampaignState, config: dict) -> None:
 
 
 async def execute_serp_research(queries: list[str], target_audience: str) -> dict:
-    """Execute SerpAPI searches for inferred planner queries and aggregate responses."""
+    """Execute SerpAPI searches for inferred planner queries and aggregate raw responses."""
     provider = SerpAPIProvider()
     aggregator = ResultAggregator()
     provider_results = []
@@ -97,13 +98,13 @@ async def execute_serp_research(queries: list[str], target_audience: str) -> dic
             
     await provider.close()
     
-    # Aggregate and deduplicate
+    # Aggregate raw search outputs
     report = aggregator.aggregate(provider_results)
     return report.model_dump()
 
 
 async def run_research_task(campaign_id: str):
-    """Background task to run Research Planner -> SerpAPI -> Strategy Agent pipeline."""
+    """Background task to run Planner -> SerpAPI -> Analyst Agent -> Strategy Agent pipeline."""
     from firebase_admin import firestore
     db = firestore.client(database_id="marketing")
     repo = CampaignRepository(db)
@@ -123,7 +124,7 @@ async def run_research_task(campaign_id: str):
         industry = config_data.get("industry") or (product.get("industry") if product else "")
         platforms = config_data.get("platforms") or campaign.get("platforms") or []
 
-        logger.info(f"[Phase 2] Step 1: Running Research Planner Agent for campaign {campaign_id} ({product_name})")
+        logger.info(f"[Intelligence Pipeline] Step 1: Running Research Planner Agent for campaign {campaign_id}")
         planner_agent = ResearchPlannerCapability()
         plan = await planner_agent.generate_plan(
             product_name=product_name,
@@ -132,26 +133,37 @@ async def run_research_task(campaign_id: str):
             target_audience=target_audience,
         )
 
-        logger.info(f"[Phase 2] Step 2: Executing SerpAPI searches for queries: {plan.search_queries}")
-        report = await execute_serp_research(
+        logger.info(f"[Intelligence Pipeline] Step 2: Executing SerpAPI searches for queries: {plan.search_queries}")
+        raw_report = await execute_serp_research(
             queries=plan.search_queries,
             target_audience=target_audience
         )
 
-        logger.info(f"[Phase 2] Step 3: Running Marketing Strategy Agent for campaign {campaign_id}")
+        logger.info(f"[Intelligence Pipeline] Step 3: Running Senior Marketing Analyst Agent to synthesize executive brief")
+        analyst_agent = ResearchAnalystCapability()
+        curated_report = await analyst_agent.analyze_raw_research(
+            product_name=product_name,
+            product_description=product_description,
+            raw_report=raw_report,
+            industry=industry,
+            target_audience=target_audience,
+        )
+        report_dict = curated_report.model_dump()
+
+        logger.info(f"[Intelligence Pipeline] Step 4: Running Marketing Strategy Agent for campaign {campaign_id}")
         strategy_agent = StrategyCapability()
         strategy = await strategy_agent.generate_strategy(
             product_name=product_name,
             product_description=product_description,
-            research_report=report,
+            research_report=report_dict,
             planner_output=plan.model_dump(),
             target_audience=target_audience,
             platforms=platforms,
         )
 
-        # Store complete Phase 2 results
+        # Store complete curated intelligence & strategy results
         results = {
-            "research_report": report,
+            "research_report": report_dict,
             "planner": plan.model_dump(),
             "strategy": strategy.model_dump()
         }
@@ -161,7 +173,7 @@ async def run_research_task(campaign_id: str):
             status=CampaignStatus.DRAFT,
             last_research_at=datetime.now(timezone.utc).isoformat()
         )
-        logger.info(f"Phase 2 Research & Strategy pipeline completed successfully for campaign {campaign_id}")
+        logger.info(f"Full Intelligence & Strategy pipeline completed successfully for campaign {campaign_id}")
     except Exception as e:
         logger.error(f"Research pipeline failed for campaign {campaign_id}: {e}", exc_info=True)
         repo.update_campaign(campaign_id, status=CampaignStatus.FAILED)
