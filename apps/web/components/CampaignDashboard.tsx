@@ -12,6 +12,8 @@ import {
   type TechnologyResult,
   type ResearchPlan,
   type MarketingStrategy,
+  type ExecutionMetadata,
+  type ExecutionStageInfo,
 } from "@/lib/types";
 
 export function CampaignDashboard({
@@ -28,10 +30,18 @@ export function CampaignDashboard({
   const [isPolling, setIsPolling] = useState(false);
   const [triggeringResearch, setTriggeringResearch] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
+  const [showRefreshMenu, setShowRefreshMenu] = useState(false);
 
-  // Poll campaign status if researching
+  const isExecuting =
+    campaign.status === "running" ||
+    campaign.status === "researching" ||
+    ["planning", "researching", "analyzing", "strategizing", "generating_content", "generating_images"].includes(
+      campaign.execution?.stage || ""
+    );
+
+  // Poll campaign status if active execution
   useEffect(() => {
-    if (campaign.status === "researching" || isPolling) {
+    if (isExecuting || isPolling) {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/campaigns/${campaign.id}`);
@@ -39,30 +49,38 @@ export function CampaignDashboard({
             const data = await res.json();
             if (data.campaign) {
               setCampaign(data.campaign);
-              if (data.campaign.status !== "researching") {
+              const stage = data.campaign.execution?.stage;
+              const stat = data.campaign.status;
+              if (stage === "ready" || stage === "failed" || (stat !== "running" && stat !== "researching" && !stage)) {
                 setIsPolling(false);
               }
             }
           }
-        } catch (e) {}
-      }, 3000);
+        } catch (e) {
+          console.error("Polling error:", e);
+        }
+      }, 2000);
       return () => clearInterval(interval);
     }
-  }, [campaign.id, campaign.status, isPolling]);
-  
+  }, [campaign.id, campaign.status, campaign.execution?.stage, isPolling, isExecuting]);
+
   // Auto scroll to top
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleRunResearch = async (forceRefresh: boolean = false) => {
+  const handleRunCampaign = async (
+    refreshType: "none" | "research" | "strategy" | "everything" = "none",
+    resume: boolean = false
+  ) => {
     setTriggeringResearch(true);
     setResearchError(null);
+    setShowRefreshMenu(false);
     try {
-      const res = await fetch(`/api/campaigns/${campaign.id}/research`, {
+      const res = await fetch(`/api/campaigns/${campaign.id}/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force_refresh: forceRefresh }),
+        body: JSON.stringify({ refresh_type: refreshType, resume }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -71,26 +89,32 @@ export function CampaignDashboard({
         }
         setIsPolling(true);
       } else {
-        const errorMsg = data.error || data.detail || "Failed to start research execution.";
+        const errorMsg = data.error || data.detail || "Failed to trigger campaign execution.";
         setResearchError(errorMsg);
       }
     } catch (e) {
-      console.error("Failed to run research", e);
-      setResearchError("Network error: Unable to reach research backend service.");
+      console.error("Failed to run campaign", e);
+      setResearchError("Network error: Unable to reach campaign execution service.");
     } finally {
       setTriggeringResearch(false);
     }
   };
-  
+
   const researchReport = campaign.results?.research_report;
   const strategy = campaign.results?.strategy;
   const planner = campaign.results?.planner;
+  const assets = campaign.results?.assets || campaign.assets || [];
 
   const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
     if (!url) return null;
-    const href = url.startsWith('http') ? url : `https://${url}`;
+    const href = url.startsWith("http") ? url : `https://${url}`;
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline block mb-2 break-all line-clamp-1">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-blue-500 hover:underline block mb-2 break-all line-clamp-1"
+      >
         {label === "View Source" ? label : url}
       </a>
     );
@@ -98,79 +122,173 @@ export function CampaignDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
+      {/* Top Header & Main Action Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface/80 p-4 rounded-xl border border-border/40 shadow-sm">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">{campaign.product_name || "Campaign Orchestrator"}</h2>
+          <p className="text-xs text-muted mt-0.5">
+            Workflow: <span className="font-semibold text-primary uppercase">{campaign.workflow}</span> • Status:{" "}
+            <span className="font-semibold uppercase">{campaign.status}</span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 relative">
+          <button
+            className={`btn px-5 py-2.5 font-bold text-sm shadow-md transition flex items-center gap-2 ${
+              isExecuting
+                ? "bg-muted cursor-not-allowed text-muted-foreground"
+                : "bg-primary hover:bg-primary/90 text-white"
+            }`}
+            onClick={() => handleRunCampaign("none")}
+            disabled={isExecuting || triggeringResearch}
+          >
+            {triggeringResearch ? (
+              <>
+                <span className="animate-spin">⟳</span> Initiating Pipeline...
+              </>
+            ) : isExecuting ? (
+              <>
+                <span className="animate-spin text-primary">⟳</span> Campaign Currently Executing...
+              </>
+            ) : (
+              <>
+                <span>🚀</span> Run Campaign
+              </>
+            )}
+          </button>
+
+          {/* Granular Refresh Dropdown */}
+          <div className="relative">
+            <button
+              className="btn-outline px-3 py-2 text-xs font-semibold flex items-center gap-1"
+              onClick={() => setShowRefreshMenu(!showRefreshMenu)}
+              disabled={isExecuting || triggeringResearch}
+            >
+              <span>⚙️</span> Options ▾
+            </button>
+
+            {showRefreshMenu && (
+              <div className="absolute right-0 mt-2 w-52 bg-surface border border-border/80 rounded-lg shadow-xl z-50 py-1.5 space-y-1 text-xs">
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-primary/10 font-medium text-foreground flex items-center gap-2"
+                  onClick={() => handleRunCampaign("none")}
+                >
+                  <span>🚀</span> Run (Smart Cache)
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-primary/10 font-medium text-foreground flex items-center gap-2"
+                  onClick={() => handleRunCampaign("research")}
+                >
+                  <span>🔍</span> Refresh Research
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-primary/10 font-medium text-foreground flex items-center gap-2"
+                  onClick={() => handleRunCampaign("strategy")}
+                >
+                  <span>🎯</span> Refresh Strategy
+                </button>
+                <div className="border-t border-border/40 my-1"></div>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-destructive/10 font-medium text-destructive flex items-center gap-2"
+                  onClick={() => handleRunCampaign("everything")}
+                >
+                  <span>🔄</span> Refresh Everything
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Live Agent Timeline Banner */}
+      <MultiAgentTimelineBanner
+        execution={campaign.execution}
+        status={campaign.status}
+        onRetry={() => handleRunCampaign("none", true)}
+        isExecuting={isExecuting}
+      />
+
+      {/* Success Screen Banner */}
+      {campaign.execution?.stage === "ready" && (
+        <CampaignReadyBanner
+          assetCount={assets.length}
+          onPublish={() => setActiveTab("content")}
+        />
+      )}
+
+      {/* Navigation Tabs */}
       <div className="flex border-b border-border/40">
         <button
-          className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "strategy" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
+          className={`py-3 px-6 font-semibold text-sm transition ${
+            activeTab === "strategy" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"
+          }`}
           onClick={() => setActiveTab("strategy")}
         >
           Marketing Strategy
         </button>
         <button
-          className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "research" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
+          className={`py-3 px-6 font-semibold text-sm transition ${
+            activeTab === "research" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"
+          }`}
           onClick={() => setActiveTab("research")}
         >
           Research Intelligence
         </button>
         <button
-          className={`py-3 px-6 font-semibold text-sm transition ${activeTab === "content" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"}`}
+          className={`py-3 px-6 font-semibold text-sm transition ${
+            activeTab === "content" ? "text-primary border-b-2 border-primary" : "text-muted hover:text-foreground"
+          }`}
           onClick={() => setActiveTab("content")}
         >
-          {campaign.workflow === "lead_generation" ? "Discovered Leads" : "Generated Content"}
+          {campaign.workflow === "lead_generation" ? "Discovered Leads" : `Generated Content (${assets.length})`}
         </button>
       </div>
 
+      {/* STRATEGY TAB */}
       {activeTab === "strategy" && (
         <div className="space-y-6">
           {/* Error Display */}
           {(researchError || campaign.status === "failed") && (
             <div className="card border-destructive/40 bg-destructive/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <h3 className="font-bold text-destructive text-base">Strategy Generation Failed</h3>
+                <h3 className="font-bold text-destructive text-base">Execution Interrupted</h3>
                 <p className="text-sm text-foreground/80 mt-1">
-                  {researchError || campaign.results?.errors?.[0] || "An error occurred while executing the strategy pipeline."}
+                  {researchError || campaign.execution?.error_message || campaign.results?.errors?.[0] || "An error occurred during multi-agent execution."}
                 </p>
               </div>
               <button
-                className="btn px-5 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0"
-                onClick={() => handleRunResearch(true)}
+                className="btn px-5 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0 font-semibold"
+                onClick={() => handleRunCampaign("none", true)}
                 disabled={triggeringResearch}
               >
-                {triggeringResearch ? "Retrying..." : "Retry Strategy Execution"}
+                {triggeringResearch ? "Retrying..." : "Resume Execution"}
               </button>
             </div>
           )}
 
-          {campaign.status === "researching" && (
-            <div className="card py-12 flex flex-col items-center gap-4 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="text-muted text-sm animate-pulse">Running Research & Strategy Agents... Generating search intents & GTM strategy.</p>
-            </div>
-          )}
-
-          {!strategy && campaign.status !== "researching" && campaign.status !== "failed" && (
+          {!strategy && !isExecuting && campaign.status !== "failed" && (
             <div className="card py-12 flex flex-col items-center gap-4 text-center">
               <p className="text-muted text-sm">Marketing strategy has not been generated yet.</p>
               <button
-                className="btn px-6 py-2"
-                onClick={() => handleRunResearch(false)}
+                className="btn px-6 py-2.5 font-bold"
+                onClick={() => handleRunCampaign("none")}
                 disabled={triggeringResearch}
               >
-                {triggeringResearch ? "Research in Progress..." : "Run Research & Strategy Agent"}
+                {triggeringResearch ? "Initiating Agents..." : "🚀 Run Campaign"}
               </button>
             </div>
           )}
 
-          {strategy && campaign.status !== "researching" && (
+          {strategy && (
             <div className="space-y-6">
               {/* Strategy Header Card */}
               <div className="card space-y-4 border-l-4 border-l-primary">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-lg text-primary">Marketing Strategy & GTM Positioning</h3>
                   <button
-                    className="btn-outline text-xs px-3 py-1"
-                    onClick={() => handleRunResearch(true)}
-                    disabled={triggeringResearch}
+                    className="btn-outline text-xs px-3 py-1 font-medium"
+                    onClick={() => handleRunCampaign("strategy")}
+                    disabled={isExecuting || triggeringResearch}
                   >
                     {triggeringResearch ? "Refreshing..." : "Re-run Strategy Agent"}
                   </button>
@@ -187,7 +305,6 @@ export function CampaignDashboard({
 
               {/* Grid of Strategy Attributes */}
               <div className="grid gap-6 md:grid-cols-2">
-                {/* Card 1: Positioning & Tone */}
                 <div className="card space-y-3">
                   <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Positioning & Tone</h4>
                   <div>
@@ -206,7 +323,6 @@ export function CampaignDashboard({
                   </div>
                 </div>
 
-                {/* Card 2: Target Audience & CTA */}
                 <div className="card space-y-3">
                   <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Audience & CTA Strategy</h4>
                   <div>
@@ -219,7 +335,6 @@ export function CampaignDashboard({
                   </div>
                 </div>
 
-                {/* Card 3: Content Pillars & Mix */}
                 <div className="card space-y-3">
                   <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Content Strategy</h4>
                   <div>
@@ -238,7 +353,6 @@ export function CampaignDashboard({
                   </div>
                 </div>
 
-                {/* Card 4: Recommended Channels & Budget */}
                 <div className="card space-y-3">
                   <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Distribution & Budget</h4>
                   <div>
@@ -252,33 +366,233 @@ export function CampaignDashboard({
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-muted mt-2">Budget Recommendation</p>
-                    <p className="text-sm font-semibold text-foreground">{strategy.recommended_budget}</p>
+                    <p className="text-xs text-muted mt-2">Recommended Budget Strategy</p>
+                    <p className="text-sm font-medium text-foreground">{strategy.recommended_budget}</p>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      )}
 
-              {/* Research Planner Insights Card */}
-              {planner && (
-                <div className="card space-y-3 bg-surface/50 border-border/60">
-                  <h4 className="font-bold text-sm text-primary uppercase tracking-wide">Research Planner Insights</h4>
-                  <div className="grid gap-4 md:grid-cols-2 text-sm">
-                    <div>
-                      <p className="text-xs text-muted">Industry Context</p>
-                      <p className="font-medium">{planner.industry_summary}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted">Research Objective Focus</p>
-                      <p className="font-medium">{planner.research_focus}</p>
+      {/* RESEARCH TAB */}
+      {activeTab === "research" && (
+        <div className="space-y-6">
+          {!researchReport && !isExecuting && (
+            <div className="card py-12 flex flex-col items-center gap-4 text-center">
+              <p className="text-muted text-sm">No research data has been gathered for this campaign yet.</p>
+              <button
+                className="btn px-6 py-2.5 font-bold"
+                onClick={() => handleRunCampaign("research")}
+                disabled={triggeringResearch}
+              >
+                {triggeringResearch ? "Running Agents..." : "🚀 Run Research Agent"}
+              </button>
+            </div>
+          )}
+
+          {researchReport && (
+            <div className="space-y-6">
+              {/* Metadata Banner */}
+              <div className="card flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-primary">
+                <div>
+                  <h3 className="font-bold text-lg text-primary">Executive Research Brief</h3>
+                  <p className="text-xs text-muted mt-1">
+                    Completed Providers: {researchReport.metadata?.completed_providers?.join(", ") || "SerpAPI Senior Analyst"} • Execution Time:{" "}
+                    {researchReport.metadata?.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : "Fast"}
+                    {campaign.results?.cache_metadata?.cache_hit && (
+                      <span className="ml-2 font-bold text-emerald-600 dark:text-emerald-400">(Reused Cached Research)</span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  className="btn-outline text-xs px-3 py-1 font-medium"
+                  onClick={() => handleRunCampaign("research")}
+                  disabled={isExecuting || triggeringResearch}
+                >
+                  {triggeringResearch ? "Running..." : "Refresh Research"}
+                </button>
+              </div>
+
+              {/* Research Planner Inferred Search Queries */}
+              {planner && planner.search_queries?.length > 0 && (
+                <div className="card space-y-3 bg-surface/60 border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-primary">Inferred Market Search Queries</h4>
+                    <span className="text-[11px] text-muted font-medium">{planner.search_queries.length} Queries Executed</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {planner.search_queries.map((q: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-xs font-semibold">
+                        🔍 &quot;{q}&quot;
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Competitors Section */}
+              <div className="card space-y-3">
+                <h3 className="font-bold text-primary">Competitors</h3>
+                {researchReport.intelligence?.competitors?.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
+                      <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                        <h4 className="font-semibold text-sm">{c.name}</h4>
+                        {renderExternalLink(c.domain, "URL")}
+                        {c.reason && (
+                          <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                            <span className="font-semibold text-primary">Analyst Rationale: </span>
+                            {c.reason}
+                          </p>
+                        )}
+                        {c.similarity_score != null && <p className="text-xs text-muted">Similarity: {c.similarity_score}</p>}
+                        {c.confidence != null && <p className="text-[11px] text-muted">Confidence: {(c.confidence * 100).toFixed(0)}%</p>}
+                        {c.provider && <p className="text-[11px] text-muted">Source: {c.provider}</p>}
+                        {renderExternalLink(c.source_url, "View Source")}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/80">No competitors found.</p>
+                )}
+              </div>
+
+              {/* Audience Section */}
+              <div className="card space-y-3">
+                <h3 className="font-bold text-primary">Target Audience</h3>
+                {researchReport.intelligence?.audience?.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {researchReport.intelligence.audience.map((a: AudienceResult, i: number) => (
+                      <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                        <h4 className="font-semibold text-sm">{a.segment}</h4>
+                        {a.reason && (
+                          <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                            <span className="font-semibold text-primary">Persona Rationale: </span>
+                            {a.reason}
+                          </p>
+                        )}
+                        {a.size != null && <p className="text-xs text-muted">Size: {a.size}</p>}
+                        {a.confidence != null && <p className="text-[11px] text-muted">Confidence: {a.confidence}</p>}
+                        {a.provider && <p className="text-[11px] text-muted">Source: {a.provider}</p>}
+                        {renderExternalLink(a.source_url, "View Source")}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/80">No audience segments found.</p>
+                )}
+              </div>
+
+              {/* News Section */}
+              <div className="card space-y-3">
+                <h3 className="font-bold text-primary">Recent News</h3>
+                {researchReport.intelligence?.news?.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {researchReport.intelligence.news.map((n: NewsResult, i: number) => (
+                      <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                        <h4 className="font-semibold text-sm">{n.title}</h4>
+                        <p className="text-xs text-muted">
+                          {n.source} {n.published_at ? `• ${n.published_at}` : ""}
+                        </p>
+                        {n.summary && <p className="text-xs text-foreground/90 font-medium leading-snug">{n.summary}</p>}
+                        {n.reason && (
+                          <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                            <span className="font-semibold text-primary">Impact Rationale: </span>
+                            {n.reason}
+                          </p>
+                        )}
+                        {renderExternalLink(n.url, "Read Article")}
+                        {n.confidence != null && <p className="text-[11px] text-muted">Confidence: {n.confidence}</p>}
+                        {n.provider && <p className="text-[11px] text-muted">Source Provider: {n.provider}</p>}
+                        {renderExternalLink(n.source_url, "View Source")}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/80">No recent news found.</p>
+                )}
+              </div>
+
+              {/* Trends Section */}
+              <div className="card space-y-3">
+                <h3 className="font-bold text-primary">Trends</h3>
+                {researchReport.intelligence?.trends?.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {researchReport.intelligence.trends.map((t: TrendResult, i: number) => (
+                      <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                        <h4 className="font-semibold text-sm">{t.keyword}</h4>
+                        {t.reason && (
+                          <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                            <span className="font-semibold text-primary">Trend Rationale: </span>
+                            {t.reason}
+                          </p>
+                        )}
+                        {t.volume != null && <p className="text-xs text-muted">Volume: {t.volume}</p>}
+                        {t.region && <p className="text-xs text-muted">Region: {t.region}</p>}
+                        {t.confidence != null && <p className="text-[11px] text-muted">Confidence: {t.confidence}</p>}
+                        {t.provider && <p className="text-[11px] text-muted">Source: {t.provider}</p>}
+                        {renderExternalLink(t.source_url, "View Source")}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/80">No trends found.</p>
+                )}
+              </div>
+
+              {/* Technologies Section */}
+              <div className="card space-y-3">
+                <h3 className="font-bold text-primary">Technologies</h3>
+                {researchReport.intelligence?.technologies?.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {researchReport.intelligence.technologies.map((tech: TechnologyResult, i: number) => (
+                      <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
+                        <h4 className="font-semibold text-sm">{tech.name}</h4>
+                        {tech.reason && (
+                          <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
+                            <span className="font-semibold text-primary">Tech Rationale: </span>
+                            {tech.reason}
+                          </p>
+                        )}
+                        {tech.category && <p className="text-xs text-muted">Category: {tech.category}</p>}
+                        {tech.maturity && <p className="text-xs text-muted">Maturity: {tech.maturity}</p>}
+                        {tech.confidence != null && <p className="text-[11px] text-muted">Confidence: {tech.confidence}</p>}
+                        {tech.provider && <p className="text-[11px] text-muted">Source: {tech.provider}</p>}
+                        {renderExternalLink(tech.source_url, "View Source")}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground/80">No technologies found.</p>
+                )}
+              </div>
+
+              {/* Strategic Opportunities & Risks Section */}
+              {((researchReport.intelligence?.opportunities?.length || 0) > 0 ||
+                (researchReport.intelligence?.risks?.length || 0) > 0) && (
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="card space-y-3 border-l-4 border-l-emerald-500">
+                    <h3 className="font-bold text-emerald-600">Strategic Opportunities</h3>
+                    <div className="space-y-3">
+                      {researchReport.intelligence.opportunities?.map((opp, i) => (
+                        <div key={i} className="p-3 bg-surface rounded-lg border border-emerald-500/20 space-y-1">
+                          <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">{opp.opportunity}</h4>
+                          {opp.reason && <p className="text-xs text-foreground/80 leading-snug">{opp.reason}</p>}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted mb-1.5">Inferred Search Queries Executed by SerpAPI</p>
-                    <div className="flex flex-wrap gap-2">
-                      {planner.search_queries?.map((q, i) => (
-                        <span key={i} className="px-2.5 py-1 bg-blue-500/10 text-blue-600 rounded text-xs font-mono">
-                          {`"${q}"`}
-                        </span>
+
+                  <div className="card space-y-3 border-l-4 border-l-amber-500">
+                    <h3 className="font-bold text-amber-600">Market Risks & Threats</h3>
+                    <div className="space-y-3">
+                      {researchReport.intelligence.risks?.map((r, i) => (
+                        <div key={i} className="p-3 bg-surface rounded-lg border border-amber-500/20 space-y-1">
+                          <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400">{r.risk}</h4>
+                          {r.reason && <p className="text-xs text-foreground/80 leading-snug">{r.reason}</p>}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -289,276 +603,13 @@ export function CampaignDashboard({
         </div>
       )}
 
-      {activeTab === "research" && (
-         <div className="space-y-6">
-           {/* Error Display */}
-           {(researchError || campaign.status === "failed") && (
-             <div className="card border-destructive/40 bg-destructive/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-bold text-destructive text-base">Research Failed</h3>
-                  <p className="text-sm text-foreground/80 mt-1">
-                    {researchError || campaign.results?.errors?.[0] || "An error occurred while executing the research workflow."}
-                  </p>
-                </div>
-                <button
-                  className="btn px-5 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0"
-                  onClick={() => handleRunResearch(true)}
-                  disabled={triggeringResearch}
-                >
-                  {triggeringResearch ? "Retrying..." : "Retry Research"}
-                </button>
-             </div>
-           )}
-
-           {!researchReport && campaign.status !== "researching" && campaign.status !== "failed" && (
-             <div className="card py-12 flex flex-col items-center gap-4 text-center">
-                <p className="text-muted text-sm">Research has not been executed yet.</p>
-                <button
-                  className="btn px-6 py-2"
-                  onClick={() => handleRunResearch(false)}
-                  disabled={triggeringResearch}
-                >
-                  {triggeringResearch ? "Research in Progress..." : "Run Research"}
-                </button>
-             </div>
-           )}
-
-           {campaign.status === "researching" && (
-             <div className="card py-12 flex flex-col items-center gap-4 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-muted text-sm animate-pulse">Research Running... This may take a minute.</p>
-             </div>
-           )}
-
-           {researchReport && campaign.status !== "researching" && (
-             <div className="space-y-8">
-                {/* Metadata Section */}
-                {researchReport.metadata && (
-                  <div className="card space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-primary">Research Metadata</h3>
-                      <button
-                        className="btn-outline text-xs px-3 py-1"
-                        onClick={() => handleRunResearch(true)}
-                        disabled={triggeringResearch}
-                      >
-                        {triggeringResearch ? "Refreshing..." : "Re-run Research"}
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted">Generated At</p>
-                        <p className="font-medium">{researchReport.metadata.generated_at ? new Date(researchReport.metadata.generated_at).toLocaleString() : 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted">Execution Time</p>
-                        <p className="font-medium">{researchReport.metadata.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted">Schema Version</p>
-                        <p className="font-medium">{researchReport.metadata.schema_version || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted">Providers Used</p>
-                        <p className="font-medium">{researchReport.metadata.completed_providers?.length ? researchReport.metadata.completed_providers.join(", ") : 'None'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted">Partial Providers</p>
-                        <p className="font-medium text-yellow-600">{researchReport.metadata.partial_providers?.length ? researchReport.metadata.partial_providers.join(", ") : 'None'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted">Failed Providers</p>
-                        <p className="font-medium text-destructive">{researchReport.metadata.failed_providers?.length ? researchReport.metadata.failed_providers.join(", ") : 'None'}</p>
-                      </div>
-                    </div>
-                    {(planner?.search_queries?.length || 0) > 0 && (
-                      <div className="pt-2 border-t border-border/40">
-                        <p className="text-xs text-muted mb-1 font-semibold">Planner Search Queries Executed (SerpAPI):</p>
-                        <div className="flex flex-wrap gap-2">
-                          {planner?.search_queries?.map((q: string, i: number) => (
-                            <span key={i} className="px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded text-xs font-mono">
-                              {`"${q}"`}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {/* Competitors Section */}
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Competitors</h3>
-                   {researchReport.intelligence?.competitors?.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-3">
-                       {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
-                           <h4 className="font-semibold text-sm">{c.name}</h4>
-                           {renderExternalLink(c.domain, "URL")}
-                           {c.reason && (
-                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
-                               <span className="font-semibold text-primary">Analyst Rationale: </span>{c.reason}
-                             </p>
-                           )}
-                           {c.similarity_score != null && <p className="text-xs text-muted">Similarity: {c.similarity_score}</p>}
-                           {c.confidence != null && <p className="text-[11px] text-muted">Confidence: {(c.confidence * 100).toFixed(0)}%</p>}
-                           {c.provider && <p className="text-[11px] text-muted">Source: {c.provider}</p>}
-                           {renderExternalLink(c.source_url, "View Source")}
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <p className="text-sm text-foreground/80">No competitors found.</p>
-                   )}
-                </div>
-
-                {/* Audience Section */}
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Target Audience</h3>
-                   {researchReport.intelligence?.audience?.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-3">
-                       {researchReport.intelligence.audience.map((a: AudienceResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
-                           <h4 className="font-semibold text-sm">{a.segment}</h4>
-                           {a.reason && (
-                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
-                               <span className="font-semibold text-primary">Persona Rationale: </span>{a.reason}
-                             </p>
-                           )}
-                           {a.size != null && <p className="text-xs text-muted">Size: {a.size}</p>}
-                           {a.confidence != null && <p className="text-[11px] text-muted">Confidence: {a.confidence}</p>}
-                           {a.provider && <p className="text-[11px] text-muted">Source: {a.provider}</p>}
-                           {renderExternalLink(a.source_url, "View Source")}
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <p className="text-sm text-foreground/80">No audience segments found.</p>
-                   )}
-                </div>
-
-                {/* News Section */}
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Recent News</h3>
-                   {researchReport.intelligence?.news?.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                       {researchReport.intelligence.news.map((n: NewsResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
-                           <h4 className="font-semibold text-sm">{n.title}</h4>
-                           <p className="text-xs text-muted">{n.source} {n.published_at ? `• ${n.published_at}` : ''}</p>
-                           {n.summary && (
-                             <p className="text-xs text-foreground/90 font-medium leading-snug">{n.summary}</p>
-                           )}
-                           {n.reason && (
-                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
-                               <span className="font-semibold text-primary">Impact Rationale: </span>{n.reason}
-                             </p>
-                           )}
-                           {renderExternalLink(n.url, "Read Article")}
-                           {n.confidence != null && <p className="text-[11px] text-muted">Confidence: {n.confidence}</p>}
-                           {n.provider && <p className="text-[11px] text-muted">Source Provider: {n.provider}</p>}
-                           {renderExternalLink(n.source_url, "View Source")}
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <p className="text-sm text-foreground/80">No recent news found.</p>
-                   )}
-                </div>
-
-                {/* Trends Section */}
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Trends</h3>
-                   {researchReport.intelligence?.trends?.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-3">
-                       {researchReport.intelligence.trends.map((t: TrendResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
-                           <h4 className="font-semibold text-sm">{t.keyword}</h4>
-                           {t.reason && (
-                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
-                               <span className="font-semibold text-primary">Trend Rationale: </span>{t.reason}
-                             </p>
-                           )}
-                           {t.volume != null && <p className="text-xs text-muted">Volume: {t.volume}</p>}
-                           {t.region && <p className="text-xs text-muted">Region: {t.region}</p>}
-                           {t.confidence != null && <p className="text-[11px] text-muted">Confidence: {t.confidence}</p>}
-                           {t.provider && <p className="text-[11px] text-muted">Source: {t.provider}</p>}
-                           {renderExternalLink(t.source_url, "View Source")}
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <p className="text-sm text-foreground/80">No trends found.</p>
-                   )}
-                </div>
-
-                {/* Technologies Section */}
-                <div className="card space-y-3">
-                   <h3 className="font-bold text-primary">Technologies</h3>
-                   {researchReport.intelligence?.technologies?.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-3">
-                       {researchReport.intelligence.technologies.map((tech: TechnologyResult, i: number) => (
-                         <div key={i} className="p-3 bg-surface rounded-lg border border-border/40 space-y-1.5">
-                           <h4 className="font-semibold text-sm">{tech.name}</h4>
-                           {tech.reason && (
-                             <p className="text-xs text-foreground/80 bg-primary/5 p-2 rounded border border-primary/10 leading-snug">
-                               <span className="font-semibold text-primary">Tech Rationale: </span>{tech.reason}
-                             </p>
-                           )}
-                           {tech.category && <p className="text-xs text-muted">Category: {tech.category}</p>}
-                           {tech.maturity && <p className="text-xs text-muted">Maturity: {tech.maturity}</p>}
-                           {tech.confidence != null && <p className="text-[11px] text-muted">Confidence: {tech.confidence}</p>}
-                           {tech.provider && <p className="text-[11px] text-muted">Source: {tech.provider}</p>}
-                           {renderExternalLink(tech.source_url, "View Source")}
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <p className="text-sm text-foreground/80">No technologies found.</p>
-                   )}
-                </div>
-                
-                {/* Strategic Opportunities & Risks Section */}
-                {((researchReport.intelligence?.opportunities?.length || 0) > 0 || (researchReport.intelligence?.risks?.length || 0) > 0) && (
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {/* Opportunities */}
-                    <div className="card space-y-3 border-l-4 border-l-emerald-500">
-                      <h3 className="font-bold text-emerald-600">Strategic Opportunities</h3>
-                      <div className="space-y-3">
-                        {researchReport.intelligence.opportunities?.map((opp, i) => (
-                          <div key={i} className="p-3 bg-surface rounded-lg border border-emerald-500/20 space-y-1">
-                            <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400">{opp.opportunity}</h4>
-                            {opp.reason && <p className="text-xs text-foreground/80 leading-snug">{opp.reason}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Risks */}
-                    <div className="card space-y-3 border-l-4 border-l-amber-500">
-                      <h3 className="font-bold text-amber-600">Market Risks & Threats</h3>
-                      <div className="space-y-3">
-                        {researchReport.intelligence.risks?.map((r, i) => (
-                          <div key={i} className="p-3 bg-surface rounded-lg border border-amber-500/20 space-y-1">
-                            <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400">{r.risk}</h4>
-                            {r.reason && <p className="text-xs text-foreground/80 leading-snug">{r.reason}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-             </div>
-           )}
-         </div>
-      )}
-
+      {/* CONTENT TAB */}
       {activeTab === "content" && (
         <>
           {campaign.workflow === "lead_generation" ? (
-             <LeadsDashboard leads={campaign.results?.leads || []} />
+            <LeadsDashboard leads={campaign.results?.leads || []} />
           ) : (
-             <AssetsDashboard assets={campaign.assets || []} campaignId={campaign.id} metaConfigured={metaConfigured} />
+            <AssetsDashboard assets={assets} campaignId={campaign.id} metaConfigured={metaConfigured} />
           )}
         </>
       )}
@@ -566,535 +617,257 @@ export function CampaignDashboard({
   );
 }
 
-function AssetsDashboard({ assets, campaignId, metaConfigured }: { assets: CampaignAsset[], campaignId: string, metaConfigured: boolean }) {
-  if (assets.length === 0) {
-    return (
-      <div className="card text-center py-12 text-muted col-span-2 flex flex-col items-center justify-center gap-3 border-dashed border-2">
-        <svg className="h-10 w-10 text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-        <span>No campaign assets generated.</span>
-      </div>
-    );
+function MultiAgentTimelineBanner({
+  execution,
+  status,
+  onRetry,
+  isExecuting,
+}: {
+  execution?: ExecutionMetadata;
+  status: string;
+  onRetry: () => void;
+  isExecuting: boolean;
+}) {
+  if (!execution && status !== "running" && status !== "researching" && status !== "failed") {
+    return null;
   }
 
+  const stagesList = [
+    { key: "planning", label: "Planning & Context", agent: "🧠 Planner Agent", desc: "Understanding product features & search intent" },
+    { key: "researching", label: "Market Research", agent: "🔍 Research Agent", desc: "Executing SerpAPI searches (max 5 queries x 10 results)" },
+    { key: "analyzing", label: "Intelligence Analysis", agent: "📊 Intelligence Agent", desc: "Filtering noise & inferring direct competitors" },
+    { key: "strategizing", label: "Go-To-Market Strategy", agent: "🎯 Strategy Agent", desc: "Formulating GTM positioning & messaging pillars" },
+    { key: "generating_content", label: "Content Generation", agent: "✍️ Content Agent", desc: "Writing platform-tailored social media copy" },
+    { key: "generating_images", label: "Creative Generation", agent: "🎨 Creative Agent", desc: "Generating campaign visual assets" },
+    { key: "ready", label: "Campaign Ready", agent: "🏁 Campaign Ready", desc: "All campaign deliverables are ready for review" },
+  ];
+
+  const currentStageKey = execution?.stage || (status === "researching" ? "researching" : status === "running" ? "planning" : "idle");
+  const isFailed = execution?.stage === "failed" || status === "failed";
+  const isReady = execution?.stage === "ready" || (status !== "running" && status !== "researching" && !isFailed && execution);
+
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      {assets.map((asset) => (
-        <AssetCard
-          key={asset?.id}
-          campaignId={campaignId}
-          initial={asset}
-          metaConfigured={metaConfigured}
-        />
-      ))}
+    <div className="card space-y-5 border-l-4 border-l-primary shadow-lg bg-surface/90">
+      {/* Current Active Agent Banner */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-lg bg-primary/5 border border-primary/10">
+        <div className="flex items-center gap-3">
+          <div
+            className={`p-2.5 rounded-full ${
+              isFailed
+                ? "bg-destructive/10 text-destructive"
+                : isReady
+                ? "bg-emerald-500/10 text-emerald-500"
+                : "bg-primary/10 text-primary animate-pulse"
+            }`}
+          >
+            <span className="text-xl">{execution?.current_agent?.slice(0, 2) || "🧠"}</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-base text-foreground">
+                {execution?.current_agent || (isFailed ? "✕ System Alert" : isExecuting ? "🧠 Multi-Agent Orchestrator" : "Campaign Execution Status")}
+              </h3>
+              {isExecuting && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary animate-pulse">
+                  ⟳ Executing Pipeline
+                </span>
+              )}
+              {isReady && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  ✓ Pipeline Complete
+                </span>
+              )}
+              {isFailed && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-destructive/10 text-destructive">
+                  ✕ Execution Failed
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-foreground/80 mt-0.5 font-medium">
+              {execution?.current_message ||
+                (isExecuting
+                  ? "Executing autonomous campaign agents..."
+                  : isFailed
+                  ? execution?.error_message || "An unexpected error occurred during execution."
+                  : "Campaign assets are ready.")}
+            </p>
+          </div>
+        </div>
+
+        {isFailed && (
+          <button
+            className="btn px-4 py-2 text-sm bg-destructive hover:bg-destructive/90 text-white shrink-0 font-semibold"
+            onClick={onRetry}
+          >
+            Retry / Resume Execution
+          </button>
+        )}
+      </div>
+
+      {/* Progress Timeline List */}
+      <div className="space-y-3 pt-1">
+        <h4 className="text-xs uppercase tracking-wider text-muted font-bold">Autonomous Execution Timeline</h4>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {stagesList.map((st) => {
+            const stageData = execution?.stages?.[st.key];
+            const isCurrent = currentStageKey === st.key;
+            const stStatus = stageData?.status || (isCurrent ? (isFailed ? "failed" : isExecuting ? "running" : "completed") : "waiting");
+
+            let statusIcon = "○";
+            let statusBadge = "Waiting";
+            let badgeStyle = "bg-muted/10 text-muted border-border/40";
+
+            if (stStatus === "completed") {
+              statusIcon = "✓";
+              statusBadge = stageData?.duration != null ? `Completed in ${stageData.duration}s` : "Completed";
+              badgeStyle = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+            } else if (stStatus === "running") {
+              statusIcon = "⟳";
+              statusBadge = stageData?.query_progress ? `Running (${stageData.query_progress})` : "Running...";
+              badgeStyle = "bg-primary/10 text-primary border-primary/20 animate-pulse font-semibold";
+            } else if (stStatus === "failed") {
+              statusIcon = "✕";
+              statusBadge = "Failed";
+              badgeStyle = "bg-destructive/10 text-destructive border-destructive/20 font-semibold";
+            }
+
+            return (
+              <div
+                key={st.key}
+                className={`p-3 rounded-lg border transition ${
+                  isCurrent
+                    ? "border-primary/50 bg-primary/5 shadow-sm"
+                    : stStatus === "completed"
+                    ? "border-border/60 bg-surface/50"
+                    : "border-border/30 bg-surface/20 opacity-70"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span>{st.agent.split(" ")[0]}</span> {st.label}
+                  </span>
+                  <span className={`text-[11px] px-2 py-0.5 rounded border ${badgeStyle}`}>
+                    <span className="mr-1">{statusIcon}</span> {statusBadge}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted leading-tight">{st.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
 
-function LeadsDashboard({ leads }: { leads: any[] }) {
-  const safeLeads = Array.isArray(leads) ? leads : [];
-
-  if (safeLeads.length === 0) {
-    return (
-      <div className="card text-center py-12 text-muted col-span-2 flex flex-col items-center justify-center gap-3">
-        <svg className="h-10 w-10 text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span>No leads discovered for this campaign.</span>
-      </div>
-    );
-  }
-
+function CampaignReadyBanner({
+  assetCount,
+  onPublish,
+}: {
+  assetCount: number;
+  onPublish: () => void;
+}) {
   return (
-    <div className="space-y-6 col-span-2">
-      <div className="flex items-center justify-between border-b border-border/40 pb-4">
-        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <svg className="h-5.5 w-5.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-          Discovered Leads <span className="text-sm font-normal text-muted">({safeLeads.length} matches)</span>
-        </h2>
+    <div className="card border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-500/10 via-surface to-surface p-6 space-y-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎉</span>
+            <h3 className="font-bold text-lg text-emerald-600 dark:text-emerald-400">Campaign Execution Complete</h3>
+          </div>
+          <p className="text-sm text-foreground/80 mt-1">
+            All autonomous marketing agents have completed execution. Your market intelligence brief, positioning strategy, and platform assets are ready for review.
+          </p>
+        </div>
+        <button
+          className="btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shrink-0 transition"
+          onClick={onPublish}
+        >
+          Publish Campaign Assets ({assetCount} Ready)
+        </button>
       </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs border-t border-emerald-500/20">
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+          <span>✓</span> Market Intelligence Brief
+        </div>
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+          <span>✓</span> GTM Positioning Strategy
+        </div>
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+          <span>✓</span> Social Media Content
+        </div>
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+          <span>✓</span> Visual Campaign Creatives
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssetsDashboard({ assets, campaignId, metaConfigured }: { assets: CampaignAsset[]; campaignId: string; metaConfigured: boolean }) {
+  return (
+    <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-        {safeLeads.map((lead, idx) => (
-          <LeadCard key={lead?.id || idx} lead={lead} />
+        {assets.map((asset, i) => (
+          <div key={asset.id || i} className="card space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-semibold uppercase">
+                {PLATFORM_LABELS[asset.platform] || asset.platform}
+              </span>
+              <span className="text-xs text-muted font-medium capitalize">{asset.status}</span>
+            </div>
+
+            {asset.headline && <h4 className="font-bold text-base text-foreground">{asset.headline}</h4>}
+            {asset.body && <p className="text-sm text-foreground/90 whitespace-pre-wrap">{asset.body}</p>}
+
+            {asset.hashtags?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {asset.hashtags.map((tag, idx) => (
+                  <span key={idx} className="text-xs text-primary/80">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {asset.cta && (
+              <div className="p-2.5 bg-surface/80 rounded border border-border/40 text-xs">
+                <span className="font-semibold text-primary">CTA: </span>
+                {asset.cta}
+              </div>
+            )}
+
+            {asset.creative_url && (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted font-semibold">Visual Creative:</p>
+                <img
+                  src={asset.creative_url}
+                  alt="Campaign Creative"
+                  className="w-full h-48 object-cover rounded-lg border border-border/40"
+                />
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-function LeadCard({ lead }: { lead: any }) {
-  const [activeTab, setActiveTab] = useState<"email" | "whatsapp">("email");
-
-  if (!lead) return null;
-
-  const isHighPriority = lead.priority === "high";
-  const hasOutreach = lead.outreach?.email || lead.outreach?.whatsapp;
-
+function LeadsDashboard({ leads }: { leads: any[] }) {
   return (
-    <div className="card space-y-5 flex flex-col justify-between h-full bg-panel border border-border/60 hover:border-primary/20 transition-all duration-300">
-      <div className="space-y-4">
-        {/* Card Header Info */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-bold text-base text-foreground tracking-tight">{lead.name || "Unnamed Lead"}</h3>
-            {lead.category && (
-              <span className="inline-block text-[10px] text-primary bg-primary/10 border border-primary/20 font-bold px-2 py-0.5 rounded mt-1.5 uppercase tracking-wide">
-                {lead.category}
-              </span>
-            )}
+    <div className="space-y-4">
+      <h3 className="font-bold text-lg text-primary">Discovered Leads</h3>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {leads.map((lead, i) => (
+          <div key={i} className="card space-y-2">
+            <h4 className="font-semibold text-base">{lead.name}</h4>
+            {lead.category && <p className="text-xs text-muted">{lead.category}</p>}
+            {lead.email && <p className="text-xs text-primary">{lead.email}</p>}
+            {lead.score_reason && <p className="text-xs text-foreground/80 mt-1">{lead.score_reason}</p>}
           </div>
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
-            {lead.priority && (
-              <span className={`badge text-[10px] uppercase font-semibold ${isHighPriority ? "badge-success" : "badge-muted"}`}>
-                {lead.priority} Priority
-              </span>
-            )}
-            {lead.score !== null && lead.score !== undefined && (
-              <span className="text-[11px] text-muted font-medium">
-                Match Fit: <strong className={lead.score >= 80 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>{lead.score}%</strong>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Scoring Explanation */}
-        {lead.score_reason && (
-          <div className="text-[11px] text-muted/90 bg-surface/50 p-3 rounded-lg border border-border/40 leading-relaxed">
-            <span className="font-bold text-foreground/80 block mb-0.5">Scoring Fit Analysis</span>
-            {lead.score_reason}
-          </div>
-        )}
-
-        {/* Directory Fields */}
-        <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-border/40">
-          {lead.rating !== null && lead.rating !== undefined && (
-            <div className="col-span-2 flex items-center gap-1.5 text-muted">
-              <span>Rating:</span>
-              <strong className="text-amber-400 flex items-center gap-0.5">
-                ★ {lead.rating}
-              </strong>
-              {lead.reviews !== null && lead.reviews !== undefined && <span className="text-[10px] text-muted/70">({lead.reviews} reviews)</span>}
-            </div>
-          )}
-          {lead.phone && (
-            <div className="col-span-2 sm:col-span-1 flex items-center gap-1 truncate text-muted">
-              <svg className="h-3.5 w-3.5 text-muted/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <a href={`tel:${lead.phone}`} className="hover:text-primary transition truncate">{lead.phone}</a>
-            </div>
-          )}
-          {lead.website && (
-            <div className="col-span-2 sm:col-span-1 flex items-center gap-1 truncate text-muted">
-              <svg className="h-3.5 w-3.5 text-muted/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9-9c1.657 0 3 4.03 3 9s-1.343 9-3 9m0-18c-1.657 0-3 4.03-3 9s1.343 9 3 9m-9-9h18" />
-              </svg>
-              <a href={lead.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition truncate">{lead.website.replace(/^https?:\/\/(www\.)?/, "")}</a>
-            </div>
-          )}
-          {lead.email && (
-            <div className="col-span-2 flex items-center gap-1 truncate text-muted">
-              <svg className="h-3.5 w-3.5 text-muted/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <a href={`mailto:${lead.email}`} className="hover:text-primary transition truncate">{lead.email}</a>
-            </div>
-          )}
-          {lead.address && (
-            <div className="col-span-2 pt-1 flex items-start gap-1 text-muted">
-              <svg className="h-3.5 w-3.5 text-muted/70 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-foreground/80 leading-normal">{lead.address}</span>
-            </div>
-          )}
-        </div>
+        ))}
       </div>
-
-      {/* Outreach Draft Section */}
-      {hasOutreach && (
-        <div className="space-y-3 pt-3 border-t border-border/40">
-          <div className="flex gap-2">
-            {lead.outreach?.email && (
-              <button
-                onClick={() => setActiveTab("email")}
-                className={`btn-sm px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                  activeTab === "email"
-                    ? "bg-primary/10 text-primary border-primary/30"
-                    : "bg-transparent text-muted border-transparent hover:text-foreground"
-                }`}
-              >
-                Email Draft
-              </button>
-            )}
-            {lead.outreach?.whatsapp && (
-              <button
-                onClick={() => setActiveTab("whatsapp")}
-                className={`btn-sm px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                  activeTab === "whatsapp"
-                    ? "bg-primary/10 text-primary border-primary/30"
-                    : "bg-transparent text-muted border-transparent hover:text-foreground"
-                }`}
-              >
-                WhatsApp Draft
-              </button>
-            )}
-          </div>
-
-          {activeTab === "email" && lead.outreach?.email && (
-            <div className="space-y-1.5 animate-in fade-in duration-200">
-              <label className="label text-[10px] tracking-widest text-muted/70 uppercase">Personalized Email Draft</label>
-              <textarea
-                className="textarea text-xs h-32 font-mono bg-[#0c1311] border-border/30 text-foreground/90 p-3 w-full rounded-lg leading-relaxed focus:ring-0"
-                readOnly
-                value={lead.outreach.email}
-              />
-            </div>
-          )}
-
-          {activeTab === "whatsapp" && lead.outreach?.whatsapp && (
-            <div className="space-y-1.5 animate-in fade-in duration-200">
-              <label className="label text-[10px] tracking-widest text-muted/70 uppercase">Personalized WhatsApp Draft</label>
-              <textarea
-                className="textarea text-xs h-32 font-mono bg-[#0c1311] border-border/30 text-foreground/90 p-3 w-full rounded-lg leading-relaxed focus:ring-0"
-                readOnly
-                value={lead.outreach.whatsapp}
-              />
-            </div>
-          )}
-
-          {lead.outreach?.image_url && (
-            <div className="mt-3 space-y-1.5">
-              <label className="label text-[10px] tracking-widest text-muted/70 uppercase">Generated Outreach Creative</label>
-              <div className="relative aspect-square w-full rounded-lg overflow-hidden border border-border/40 bg-surface">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={lead.outreach.image_url}
-                  alt="Lead creative"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const STATUS_BADGES: Record<string, string> = {
-  draft: "badge-muted",
-  scheduled: "badge-info",
-  publishing: "badge-info animate-pulse",
-  published: "badge-success",
-  failed: "badge-danger",
-};
-
-function AssetCard({
-  campaignId,
-  initial,
-  metaConfigured,
-}: {
-  campaignId: string;
-  initial: CampaignAsset;
-  metaConfigured: boolean;
-}) {
-  const [asset, setAsset] = useState<CampaignAsset>(initial || ({} as CampaignAsset));
-  const [headline, setHeadline] = useState(initial?.headline || "");
-  const [body, setBody] = useState(initial?.body || "");
-  const [hashtags, setHashtags] = useState(Array.isArray(initial?.hashtags) ? initial.hashtags.join(" ") : "");
-  const [cta, setCta] = useState(initial?.cta || "");
-  const [scheduledTime, setScheduledTime] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const base = `/api/campaigns/${campaignId}/assets/${asset?.id}`;
-  const canPublishHere = asset?.platform === "instagram" || asset?.platform === "facebook";
-
-  async function save() {
-    setBusy("save");
-    setError(null);
-    setMessage(null);
-    try {
-      const res = await fetch(base, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline, body, cta, hashtags }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
-      if (data.asset) {
-        setAsset(data.asset);
-        setHashtags(Array.isArray(data.asset.hashtags) ? data.asset.hashtags.join(" ") : "");
-      }
-      setMessage("Edits saved successfully.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function regenerateCreative() {
-    setBusy("creative");
-    setError(null);
-    setMessage(null);
-    try {
-      const res = await fetch(`${base}/creative`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ creative_prompt: asset?.creative_prompt || "" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Regenerate failed");
-      if (data.asset) {
-        setAsset(data.asset);
-      }
-      setMessage("Creative generated successfully.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Regenerate failed");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function publish(schedule: boolean) {
-    setBusy(schedule ? "schedule" : "publish");
-    setError(null);
-    setMessage(null);
-    try {
-      // Persist edits first so we publish the latest copy.
-      await fetch(base, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline, body, cta, hashtags }),
-      });
-      const res = await fetch(`${base}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          schedule && scheduledTime ? { scheduled_time: scheduledTime } : {},
-        ),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Publish failed");
-      if (data.asset) {
-        setAsset(data.asset);
-      }
-      setMessage(
-        data.asset?.status === "scheduled"
-          ? "Scheduled successfully."
-          : "Published successfully.",
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Publish failed");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  return (
-    <div className="card space-y-5 bg-panel border border-border/60 hover:border-primary/10 transition-all duration-300">
-      {/* Platform & Status Header */}
-      <div className="flex items-center justify-between border-b border-border/40 pb-3">
-        <h3 className="font-bold text-base text-foreground tracking-tight flex items-center gap-2">
-          {asset?.platform === "instagram" ? (
-            <svg className="h-5 w-5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-          ) : asset?.platform === "facebook" ? (
-            <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
-              <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
-              <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
-              <circle cx="4" cy="4" r="2" />
-            </svg>
-          )}
-          {asset?.platform && PLATFORM_LABELS[asset.platform] ? PLATFORM_LABELS[asset.platform] : "Social Post"}
-        </h3>
-        <span className={`badge ${STATUS_BADGES[asset?.status || "draft"] ?? "badge-muted"} capitalize`}>
-          {asset?.status || "draft"}
-        </span>
-      </div>
-
-      {/* Asset Creative Box */}
-      {asset?.creative_url ? (
-        <div className="relative aspect-square w-full rounded-lg overflow-hidden border border-border/50 bg-surface shadow-inner group">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={asset.creative_url}
-            alt={`${asset.platform || "platform"} creative`}
-            className="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-102"
-            loading="lazy"
-          />
-        </div>
-      ) : (
-        <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-border bg-surface text-xs text-muted/70">
-          No Creative Asset Generated
-        </div>
-      )}
-
-      {/* Action to regenerate */}
-      <button
-        type="button"
-        onClick={regenerateCreative}
-        className="btn-ghost btn-sm w-full py-2 flex items-center justify-center gap-1.5"
-        disabled={busy !== null}
-      >
-        {busy === "creative" ? (
-          <>
-            <svg className="animate-spin h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <span>Rendering creative...</span>
-          </>
-        ) : (
-          <>
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.5" />
-            </svg>
-            <span>Regenerate Creative Image</span>
-          </>
-        )}
-      </button>
-
-      {/* Form Fields */}
-      <div className="space-y-3.5 pt-2">
-        <div className="space-y-1">
-          <label className="label">Headline</label>
-          <input
-            className="input"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            disabled={busy !== null}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="label">Post Copy</label>
-          <textarea
-            className="textarea h-24"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            disabled={busy !== null}
-          />
-        </div>
-
-        <div className="grid gap-3.5 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="label">Hashtags</label>
-            <input
-              className="input text-xs font-mono"
-              value={hashtags}
-              placeholder="e.g. #marketing #saas"
-              onChange={(e) => setHashtags(e.target.value)}
-              disabled={busy !== null}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="label">Call to Action (CTA)</label>
-            <input
-              className="input text-xs"
-              value={cta}
-              onChange={(e) => setCta(e.target.value)}
-              disabled={busy !== null}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Publish Actions */}
-      <div className="flex flex-col gap-3 pt-3 border-t border-border/40">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={save}
-            className="btn-ghost btn-sm py-2 px-4 flex-1 sm:flex-initial flex items-center justify-center gap-1"
-            disabled={busy !== null}
-          >
-            {busy === "save" ? "Saving..." : "Save Edits"}
-          </button>
-
-          {canPublishHere ? (
-            <button
-              onClick={() => publish(false)}
-              className="btn btn-sm py-2 px-4 flex-1 sm:flex-initial flex items-center justify-center gap-1"
-              disabled={busy !== null || !metaConfigured}
-              title={metaConfigured ? "Publish copy to page" : "Configure Meta in environment to publish"}
-            >
-              {busy === "publish" ? "Publishing..." : "Publish Now"}
-            </button>
-          ) : (
-            <span className="chip text-[10px] font-semibold flex items-center justify-center py-1.5 px-3 bg-surface/50 select-none">
-              API Publish Unavailable
-            </span>
-          )}
-        </div>
-
-        {canPublishHere && asset?.platform === "facebook" && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 rounded-lg bg-surface/50 border border-border/50">
-            <div className="flex-1 space-y-1">
-              <label className="label text-[10px] tracking-wider mb-0 text-muted/80">Schedule Publish Time</label>
-              <input
-                type="datetime-local"
-                className="input py-1 px-2.5 text-xs w-full bg-surface border-border/60"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                disabled={busy !== null}
-              />
-            </div>
-            <button
-              onClick={() => publish(true)}
-              className="btn-ghost btn-sm py-2.5 px-4 self-stretch sm:self-end"
-              disabled={busy !== null || !metaConfigured || !scheduledTime}
-            >
-              {busy === "schedule" ? "Scheduling..." : "Schedule Post"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Post URL Link */}
-      {asset?.external_id && (
-        <div className="pt-1.5 text-xs font-semibold flex items-center">
-          {String(asset.external_id).startsWith("http") ? (
-            <a
-              href={asset.external_id}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:text-primary-hover flex items-center gap-1"
-            >
-              <span>View Published Post</span>
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          ) : (
-            <span className="text-muted/70 font-mono">Meta ID: {asset.external_id}</span>
-          )}
-        </div>
-      )}
-
-      {message && (
-        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
-          {message}
-        </div>
-      )}
-      {(error || asset?.error) && (
-        <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-400 leading-normal break-words">
-          {error || asset?.error}
-        </div>
-      )}
     </div>
   );
 }

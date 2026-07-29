@@ -24,6 +24,8 @@ export interface BackendCampaignState {
   research_summary?: string;
   research_report?: ResearchReport;
   status: string;
+  execution?: any;
+  results?: any;
   errors: string[];
   log: string[];
 }
@@ -155,9 +157,13 @@ export const backendClient = {
   /**
    * Trigger execution of the campaign's workflow.
    */
-  async runCampaign(id: string): Promise<BackendCampaignState> {
+  async runCampaign(id: string, options?: { refresh_type?: "none" | "research" | "strategy" | "everything"; resume?: boolean }): Promise<BackendCampaignState> {
     return request<BackendCampaignState>(`/campaigns/${id}/run`, {
       method: "POST",
+      body: JSON.stringify({
+        refresh_type: options?.refresh_type || "none",
+        resume: options?.resume || false,
+      }),
     });
   },
 

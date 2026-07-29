@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
 import { backendClient } from "@/lib/backend";
+import type { CampaignStatus } from "@/lib/types";
 
 export async function GET(
   request: Request,
@@ -19,7 +20,7 @@ export async function GET(
     }
 
     try {
-      // Sync with backend
+      // Sync with backend state
       const backendState = await backendClient.getCampaign(campaignId);
       
       let shouldUpdate = false;
@@ -31,30 +32,40 @@ export async function GET(
           shouldUpdate = true;
       }
       
-      // Sync results
+      // Sync results & execution
       let results = { ...localCampaign.results } as any;
       if (backendState.leads && backendState.leads.length > 0) {
           results.leads = backendState.leads;
           shouldUpdate = true;
       }
-      
+      if (backendState.assets && backendState.assets.length > 0) {
+          results.assets = backendState.assets;
+          shouldUpdate = true;
+      }
       if (backendState.research_report) {
           results.research_report = backendState.research_report;
           shouldUpdate = true;
       }
-      
-      if (shouldUpdate) {
-          updateData.results = results;
+      if (backendState.results) {
+          results = { ...results, ...backendState.results };
+          shouldUpdate = true;
+      }
+
+      if (shouldUpdate || backendState.execution) {
           if (updateData.status) {
               await repo.updateCampaignStatus(campaignId, updateData.status);
           }
-          if (updateData.results) {
-              await repo.updateCampaignResults(campaignId, updateData.results, updateData.status || localCampaign.status);
-          }
+          await repo.updateCampaignResults(campaignId, results, (backendState.status as CampaignStatus) || localCampaign.status);
           
-          // Re-fetch
+          // Re-fetch updated document from Firestore repo
           const updatedCampaign = await repo.getCampaign(user.id, campaignId);
-          return NextResponse.json({ campaign: updatedCampaign });
+          if (updatedCampaign) {
+            // Attach live execution metadata if returned from backend
+            if (backendState.execution) {
+              (updatedCampaign as any).execution = backendState.execution;
+            }
+            return NextResponse.json({ campaign: updatedCampaign });
+          }
       }
     } catch (backendError) {
         console.error("Error syncing with backend:", backendError);

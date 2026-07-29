@@ -182,12 +182,35 @@ export interface MarketingStrategy {
   cta_strategy: string;
 }
 
+export interface ExecutionStageInfo {
+  status: "waiting" | "running" | "completed" | "failed";
+  started_at?: string;
+  finished_at?: string;
+  duration?: number;
+  query_progress?: string;
+}
+
+export interface ExecutionMetadata {
+  current_agent: string;
+  current_message: string;
+  stage: "planning" | "researching" | "analyzing" | "strategizing" | "generating_content" | "generating_images" | "ready" | "failed";
+  failed_stage?: string | null;
+  error_message?: string | null;
+  stages: Record<string, ExecutionStageInfo>;
+}
+
 export interface CampaignResults {
   assets?: CampaignAsset[];
   leads?: Lead[];
   research_report?: ResearchReport;
   planner?: ResearchPlan;
   strategy?: MarketingStrategy;
+  cache_metadata?: {
+    product_hash?: string;
+    serp_query_count?: number;
+    cache_hit?: boolean;
+    generated_at?: string;
+  };
   [key: string]: any;
 }
 
@@ -204,6 +227,7 @@ export interface Campaign {
   workflow: WorkflowType;
   config: CampaignConfig;
   results: CampaignResults;
+  execution?: ExecutionMetadata;
 
   // Legacy / Organic compatibility
   assets: CampaignAsset[];
