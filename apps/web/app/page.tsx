@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { firebaseConfig } from "@/lib/firebase/config";
+import { Rocket, Sparkles, ChevronRight, Activity, Cpu } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
@@ -20,23 +24,23 @@ async function isMetaConfiguredOnBackend(): Promise<boolean> {
 const steps = [
   {
     step: "01",
-    title: "Upload Product Guides",
-    detail: "Synthesize target niches, core features, brand aesthetics, and assets into the active workspace database.",
+    title: "Synthesize Product Context",
+    detail: "Onboard brand guides, target niches, core product features, and media assets into the active workspace database.",
   },
   {
     step: "02",
-    title: "Map Channels",
-    detail: "Direct campaign pipelines to organic social channels or local B2B lead discovery scrapers.",
+    title: "Channel & Capability Selection",
+    detail: "Direct campaign pipelines to organic social broadcasting or local B2B lead discovery scrapers.",
   },
   {
     step: "03",
-    title: "Generate Campaign",
-    detail: "Orchestrate stateless LLM agents to render platform captions, target hashtags, and custom graphic assets.",
+    title: "Multi-Agent Orchestration",
+    detail: "Stateless LLM agents execute reasoning, competitor analysis, GTM positioning, caption generation, and graphics rendering.",
   },
   {
     step: "04",
-    title: "Broadcast Live",
-    detail: "Perform manual copy edits, execute instant creative regeneration, and post to Meta feeds.",
+    title: "Social Broadcasting",
+    detail: "Review generated visual creatives, perform copy edits, and publish live to Instagram and Facebook feeds.",
   },
 ];
 
@@ -45,123 +49,104 @@ export default async function HomePage() {
   const meta = await isMetaConfiguredOnBackend();
 
   return (
-    <div className="space-y-40 py-12 relative">
-      {/* Cinematic Scene 1: The Hero */}
-      <section className="min-h-[70vh] flex flex-col justify-center items-center text-center max-w-5xl mx-auto py-16 animate-fade-in-up relative z-10">
-        {/* Subtitle tag */}
-        <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/20 bg-primary/5 px-4.5 py-1.5 text-xs font-semibold text-primary tracking-widest uppercase mb-6 shadow-[0_0_15px_rgba(0,85,255,0.08)]">
+    <div className="space-y-24 py-8 relative z-10">
+      {/* MISSION HERO SECTION */}
+      <section className="min-h-[60vh] flex flex-col justify-center items-center text-center max-w-4xl mx-auto py-12 relative">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-xs font-semibold text-primary uppercase tracking-widest mb-8">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
-          Autonomous Social Studio
+          Autonomous AI Mission Control
         </div>
 
-        {/* Cinematic Title */}
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[1.05] max-w-4xl mx-auto">
-          Autonomous campaign <br className="hidden sm:inline" />
+        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-100 leading-[1.08] max-w-3xl mx-auto">
+          Autonomous Campaign <br className="hidden sm:inline" />
           <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-            orchestration.
+            Orchestration.
           </span>
         </h1>
 
-        {/* Elegant Subtitle */}
-        <p className="max-w-2xl mx-auto text-sm sm:text-base text-muted/75 leading-relaxed font-normal mt-8">
-          A stateless, agentic marketing studio designed to synthesise product knowledge bases, draft customized platform copy, and execute instant social broadcasting.
+        <p className="font-sans text-sm sm:text-base text-muted/80 max-w-2xl mx-auto mt-6 leading-relaxed">
+          A stateless, agentic marketing studio designed to synthesize product knowledge bases, formulate go-to-market positioning, and execute instant social broadcasting.
         </p>
 
-        {/* Call to Actions */}
         <div className="flex flex-wrap items-center justify-center gap-4 pt-10">
-          <Link href="/products/new" className="btn flex items-center gap-2 px-8 py-3.5 text-sm font-semibold shadow-lg hover:shadow-primary/30">
+          <Link
+            href="/products/new"
+            className="btn btn-lg flex items-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30"
+          >
             <span>Add Brand Profile</span>
-            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+            <Rocket className="h-4.5 w-4.5" />
           </Link>
-          <Link href="/campaigns" className="btn-ghost flex items-center gap-2 px-8 py-3.5 text-sm font-semibold">
+          <Link
+            href="/campaigns"
+            className="btn btn-ghost text-sm flex items-center gap-2 px-6 py-3"
+          >
             <span>Open Studio</span>
-            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRight className="h-4 w-4 text-muted" />
           </Link>
         </div>
       </section>
 
-      {/* Cinematic Scene 2: Workflow Pipeline */}
-      <section className="space-y-16 relative z-10 max-w-6xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">System Pipeline</h2>
-          <p className="text-sm text-muted/75 leading-relaxed">
-            Stateless agent operations executing in sequential stages, from onboarding to live network deployment.
-          </p>
-        </div>
+      {/* SYSTEM PIPELINE */}
+      <section className="space-y-8 max-w-5xl mx-auto">
+        <SectionHeader
+          badge="Capability Architecture"
+          title="Sequential Multi-Agent Pipeline"
+          subtitle="Stateless agent operations executing in sequential stages, from onboarding to live network deployment."
+        />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((s, idx) => (
-            <div
-              key={s.title}
-              className="glow-card card flex flex-col justify-between group h-full border-border/40 hover:-translate-y-1 transition-all duration-300"
-              style={{ animationDelay: `${idx * 100}ms` }}
-            >
-              <div className="space-y-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((s) => (
+            <Card key={s.title} interactive className="flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-primary/75 tracking-wider">
-                    {s.step}
-                  </span>
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300" />
+                  <span className="font-mono text-xs font-bold text-primary">{s.step}</span>
+                  <Cpu className="h-4 w-4 text-primary/50" />
                 </div>
-                <h3 className="font-bold text-base text-foreground/90 group-hover:text-primary transition-colors duration-200">
-                  {s.title}
-                </h3>
-                <p className="text-xs text-muted/70 leading-relaxed">
-                  {s.detail}
-                </p>
+                <h4 className="font-heading text-sm font-bold text-slate-100">{s.title}</h4>
+                <p className="font-sans text-xs text-muted/70 leading-relaxed">{s.detail}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </section>
 
-      {/* Cinematic Scene 3: Platform Integration Health */}
-      <section className="glow-card card max-w-2xl mx-auto border-border/40 shadow-2xl relative overflow-hidden bg-panel/90 z-10">
-        <div className="absolute top-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-        
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-lg bg-surface border border-border/80 text-primary">
-            <svg className="h-5.5 w-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.25">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+      {/* SYSTEM RELAY INTEGRATIONS */}
+      <GlassPanel className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+            <Activity className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-foreground">Relay Integrations</h2>
-            <p className="text-xs text-muted/80">Active health checks of data nodes and social publishing relays.</p>
+            <h3 className="font-heading text-lg font-bold text-slate-100">Relay Integration Status</h3>
+            <p className="font-mono text-xs text-muted/70">Real-time health telemetry for workspace data nodes and social APIs.</p>
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${firebase ? "border-primary/25" : "border-border"}`}>
-            <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">Firebase Node</span>
-              <span className="text-[10px] text-muted/70 block">Database campaign sync</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface/40 p-4">
+            <div>
+              <span className="font-sans text-xs font-semibold text-slate-200 block">Firebase Node</span>
+              <span className="font-mono text-[10px] text-muted/60 block">Campaign Data Persistence</span>
             </div>
-            <span className={`badge ${firebase ? "bg-primary/10 text-primary border-primary/20" : "badge-danger"} flex items-center gap-1.5`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${firebase ? "bg-primary animate-pulse" : "bg-rose-400"}`} />
+            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${firebase ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
               {firebase ? "Connected" : "Offline"}
             </span>
           </div>
 
-          <div className={`flex items-center justify-between rounded-xl border p-4 bg-surface/50 transition-colors ${meta ? "border-primary/25" : "border-border"}`}>
-            <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-foreground block">Meta SDK Client</span>
-              <span className="text-[10px] text-muted/70 block">Facebook / Instagram relay</span>
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface/40 p-4">
+            <div>
+              <span className="font-sans text-xs font-semibold text-slate-200 block">Meta Graph Relay</span>
+              <span className="font-mono text-[10px] text-muted/60 block">Instagram & Facebook Publishing</span>
             </div>
-            <span className={`badge ${meta ? "bg-primary/10 text-primary border-primary/20" : "badge-danger"} flex items-center gap-1.5`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${meta ? "bg-primary animate-pulse" : "bg-rose-400"}`} />
+            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${meta ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
               {meta ? "Configured" : "Offline"}
             </span>
           </div>
         </div>
-      </section>
+      </GlassPanel>
     </div>
   );
 }
