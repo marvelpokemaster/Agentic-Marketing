@@ -17,6 +17,8 @@ import {
   Play,
   Layers,
   ChevronDown,
+  Globe,
+  Zap,
 } from "lucide-react";
 import {
   PLATFORM_LABELS,
@@ -33,6 +35,9 @@ import { GlassPanel } from "./ui/GlassPanel";
 import { EmptyState } from "./ui/EmptyState";
 import { LoadingState } from "./ui/LoadingState";
 import { Skeleton } from "./ui/Skeleton";
+import { AnimatedNumber } from "./ui/AnimatedNumber";
+import { NetworkGraph } from "./ui/NetworkGraph";
+import { playUISound } from "@/lib/audio";
 
 export function CampaignDashboard({
   campaign: initialCampaign,
@@ -76,6 +81,7 @@ export function CampaignDashboard({
               const stat = data.campaign.status;
               if (stage === "ready" || stage === "failed" || (stat !== "running" && stat !== "researching" && !stage)) {
                 setIsPolling(false);
+                if (stage === "ready") playUISound("complete");
               }
             }
           }
@@ -99,6 +105,7 @@ export function CampaignDashboard({
     setTriggeringResearch(true);
     setResearchError(null);
     setShowRefreshMenu(false);
+    playUISound("agent_start");
     try {
       const res = await fetch(`/api/campaigns/${campaign.id}/run`, {
         method: "POST",
@@ -149,6 +156,7 @@ export function CampaignDashboard({
         throw new Error(data.error || data.detail || `Publish failed (${res.status})`);
       }
       setPublishingAssets((prev) => ({ ...prev, [asset.id]: "done" }));
+      playUISound("publish");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Publish failed.";
       setPublishingAssets((prev) => ({ ...prev, [asset.id]: "error" }));
@@ -207,36 +215,64 @@ export function CampaignDashboard({
     );
   };
 
+  const numQueries = planner?.search_queries?.length || 0;
+  const numCompetitors = researchReport?.intelligence?.competitors?.length || 0;
+  const numAssets = mappedAssets.length;
+
   return (
     <div className="space-y-8 relative z-10">
-      {/* MISSION HERO HEADER */}
-      <GlassPanel className="p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
+      {/* MISSION HERO TRANSFORMED */}
+      <GlassPanel className="p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
                 {campaign.workflow.replace("_", " ")}
               </span>
               <StatusBadge status={campaign.status} pulse={isExecuting} />
             </div>
-            <h1 className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100">
+            <h1 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-100">
               {campaign.product_name || "AI Marketing Mission"}
             </h1>
             <p className="font-mono text-xs text-muted/70 flex items-center gap-2">
               <span>MISSION_ID:</span>
-              <span className="text-slate-300">{campaign.id}</span>
+              <span className="text-slate-300 font-semibold">{campaign.id}</span>
             </p>
+
+            {/* TELEMETRY STAT COUNTERS */}
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/40 max-w-md">
+              <div>
+                <span className="label text-[10px]">Queries Executed</span>
+                <span className="font-heading text-2xl font-bold text-primary flex items-center gap-1">
+                  <AnimatedNumber value={numQueries} />
+                </span>
+              </div>
+              <div>
+                <span className="label text-[10px]">Competitors Found</span>
+                <span className="font-heading text-2xl font-bold text-secondary flex items-center gap-1">
+                  <AnimatedNumber value={numCompetitors} />
+                </span>
+              </div>
+              <div>
+                <span className="label text-[10px]">Assets Synthesized</span>
+                <span className="font-heading text-2xl font-bold text-emerald-400 flex items-center gap-1">
+                  <AnimatedNumber value={numAssets} />
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Mission Control Trigger Actions */}
-          <div className="flex items-center gap-3 relative">
+          {/* Trigger Actions */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 relative">
             <AnimatedButton
               variant="primary"
               size="lg"
               isLoading={triggeringResearch || isExecuting}
               onClick={() => handleRunCampaign("none")}
               disabled={isExecuting || triggeringResearch}
-              icon={<Rocket className="h-4.5 w-4.5" />}
+              icon={<Rocket className="h-5 w-5" />}
             >
               {isExecuting ? "Pipeline Running..." : "Execute Campaign"}
             </AnimatedButton>
@@ -329,7 +365,10 @@ export function CampaignDashboard({
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => {
+                playUISound("click");
+                setActiveTab(tab.id as any);
+              }}
               className={`relative px-4 py-2.5 rounded-lg font-heading text-xs font-bold transition-all flex items-center gap-2 ${
                 isActive ? "text-slate-100 bg-primary/10 border border-primary/30" : "text-muted hover:text-slate-200 hover:bg-surface/50"
               }`}
@@ -475,27 +514,19 @@ export function CampaignDashboard({
                 </AnimatedButton>
               </Card>
 
-              {/* SEARCH QUERIES */}
-              {planner && planner.search_queries?.length > 0 && (
-                <Card className="space-y-3 bg-surface/40">
-                  <SectionHeader badge="Executed Telemetry" title="Inferred Market Search Queries" />
-                  <div className="flex flex-wrap gap-2">
-                    {planner.search_queries.map((q: string, idx: number) => (
-                      <span key={idx} className="font-mono text-xs px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg">
-                        🔍 &quot;{q}&quot;
-                      </span>
-                    ))}
-                  </div>
-                </Card>
-              )}
+              {/* LIVING NETWORK GRAPH VISUALIZATION */}
+              <NetworkGraph
+                queries={planner?.search_queries}
+                competitors={researchReport.intelligence?.competitors}
+              />
 
               {/* COMPETITORS */}
               <div className="space-y-3">
-                <h3 className="font-heading text-base font-bold text-slate-100">Competitors</h3>
+                <h3 className="font-heading text-base font-bold text-slate-100">Competitor Insights</h3>
                 {researchReport.intelligence?.competitors?.length > 0 ? (
                   <div className="grid gap-4 md:grid-cols-3">
                     {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
-                      <Card key={i} className="space-y-2 p-4">
+                      <Card key={i} interactive className="space-y-2 p-4">
                         <h4 className="font-heading text-sm font-bold text-slate-100">{c.name}</h4>
                         {renderExternalLink(c.domain, "URL")}
                         {c.reason && (

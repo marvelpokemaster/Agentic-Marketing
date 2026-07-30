@@ -1,142 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { motion, useSpring } from "framer-motion";
 
 export function CustomCursor() {
-  const [position, setPosition] = useState({ x: -100, y: -100 });
-  const [trail, setTrail] = useState({ x: -100, y: -100 });
+  const [enabled, setEnabled] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const [active, setActive] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [magneticElement, setMagneticElement] = useState<DOMRect | null>(null);
+
+  const cursorX = useSpring(0, { stiffness: 400, damping: 28 });
+  const cursorY = useSpring(0, { stiffness: 400, damping: 28 });
 
   useEffect(() => {
-    // Disable on mobile / touch devices
+    // Disable on touch devices or prefers-reduced-motion
+    if (typeof window === "undefined") return;
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    if (isTouch || prefersReducedMotion) {
-      return;
+    if (!isTouch && !isReducedMotion) {
+      setEnabled(true);
     }
 
-    setVisible(true);
+    const moveHandler = (e: MouseEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
 
-    const onMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const onMouseDown = () => setActive(true);
-    const onMouseUp = () => setActive(false);
-
-    const onMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === "BUTTON" ||
-        target.tagName === "A" ||
-        target.closest("a") ||
-        target.closest("button") ||
-        target.classList.contains("input") ||
-        target.classList.contains("textarea") ||
-        target.classList.contains("select") ||
-        target.classList.contains("chip") ||
-        target.classList.contains("card-interactive")
-      ) {
-        setHovered(true);
-
-        // Magnetic attraction details if it's a small button/chip
-        const interactiveEl = target.closest("button") || target.closest("a") || target;
-        const rect = interactiveEl.getBoundingClientRect();
-        if (rect.width < 250 && rect.height < 100) {
-          setMagneticElement(rect);
-        } else {
-          setMagneticElement(null);
-        }
-      } else {
-        setHovered(false);
-        setMagneticElement(null);
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const isInteractive =
+          target.closest("button, a, input, select, textarea, [role='button'], [data-magnetic='true']") !== null;
+        setHovered(isInteractive);
       }
     };
 
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mouseup", onMouseUp);
-    window.addEventListener("mouseover", onMouseOver);
+    window.addEventListener("mousemove", moveHandler);
+    return () => window.removeEventListener("mousemove", moveHandler);
+  }, [cursorX, cursorY]);
 
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mouseup", onMouseUp);
-      window.removeEventListener("mouseover", onMouseOver);
-    };
-  }, []);
+  if (!enabled) return null;
 
-  // Smooth trail spring effect loop
-  useEffect(() => {
-    let animFrame: number;
-    
-    const updateTrail = () => {
-      setTrail((prev) => {
-        // If magneticElement is active, snap the trailing ring to the center of the element
-        if (magneticElement) {
-          const targetX = magneticElement.left + magneticElement.width / 2;
-          const targetY = magneticElement.top + magneticElement.height / 2;
-          return {
-            x: prev.x + (targetX - prev.x) * 0.22,
-            y: prev.y + (targetY - prev.y) * 0.22,
-          };
-        }
-
-        // Standard trailing spring physics
-        return {
-          x: prev.x + (position.x - prev.x) * 0.18,
-          y: prev.y + (position.y - prev.y) * 0.18,
-        };
-      });
-
-      animFrame = requestAnimationFrame(updateTrail);
-    };
-
-    if (visible) {
-      animFrame = requestAnimationFrame(updateTrail);
-    }
-
-    return () => cancelAnimationFrame(animFrame);
-  }, [position, visible, magneticElement]);
-
-  if (!visible) return null;
-
-  // Render cursor details
-  // 1. Pointer Dot: moves immediately with mouse.
-  // 2. Trailing ring: spring physics lag, snaps to button centers on hover.
   return (
-    <>
-      {/* Outer Ring */}
-      <div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] mix-blend-difference"
-        style={{
-          width: magneticElement ? `${magneticElement.width + 12}px` : "24px",
-          height: magneticElement ? `${magneticElement.height + 12}px` : "24px",
-          border: "1.5px solid rgba(99, 102, 241, 0.75)",
-          transform: `translate3d(${trail.x - (magneticElement ? magneticElement.width / 2 + 6 : 12)}px, ${
-            trail.y - (magneticElement ? magneticElement.height / 2 + 6 : 12)
-          }px, 0)`,
-          borderRadius: magneticElement ? "12px" : "50%",
-          transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-          backgroundColor: hovered ? "rgba(99, 102, 241, 0.05)" : "transparent",
-          boxShadow: hovered ? "0 0 16px rgba(139, 92, 246, 0.25)" : "none",
-        }}
-      />
-
-      {/* Center Dot */}
-      <div
-        className="fixed top-0 left-0 w-2.5 h-2.5 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
-        style={{
-          transform: `translate3d(${position.x - 5}px, ${position.y - 5}px, 0) scale(${active ? 0.7 : hovered ? 1.4 : 1})`,
-          transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      />
-    </>
+    <motion.div
+      style={{
+        x: cursorX,
+        y: cursorY,
+        translateX: "-50%",
+        translateY: "-50%",
+      }}
+      animate={{
+        scale: hovered ? 1.6 : 1,
+        opacity: hovered ? 0.8 : 0.4,
+      }}
+      transition={{ duration: 0.15 }}
+      className="pointer-events-none fixed top-0 left-0 z-50 h-8 w-8 rounded-full border border-primary/60 bg-primary/10 backdrop-blur-[2px] shadow-[0_0_20px_rgba(0,102,255,0.4)]"
+    />
   );
 }

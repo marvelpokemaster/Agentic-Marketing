@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
 import "./globals.css";
-import { getCurrentUser } from "@/lib/auth";
-import { BackgroundCanvas } from "@/components/BackgroundCanvas";
 import { SidebarNav } from "@/components/SidebarNav";
+import { BackgroundCanvas } from "@/components/BackgroundCanvas";
 import { CustomCursor } from "@/components/CustomCursor";
+import { PageTransition } from "@/components/PageTransition";
+import { getCurrentUser } from "@/lib/auth";
 
-export const metadata: Metadata = {
-  title: "Agentic Marketing — AI Mission Control",
-  description:
-    "Stateless multi-agent marketing studio for product research, positioning, strategy, content generation, and Meta social broadcasting.",
+export const metadata = {
+  title: "AI Mission Control — Agentic Marketing Platform",
+  description: "Autonomous multi-agent marketing campaign orchestration engine.",
 };
 
 export default async function RootLayout({
@@ -16,28 +15,25 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let email: string | null = null;
-  try {
-    const user = await getCurrentUser();
-    email = user.email;
-  } catch {
-    // Not logged in
-  }
+  const user = await getCurrentUser();
 
   return (
     <html lang="en" className="dark">
-      <body className="antialiased grid-bg relative text-slate-100 bg-[#050508] min-h-screen flex">
-        <BackgroundCanvas />
+      <body className="bg-bg text-foreground font-sans min-h-screen antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+        {/* Custom Glow Cursor */}
         <CustomCursor />
 
-        <div className="flex w-full min-h-screen relative z-10">
-          <SidebarNav userEmail={email} />
+        {/* Ambient 3D Particle Canvas */}
+        <BackgroundCanvas />
+
+        <div className="flex min-h-screen relative z-10">
+          <SidebarNav userEmail={user?.email || null} />
           
-          <div className="flex-1 flex flex-col min-w-0">
-            <main className="flex-1 px-6 sm:px-10 py-8 max-w-7xl w-full mx-auto">
+          <main className="flex-1 min-w-0 p-6 md:p-10 flex flex-col">
+            <PageTransition>
               {children}
-            </main>
-          </div>
+            </PageTransition>
+          </main>
         </div>
       </body>
     </html>
