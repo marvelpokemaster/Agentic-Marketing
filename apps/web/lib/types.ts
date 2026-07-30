@@ -55,6 +55,7 @@ export interface CampaignAsset {
   status: AssetStatus;
   scheduled_time: string | null;
   external_id: string | null;
+  published_url?: string | null;
   error: string | null;
 }
 

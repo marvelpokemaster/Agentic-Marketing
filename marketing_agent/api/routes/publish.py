@@ -79,6 +79,7 @@ async def publish_asset(platform: str, req: PublishBody) -> dict:
 
     return {
         "external_id": result.external_id,
+        "published_url": result.published_url,
         "platform": result.platform,
         "scheduled": result.scheduled,
     }

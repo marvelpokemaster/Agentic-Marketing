@@ -147,6 +147,7 @@ export function CampaignDashboard({
       status: base?.status || "draft",
       error: base?.error || null,
       external_id: base?.external_id || null,
+      published_url: base?.published_url || a?.published_url || null,
     };
   });
 
@@ -985,7 +986,23 @@ function AssetsDashboard({
               )}
               <div className="pt-2 border-t border-border/30">
                 {isPublished ? (
-                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">✓ Published to {PLATFORM_LABELS[asset.platform] || asset.platform}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      ✓ Published to {PLATFORM_LABELS[asset.platform] || asset.platform}
+                    </span>
+                    {asset.published_url ? (
+                      <a
+                        href={asset.published_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline font-semibold flex items-center gap-1"
+                      >
+                        View Live Post ↗
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted font-normal">Permalink unavailable</span>
+                    )}
+                  </div>
                 ) : (
                   <button
                     className={`btn text-xs px-4 py-2 font-semibold transition flex items-center gap-2 ${

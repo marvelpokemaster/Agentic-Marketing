@@ -83,6 +83,7 @@ export async function POST(
     const updated = await repo.updateAsset(params.id, params.assetId, {
       status,
       external_id: data.external_id,
+      published_url: data.published_url || null,
       scheduled_time: scheduledTime,
       error: null,
     });

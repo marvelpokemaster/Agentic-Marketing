@@ -13,6 +13,7 @@ class PublishRequest(BaseModel):
 
 class PublishResult(BaseModel):
     external_id: str
+    published_url: Optional[str] = None
     platform: str
     scheduled: bool = False
 
