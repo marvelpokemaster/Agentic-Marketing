@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/client";
+import { LogOut } from "lucide-react";
 
 interface HeaderAuthProps {
   initialEmail: string | null;
@@ -20,13 +21,12 @@ export default function HeaderAuth({ initialEmail }: HeaderAuthProps) {
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <span className="text-xs text-muted">
-        Logged in as <strong className="text-foreground">{initialEmail}</strong>
-      </span>
-      <button onClick={handleLogout} className="chip hover:chip-on text-danger">
-        Logout
-      </button>
-    </div>
+    <button
+      onClick={handleLogout}
+      className="p-2 rounded-lg bg-surface/50 border border-border/40 text-muted/80 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 transition duration-200"
+      title="Sign Out Operator"
+    >
+      <LogOut className="h-4 w-4" />
+    </button>
   );
 }

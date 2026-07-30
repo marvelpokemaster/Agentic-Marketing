@@ -12,7 +12,6 @@ import {
   Search,
   Target,
   FileText,
-  Image as ImageIcon,
   Share2,
   AlertTriangle,
   Play,
@@ -24,20 +23,16 @@ import {
   type Campaign,
   type CampaignAsset,
   type CompetitorResult,
-  type AudienceResult,
-  type NewsResult,
-  type TrendResult,
-  type TechnologyResult,
-  type ExecutionMetadata,
 } from "@/lib/types";
 import { Card } from "./ui/Card";
-import { MetricCard } from "./ui/MetricCard";
 import { SectionHeader } from "./ui/SectionHeader";
 import { AnimatedButton } from "./ui/AnimatedButton";
 import { StatusBadge } from "./ui/StatusBadge";
 import { TimelineNode } from "./ui/TimelineNode";
 import { GlassPanel } from "./ui/GlassPanel";
 import { EmptyState } from "./ui/EmptyState";
+import { LoadingState } from "./ui/LoadingState";
+import { Skeleton } from "./ui/Skeleton";
 
 export function CampaignDashboard({
   campaign: initialCampaign,
@@ -59,11 +54,12 @@ export function CampaignDashboard({
   const [batchPublishing, setBatchPublishing] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
+  const currentStage = campaign.execution?.stage || "";
   const isExecuting =
     campaign.status === "running" ||
     campaign.status === "researching" ||
     ["planning", "researching", "analyzing", "strategizing", "generating_content", "generating_images"].includes(
-      campaign.execution?.stage || ""
+      currentStage
     );
 
   // Poll campaign status if active execution
@@ -353,6 +349,10 @@ export function CampaignDashboard({
       {/* TAB CONTENT: STRATEGY */}
       {activeTab === "strategy" && (
         <div className="space-y-6">
+          {isExecuting && !strategy && (
+            <LoadingState stage={currentStage || "strategizing"} />
+          )}
+
           {!strategy && !isExecuting && (
             <EmptyState
               icon={<Target className="h-6 w-6 text-primary" />}
@@ -435,6 +435,10 @@ export function CampaignDashboard({
       {/* TAB CONTENT: RESEARCH */}
       {activeTab === "research" && (
         <div className="space-y-6">
+          {isExecuting && !researchReport && (
+            <LoadingState stage={currentStage || "researching"} />
+          )}
+
           {!researchReport && !isExecuting && (
             <EmptyState
               icon={<Search className="h-6 w-6 text-primary" />}
@@ -559,15 +563,19 @@ export function CampaignDashboard({
                     <StatusBadge status={isPublished ? "published" : pubState || asset.status} />
                   </div>
 
-                  {asset.headline && (
+                  {asset.headline ? (
                     <h4 className="font-heading text-base font-bold text-slate-100">{asset.headline}</h4>
-                  )}
+                  ) : isExecuting ? (
+                    <Skeleton className="h-6 w-3/4" />
+                  ) : null}
 
-                  {asset.body && (
+                  {asset.body ? (
                     <p className="font-sans text-xs text-slate-300 leading-relaxed bg-surface/50 p-3 rounded-lg border border-border/40 whitespace-pre-wrap">
                       {asset.body}
                     </p>
-                  )}
+                  ) : isExecuting ? (
+                    <Skeleton className="h-20 w-full" />
+                  ) : null}
 
                   {asset.hashtags?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
@@ -579,7 +587,7 @@ export function CampaignDashboard({
                     </div>
                   )}
 
-                  {asset.creative_url && (
+                  {asset.creative_url ? (
                     <div className="space-y-1.5">
                       <span className="label">Visual Creative</span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -589,7 +597,9 @@ export function CampaignDashboard({
                         className="w-full h-52 object-cover rounded-xl border border-border/60"
                       />
                     </div>
-                  )}
+                  ) : isExecuting ? (
+                    <Skeleton className="h-52 w-full" />
+                  ) : null}
 
                   {pubError && (
                     <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg font-sans text-xs text-rose-400">
@@ -647,7 +657,7 @@ function MultiAgentTimelineBanner({
   onRetry,
   isExecuting,
 }: {
-  execution?: ExecutionMetadata;
+  execution?: any;
   status: string;
   onRetry: () => void;
   isExecuting: boolean;
