@@ -3,6 +3,8 @@ import { SidebarNav } from "@/components/SidebarNav";
 import { BackgroundCanvas } from "@/components/BackgroundCanvas";
 import { CustomCursor } from "@/components/CustomCursor";
 import { PageTransition } from "@/components/PageTransition";
+import { HUDHeader } from "@/components/HUDHeader";
+import { AIBootSequence } from "@/components/AIBootSequence";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
@@ -20,6 +22,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-bg text-foreground font-sans min-h-screen antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+        {/* First Visit Session AI Boot Sequence */}
+        <AIBootSequence />
+
         {/* Custom Glow Cursor */}
         <CustomCursor />
 
@@ -29,11 +34,16 @@ export default async function RootLayout({
         <div className="flex min-h-screen relative z-10">
           <SidebarNav userEmail={user?.email || null} />
           
-          <main className="flex-1 min-w-0 p-6 md:p-10 flex flex-col">
-            <PageTransition>
-              {children}
-            </PageTransition>
-          </main>
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Persistent System HUD */}
+            <HUDHeader />
+
+            <main className="flex-1 min-w-0 p-6 md:p-10 flex flex-col">
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </main>
+          </div>
         </div>
       </body>
     </html>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { firebaseConfig } from "@/lib/firebase/config";
-import { Rocket, Sparkles, ChevronRight, Activity, Cpu } from "lucide-react";
+import { Rocket, Sparkles, ChevronRight, Activity, Cpu, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { AICore3D } from "@/components/AICore3D";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
@@ -49,18 +50,18 @@ export default async function HomePage() {
   const meta = await isMetaConfiguredOnBackend();
 
   return (
-    <div className="space-y-24 py-8 relative z-10">
-      {/* MISSION HERO SECTION */}
-      <section className="min-h-[60vh] flex flex-col justify-center items-center text-center max-w-4xl mx-auto py-12 relative">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-xs font-semibold text-primary uppercase tracking-widest mb-8">
+    <div className="space-y-28 py-8 relative z-10">
+      {/* SCENE 1 — CINEMATIC LANDING HERO */}
+      <section className="min-h-[75vh] flex flex-col justify-center items-center text-center max-w-5xl mx-auto py-12 relative">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-xs font-semibold text-primary uppercase tracking-widest mb-6 shadow-xl">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
-          Autonomous AI Mission Control
+          Autonomous AI Operating System
         </div>
 
-        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-100 leading-[1.08] max-w-3xl mx-auto">
+        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-100 leading-[1.08] max-w-4xl mx-auto">
           Autonomous Campaign <br className="hidden sm:inline" />
           <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
             Orchestration.
@@ -68,33 +69,38 @@ export default async function HomePage() {
         </h1>
 
         <p className="font-sans text-sm sm:text-base text-muted/80 max-w-2xl mx-auto mt-6 leading-relaxed">
-          A stateless, agentic marketing studio designed to synthesize product knowledge bases, formulate go-to-market positioning, and execute instant social broadcasting.
+          A stateless multi-agent intelligence platform designed to synthesize brand profiles, analyze market competition via SerpAPI, formulate GTM strategy, and broadcast live to Meta feeds.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-10">
+        {/* 3D Orbiting AI Core Centerpiece */}
+        <div className="w-full my-6">
+          <AICore3D stage="ready" />
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
           <Link
             href="/products/new"
-            className="btn btn-lg flex items-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30"
+            className="btn btn-lg flex items-center gap-2 shadow-xl shadow-primary/25 hover:shadow-primary/40"
           >
-            <span>Add Brand Profile</span>
-            <Rocket className="h-4.5 w-4.5" />
+            <span>Add Product Profile</span>
+            <Rocket className="h-5 w-5" />
           </Link>
           <Link
             href="/campaigns"
             className="btn btn-ghost text-sm flex items-center gap-2 px-6 py-3"
           >
-            <span>Open Studio</span>
+            <span>Launch Mission Control</span>
             <ChevronRight className="h-4 w-4 text-muted" />
           </Link>
         </div>
       </section>
 
-      {/* SYSTEM PIPELINE */}
+      {/* SCENE 2 — MULTI-AGENT PIPELINE ARCHITECTURE */}
       <section className="space-y-8 max-w-5xl mx-auto">
         <SectionHeader
           badge="Capability Architecture"
           title="Sequential Multi-Agent Pipeline"
-          subtitle="Stateless agent operations executing in sequential stages, from onboarding to live network deployment."
+          subtitle="Stateless agent operations executing in sequential capability stages."
         />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -113,15 +119,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* SYSTEM RELAY INTEGRATIONS */}
+      {/* SYSTEM RELAY HEALTH TELEMETRY */}
       <GlassPanel className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
             <Activity className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="font-heading text-lg font-bold text-slate-100">Relay Integration Status</h3>
-            <p className="font-mono text-xs text-muted/70">Real-time health telemetry for workspace data nodes and social APIs.</p>
+            <h3 className="font-heading text-lg font-bold text-slate-100">Relay Integration Telemetry</h3>
+            <p className="font-mono text-xs text-muted/70">Real-time health status for workspace data nodes and social APIs.</p>
           </div>
         </div>
 
