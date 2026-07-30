@@ -31,6 +31,10 @@ export function CampaignDashboard({
   const [triggeringResearch, setTriggeringResearch] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
   const [showRefreshMenu, setShowRefreshMenu] = useState(false);
+  const [publishingAssets, setPublishingAssets] = useState<Record<string, "publishing" | "done" | "error">>({}); 
+  const [publishErrors, setPublishErrors] = useState<Record<string, string>>({});
+  const [batchPublishing, setBatchPublishing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
   const isExecuting =
     campaign.status === "running" ||
@@ -98,6 +102,56 @@ export function CampaignDashboard({
     } finally {
       setTriggeringResearch(false);
     }
+  };
+
+  const refreshCampaign = async () => {
+    try {
+      const res = await fetch(`/api/campaigns/${campaign.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.campaign) setCampaign(data.campaign);
+      }
+    } catch (e) {
+      console.error("Failed to refresh campaign:", e);
+    }
+  };
+
+  const handlePublishAsset = async (asset: CampaignAsset) => {
+    if (!asset.id) return;
+    setPublishingAssets((prev) => ({ ...prev, [asset.id]: "publishing" }));
+    setPublishErrors((prev) => { const n = { ...prev }; delete n[asset.id]; return n; });
+    try {
+      const res = await fetch(
+        `/api/campaigns/${campaign.id}/assets/${asset.id}/publish`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || data.detail || `Publish failed (${res.status})`);
+      }
+      setPublishingAssets((prev) => ({ ...prev, [asset.id]: "done" }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Publish failed.";
+      setPublishingAssets((prev) => ({ ...prev, [asset.id]: "error" }));
+      setPublishErrors((prev) => ({ ...prev, [asset.id]: msg }));
+    }
+  };
+
+  const handlePublishAll = async () => {
+    const draftAssets = (campaign.results?.assets || campaign.assets || []).filter(
+      (a) => a.id && (a.status === "draft" || a.status === "failed")
+    );
+    if (draftAssets.length === 0) return;
+    setBatchPublishing(true);
+    setBatchProgress({ current: 0, total: draftAssets.length });
+    for (let i = 0; i < draftAssets.length; i++) {
+      setBatchProgress({ current: i + 1, total: draftAssets.length });
+      await handlePublishAsset(draftAssets[i]);
+    }
+    setBatchPublishing(false);
+    setBatchProgress(null);
+    await refreshCampaign();
+    setActiveTab("content");
   };
 
   const researchReport = campaign.results?.research_report;
@@ -211,8 +265,10 @@ export function CampaignDashboard({
       {/* Success Screen Banner */}
       {campaign.execution?.stage === "ready" && (
         <CampaignReadyBanner
-          assetCount={assets.length}
-          onPublish={() => setActiveTab("content")}
+          assetCount={assets.filter(a => a.status === "draft" || a.status === "failed").length}
+          onPublish={handlePublishAll}
+          isPublishing={batchPublishing}
+          progress={batchProgress}
         />
       )}
 
@@ -609,7 +665,14 @@ export function CampaignDashboard({
           {campaign.workflow === "lead_generation" ? (
             <LeadsDashboard leads={campaign.results?.leads || []} />
           ) : (
-            <AssetsDashboard assets={assets} campaignId={campaign.id} metaConfigured={metaConfigured} />
+            <AssetsDashboard
+              assets={assets}
+              campaignId={campaign.id}
+              metaConfigured={metaConfigured}
+              publishingAssets={publishingAssets}
+              publishErrors={publishErrors}
+              onPublishAsset={handlePublishAsset}
+            />
           )}
         </>
       )}
@@ -763,27 +826,49 @@ function MultiAgentTimelineBanner({
 function CampaignReadyBanner({
   assetCount,
   onPublish,
+  isPublishing,
+  progress,
 }: {
   assetCount: number;
   onPublish: () => void;
+  isPublishing: boolean;
+  progress: { current: number; total: number } | null;
 }) {
   return (
     <div className="card border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-500/10 via-surface to-surface p-6 space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xl">🎉</span>
-            <h3 className="font-bold text-lg text-emerald-600 dark:text-emerald-400">Campaign Execution Complete</h3>
+            <span className="text-xl">{isPublishing ? "📡" : "🎉"}</span>
+            <h3 className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+              {isPublishing ? "Publishing Campaign Assets..." : "Campaign Execution Complete"}
+            </h3>
           </div>
           <p className="text-sm text-foreground/80 mt-1">
-            All autonomous marketing agents have completed execution. Your market intelligence brief, positioning strategy, and platform assets are ready for review.
+            {isPublishing && progress
+              ? `Publishing asset ${progress.current} of ${progress.total}...`
+              : "All autonomous marketing agents have completed execution. Your market intelligence brief, positioning strategy, and platform assets are ready for review."
+            }
           </p>
         </div>
         <button
-          className="btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shrink-0 transition"
+          className={`btn px-6 py-2.5 font-bold text-sm shadow-md shrink-0 transition flex items-center gap-2 ${
+            isPublishing
+              ? "bg-muted cursor-not-allowed text-muted-foreground"
+              : assetCount === 0
+                ? "bg-emerald-700 text-white/70 cursor-default"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+          }`}
           onClick={onPublish}
+          disabled={isPublishing || assetCount === 0}
         >
-          Publish Campaign Assets ({assetCount} Ready)
+          {isPublishing ? (
+            <><span className="animate-spin">⟳</span> Publishing {progress?.current}/{progress?.total}...</>
+          ) : assetCount === 0 ? (
+            <>✓ All Assets Published</>
+          ) : (
+            <>Publish Campaign Assets ({assetCount} Ready)</>
+          )}
         </button>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs border-t border-emerald-500/20">
@@ -804,51 +889,113 @@ function CampaignReadyBanner({
   );
 }
 
-function AssetsDashboard({ assets, campaignId, metaConfigured }: { assets: CampaignAsset[]; campaignId: string; metaConfigured: boolean }) {
+function AssetsDashboard({
+  assets,
+  campaignId,
+  metaConfigured,
+  publishingAssets,
+  publishErrors,
+  onPublishAsset,
+}: {
+  assets: CampaignAsset[];
+  campaignId: string;
+  metaConfigured: boolean;
+  publishingAssets: Record<string, "publishing" | "done" | "error">;
+  publishErrors: Record<string, string>;
+  onPublishAsset: (asset: CampaignAsset) => Promise<void>;
+}) {
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-        {assets.map((asset, i) => (
-          <div key={asset.id || i} className="card space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-semibold uppercase">
-                {PLATFORM_LABELS[asset.platform] || asset.platform}
-              </span>
-              <span className="text-xs text-muted font-medium capitalize">{asset.status}</span>
-            </div>
+        {assets.map((asset, i) => {
+          const pubState = asset.id ? publishingAssets[asset.id] : undefined;
+          const pubError = asset.id ? publishErrors[asset.id] : undefined;
+          const isPublished = asset.status === "published" || asset.status === "scheduled" || pubState === "done";
+          const isPublishing = pubState === "publishing";
+          const canPublish = !isPublished && !isPublishing && asset.id;
 
-            {asset.headline && <h4 className="font-bold text-base text-foreground">{asset.headline}</h4>}
-            {asset.body && <p className="text-sm text-foreground/90 whitespace-pre-wrap">{asset.body}</p>}
-
-            {asset.hashtags?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {asset.hashtags.map((tag, idx) => (
-                  <span key={idx} className="text-xs text-primary/80">
-                    #{tag}
+          return (
+            <div key={asset.id || i} className="card space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-semibold uppercase">
+                  {PLATFORM_LABELS[asset.platform] || asset.platform}
+                </span>
+                {isPublished ? (
+                  <span className="px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-md text-xs font-semibold">Published ✓</span>
+                ) : isPublishing ? (
+                  <span className="px-2.5 py-1 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-md text-xs font-semibold flex items-center gap-1">
+                    <span className="animate-spin">⟳</span> Publishing...
                   </span>
-                ))}
+                ) : pubState === "error" ? (
+                  <span className="px-2.5 py-1 bg-red-500/15 text-red-600 dark:text-red-400 rounded-md text-xs font-semibold">Failed</span>
+                ) : (
+                  <span className="text-xs text-muted font-medium capitalize">{asset.status}</span>
+                )}
               </div>
-            )}
 
-            {asset.cta && (
-              <div className="p-2.5 bg-surface/80 rounded border border-border/40 text-xs">
-                <span className="font-semibold text-primary">CTA: </span>
-                {asset.cta}
-              </div>
-            )}
+              {asset.headline && <h4 className="font-bold text-base text-foreground">{asset.headline}</h4>}
+              {asset.body && <p className="text-sm text-foreground/90 whitespace-pre-wrap">{asset.body}</p>}
 
-            {asset.creative_url && (
-              <div className="space-y-1.5">
-                <p className="text-xs text-muted font-semibold">Visual Creative:</p>
-                <img
-                  src={asset.creative_url}
-                  alt="Campaign Creative"
-                  className="w-full h-48 object-cover rounded-lg border border-border/40"
-                />
+              {asset.hashtags?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {asset.hashtags.map((tag, idx) => (
+                    <span key={idx} className="text-xs text-primary/80">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {asset.cta && (
+                <div className="p-2.5 bg-surface/80 rounded border border-border/40 text-xs">
+                  <span className="font-semibold text-primary">CTA: </span>
+                  {asset.cta}
+                </div>
+              )}
+
+              {asset.creative_url && (
+                <div className="space-y-1.5">
+                  <p className="text-xs text-muted font-semibold">Visual Creative:</p>
+                  <img
+                    src={asset.creative_url}
+                    alt="Campaign Creative"
+                    className="w-full h-48 object-cover rounded-lg border border-border/40"
+                  />
+                </div>
+              )}
+
+              {/* Per-asset publish action */}
+              {pubError && (
+                <div className="p-2.5 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600 dark:text-red-400">
+                  {pubError}
+                </div>
+              )}
+              <div className="pt-2 border-t border-border/30">
+                {isPublished ? (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">✓ Published to {PLATFORM_LABELS[asset.platform] || asset.platform}</span>
+                ) : (
+                  <button
+                    className={`btn text-xs px-4 py-2 font-semibold transition flex items-center gap-2 ${
+                      isPublishing
+                        ? "bg-muted cursor-not-allowed text-muted-foreground"
+                        : "bg-primary hover:bg-primary/90 text-white"
+                    }`}
+                    onClick={() => onPublishAsset(asset)}
+                    disabled={!canPublish}
+                  >
+                    {isPublishing ? (
+                      <><span className="animate-spin">⟳</span> Publishing...</>
+                    ) : pubState === "error" ? (
+                      <>Retry Publish</>
+                    ) : (
+                      <>Publish to {PLATFORM_LABELS[asset.platform] || asset.platform}</>
+                    )}
+                  </button>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
