@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Rocket,
@@ -11,13 +12,12 @@ import {
   ExternalLink,
   Search,
   Target,
-  FileText,
   Share2,
   AlertTriangle,
   Play,
   Layers,
   ChevronDown,
-  Globe,
+  ArrowLeft,
   Zap,
   Maximize2,
 } from "lucide-react";
@@ -99,7 +99,7 @@ export function CampaignDashboard({
     }
   }, [campaign.id, campaign.status, campaign.execution?.stage, isPolling, isExecuting]);
 
-  // Auto scroll to top
+  // Auto scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -226,7 +226,7 @@ export function CampaignDashboard({
   const numAssets = mappedAssets.length;
 
   return (
-    <div className="space-y-8 relative z-10">
+    <div className="space-y-6 relative z-10">
       {/* FULLSCREEN ASSET SHOWCASE MODAL */}
       <AssetModal
         asset={selectedAsset}
@@ -235,96 +235,146 @@ export function CampaignDashboard({
         metaConfigured={metaConfigured}
       />
 
-      {/* APPLE-KEYNOTE MISSION COMPLETE CELEBRATION BANNER */}
+      {/* COMPACT CAMPAIGN APPLICATION HEADER (NO SCROLL REQUIRED) */}
+      <GlassPanel className="p-5 relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/campaigns"
+                className="font-mono text-xs text-primary hover:underline flex items-center gap-1 transition"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Campaigns</span>
+              </Link>
+              <span className="text-border/60">/</span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md">
+                {campaign.workflow.replace("_", " ")}
+              </span>
+              <StatusBadge status={campaign.status} pulse={isExecuting} />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-100">
+                {campaign.product_name || "AI Marketing Mission"}
+              </h1>
+              <span className="font-mono text-[11px] text-muted/60">ID: {campaign.id.slice(0, 8)}</span>
+            </div>
+
+            {/* INLINE TELEMETRY CHIPS */}
+            <div className="flex flex-wrap items-center gap-4 pt-1 font-mono text-xs">
+              <span className="text-muted/80 flex items-center gap-1.5">
+                Queries: <strong className="text-primary font-bold"><AnimatedNumber value={numQueries} /></strong>
+              </span>
+              <span className="text-border/40">•</span>
+              <span className="text-muted/80 flex items-center gap-1.5">
+                Competitors: <strong className="text-secondary font-bold"><AnimatedNumber value={numCompetitors} /></strong>
+              </span>
+              <span className="text-border/40">•</span>
+              <span className="text-muted/80 flex items-center gap-1.5">
+                Assets: <strong className="text-emerald-400 font-bold"><AnimatedNumber value={numAssets} /></strong>
+              </span>
+            </div>
+          </div>
+
+          {/* RIGHT ACTION CONTROLS */}
+          <div className="flex items-center gap-3">
+            <AnimatedButton
+              variant="primary"
+              size="md"
+              isLoading={triggeringResearch || isExecuting}
+              onClick={() => handleRunCampaign("none")}
+              disabled={isExecuting || triggeringResearch}
+              icon={<Rocket className="h-4 w-4" />}
+            >
+              {isExecuting ? "Executing..." : "Execute Campaign"}
+            </AnimatedButton>
+
+            <div className="relative">
+              <AnimatedButton
+                variant="outline"
+                size="md"
+                onClick={() => setShowRefreshMenu(!showRefreshMenu)}
+                disabled={isExecuting || triggeringResearch}
+                icon={<SlidersHorizontal className="h-4 w-4" />}
+              >
+                <span>Options</span>
+                <ChevronDown className="h-3.5 w-3.5" />
+              </AnimatedButton>
+
+              <AnimatePresence>
+                {showRefreshMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-56 bg-panel border border-border rounded-xl shadow-2xl z-50 py-2 space-y-1"
+                  >
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      onClick={() => handleRunCampaign("none")}
+                    >
+                      <Play className="h-3.5 w-3.5 text-primary" />
+                      <span>Smart Execute (Cached)</span>
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      onClick={() => handleRunCampaign("research")}
+                    >
+                      <Search className="h-3.5 w-3.5 text-primary" />
+                      <span>Refresh Research Agent</span>
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      onClick={() => handleRunCampaign("strategy")}
+                    >
+                      <Target className="h-3.5 w-3.5 text-primary" />
+                      <span>Refresh Strategy Agent</span>
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2 border-t border-border/40 pt-2"
+                      onClick={() => handleRunCampaign("everything")}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 text-rose-400" />
+                      <span className="text-rose-300">Force Re-run Pipeline</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </GlassPanel>
+
+      {/* MISSION COMPLETE BANNER (IF READY) */}
       {isReady && (
         <motion.div
-          initial={{ opacity: 0, y: -20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 p-6 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3"
         >
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400">
-              <Zap className="h-6 w-6 animate-pulse" />
-            </div>
+          <div className="flex items-center gap-3">
+            <Zap className="h-5 w-5 text-amber-400 animate-pulse shrink-0" />
             <div>
-              <span className="font-mono text-xs font-bold text-amber-400 uppercase tracking-widest block">
-                MISSION COMPLETE // 6 AGENTS EXECUTED
+              <span className="font-mono text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                MISSION COMPLETE // ALL 6 AGENTS SYNCHRONIZED
               </span>
-              <h2 className="font-heading text-xl font-extrabold text-slate-100">
-                Autonomous Campaign Ready for Multi-Channel Broadcast
-              </h2>
+              <h3 className="font-heading text-sm font-bold text-slate-100">
+                Campaign Assets Prepared & Verified
+              </h3>
             </div>
           </div>
           <AnimatedButton
             variant="primary"
+            size="sm"
             onClick={handlePublishAll}
-            icon={<Share2 className="h-4 w-4" />}
+            icon={<Share2 className="h-3.5 w-3.5" />}
           >
             Broadcast Assets Now
           </AnimatedButton>
         </motion.div>
       )}
-
-      {/* MISSION HERO & 3D AI CORE */}
-      <GlassPanel className="p-8 relative overflow-hidden">
-        <div className="grid gap-6 lg:grid-cols-3 items-center">
-          <div className="lg:col-span-2 space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-                {campaign.workflow.replace("_", " ")}
-              </span>
-              <StatusBadge status={campaign.status} pulse={isExecuting} />
-            </div>
-            <h1 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-100">
-              {campaign.product_name || "AI Marketing Mission"}
-            </h1>
-            <p className="font-mono text-xs text-muted/70 flex items-center gap-2">
-              <span>MISSION_ID:</span>
-              <span className="text-slate-300 font-semibold">{campaign.id}</span>
-            </p>
-
-            {/* TELEMETRY STAT COUNTERS */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/40 max-w-md">
-              <div>
-                <span className="label text-[10px]">Queries Executed</span>
-                <span className="font-heading text-2xl font-bold text-primary flex items-center gap-1">
-                  <AnimatedNumber value={numQueries} />
-                </span>
-              </div>
-              <div>
-                <span className="label text-[10px]">Competitors Found</span>
-                <span className="font-heading text-2xl font-bold text-secondary flex items-center gap-1">
-                  <AnimatedNumber value={numCompetitors} />
-                </span>
-              </div>
-              <div>
-                <span className="label text-[10px]">Assets Synthesized</span>
-                <span className="font-heading text-2xl font-bold text-emerald-400 flex items-center gap-1">
-                  <AnimatedNumber value={numAssets} />
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 3D Orbiting AI Core */}
-          <div className="flex flex-col items-center justify-center">
-            <AICore3D stage={currentStage as any} />
-            {/* Trigger Actions */}
-            <div className="flex items-center gap-3 mt-2">
-              <AnimatedButton
-                variant="primary"
-                size="md"
-                isLoading={triggeringResearch || isExecuting}
-                onClick={() => handleRunCampaign("none")}
-                disabled={isExecuting || triggeringResearch}
-                icon={<Rocket className="h-4 w-4" />}
-              >
-                {isExecuting ? "Executing..." : "Execute Campaign"}
-              </AnimatedButton>
-            </div>
-          </div>
-        </div>
-      </GlassPanel>
 
       {/* ERROR ALERT BANNER */}
       {researchError && (
@@ -345,7 +395,7 @@ export function CampaignDashboard({
       />
 
       {/* NAVIGATION TABS */}
-      <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+      <div className="flex items-center gap-2 border-b border-border/40 pb-2">
         {[
           { id: "strategy", label: "Strategy & Positioning", icon: Target, count: strategy ? 1 : 0 },
           { id: "research", label: "Executive Intelligence", icon: Search, count: researchReport ? 1 : 0 },
@@ -361,7 +411,7 @@ export function CampaignDashboard({
                 playUISound("click");
                 setActiveTab(tab.id as any);
               }}
-              className={`relative px-4 py-2.5 rounded-lg font-heading text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`relative px-4 py-2 rounded-lg font-heading text-xs font-bold transition-all flex items-center gap-2 ${
                 isActive ? "text-slate-100 bg-primary/10 border border-primary/30" : "text-muted hover:text-slate-200 hover:bg-surface/50"
               }`}
             >
