@@ -16,10 +16,23 @@ export async function POST(
   if (!campaign) {
     return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
   }
-  const asset = campaign.assets.find((a) => a.id === params.assetId);
-  if (!asset) {
+  const baseAsset = campaign.assets.find((a) => a.id === params.assetId);
+  if (!baseAsset) {
     return NextResponse.json({ error: "Asset not found." }, { status: 404 });
   }
+
+  // AI generated content is stored in campaign.results.assets (without stable IDs).
+  // We merge them by platform so the backend receives the full content.
+  const aiAsset = campaign.results?.assets?.find((a: any) => a.platform === baseAsset.platform) || ({} as any);
+  const asset = {
+    platform: baseAsset.platform,
+    headline: baseAsset.headline || aiAsset.headline,
+    body: baseAsset.body || aiAsset.body,
+    hashtags: baseAsset.hashtags || aiAsset.hashtags,
+    cta: baseAsset.cta || aiAsset.cta,
+    creative_prompt: baseAsset.creative_prompt || aiAsset.creative_prompt,
+    creative_url: baseAsset.creative_url || aiAsset.creative_url,
+  };
 
   const body = await request.json().catch(() => ({}));
   const scheduledTime: string | null =

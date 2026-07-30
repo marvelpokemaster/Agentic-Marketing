@@ -137,9 +137,22 @@ export function CampaignDashboard({
     }
   };
 
+  const rawAssets = campaign.results?.assets || campaign.assets || [];
+  const mappedAssets = rawAssets.map((a: any) => {
+    if (a.id) return a;
+    const base = campaign.assets?.find((b: any) => b.platform === a.platform);
+    return {
+      ...a,
+      id: base?.id,
+      status: base?.status || "draft",
+      error: base?.error || null,
+      external_id: base?.external_id || null,
+    };
+  });
+
   const handlePublishAll = async () => {
-    const draftAssets = (campaign.results?.assets || campaign.assets || []).filter(
-      (a) => a.id && (a.status === "draft" || a.status === "failed")
+    const draftAssets = mappedAssets.filter(
+      (a: any) => a.id && (a.status === "draft" || a.status === "failed")
     );
     if (draftAssets.length === 0) return;
     setBatchPublishing(true);
@@ -157,7 +170,6 @@ export function CampaignDashboard({
   const researchReport = campaign.results?.research_report;
   const strategy = campaign.results?.strategy;
   const planner = campaign.results?.planner;
-  const assets = campaign.results?.assets || campaign.assets || [];
 
   const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
     if (!url) return null;
@@ -265,7 +277,7 @@ export function CampaignDashboard({
       {/* Success Screen Banner */}
       {campaign.execution?.stage === "ready" && (
         <CampaignReadyBanner
-          assetCount={assets.filter(a => a.status === "draft" || a.status === "failed").length}
+          assetCount={mappedAssets.filter(a => a.status === "draft" || a.status === "failed").length}
           onPublish={handlePublishAll}
           isPublishing={batchPublishing}
           progress={batchProgress}
@@ -296,7 +308,7 @@ export function CampaignDashboard({
           }`}
           onClick={() => setActiveTab("content")}
         >
-          {campaign.workflow === "lead_generation" ? "Discovered Leads" : `Generated Content (${assets.length})`}
+          {campaign.workflow === "lead_generation" ? "Discovered Leads" : `Generated Content (${mappedAssets.length})`}
         </button>
       </div>
 
@@ -666,7 +678,7 @@ export function CampaignDashboard({
             <LeadsDashboard leads={campaign.results?.leads || []} />
           ) : (
             <AssetsDashboard
-              assets={assets}
+              assets={mappedAssets}
               campaignId={campaign.id}
               metaConfigured={metaConfigured}
               publishingAssets={publishingAssets}
