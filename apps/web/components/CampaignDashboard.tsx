@@ -968,6 +968,7 @@ function AssetsDashboard({
               {asset.creative_url && (
                 <div className="space-y-1.5">
                   <p className="text-xs text-muted font-semibold">Visual Creative:</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={asset.creative_url}
                     alt="Campaign Creative"
