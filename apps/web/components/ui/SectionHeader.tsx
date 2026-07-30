@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 
 interface SectionHeaderProps {
   title: string;
@@ -20,11 +19,11 @@ export function SectionHeader({ title, subtitle, badge, action }: SectionHeaderP
             {badge}
           </div>
         )}
-        <h3 className="font-heading text-xl font-bold tracking-tight text-slate-100">
+        <h3 className="font-heading text-xl font-bold tracking-tight text-foreground">
           {title}
         </h3>
         {subtitle && (
-          <p className="font-sans text-xs text-muted/80 leading-relaxed">
+          <p className="font-sans text-xs text-muted leading-relaxed">
             {subtitle}
           </p>
         )}

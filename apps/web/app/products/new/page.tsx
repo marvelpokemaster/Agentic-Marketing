@@ -73,7 +73,7 @@ export default function NewProductPage() {
                 placeholder={"e.g.\nRealtime event tracking\nCustom multi-touch attribution\nAutomated cohort reporting"}
                 disabled={submitting}
               />
-              <p className="font-mono text-[10px] text-muted/60 mt-1">Provide up to 5 feature highlights to drive copy generation.</p>
+              <p className="font-mono text-[10px] text-muted mt-1">Provide up to 5 feature highlights to drive copy generation.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -99,7 +99,7 @@ export default function NewProductPage() {
                   name="logo"
                   type="file"
                   accept="image/*"
-                  className="w-full text-xs text-muted/80 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-slate-200 hover:file:bg-border/60 transition cursor-pointer"
+                  className="w-full text-xs text-muted file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-foreground hover:file:bg-border/60 transition cursor-pointer"
                   disabled={submitting}
                 />
               </div>
@@ -110,7 +110,7 @@ export default function NewProductPage() {
                   type="file"
                   accept="image/*"
                   multiple
-                  className="w-full text-xs text-muted/80 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-slate-200 hover:file:bg-border/60 transition cursor-pointer"
+                  className="w-full text-xs text-muted file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-foreground hover:file:bg-border/60 transition cursor-pointer"
                   disabled={submitting}
                 />
               </div>
@@ -118,7 +118,7 @@ export default function NewProductPage() {
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-medium text-rose-400 flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-medium text-rose-500 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>

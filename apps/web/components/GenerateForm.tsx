@@ -2,76 +2,70 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform, type WorkflowType } from "@/lib/types";
-import { Rocket, Share2, MapPin, AlertTriangle } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { AnimatedButton } from "@/components/ui/AnimatedButton";
+import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/types";
+import { Card } from "./ui/Card";
+import { AnimatedButton } from "./ui/AnimatedButton";
+import { Rocket, AlertTriangle, Sparkles, MapPin, Search } from "lucide-react";
+import { playUISound } from "@/lib/audio";
 
-export function GenerateForm({ productId, defaultAudience }: { productId: string; defaultAudience: string }) {
+export function GenerateForm({ productId }: { productId: string }) {
   const router = useRouter();
-  const [workflow, setWorkflow] = useState<WorkflowType>("organic_campaign");
 
-  // Organic Campaign state
-  const [selected, setSelected] = useState<Platform[]>([...ALL_PLATFORMS]);
+  const [workflow, setWorkflow] = useState<"organic_campaign" | "lead_generation">("organic_campaign");
+  const [selected, setSelected] = useState<Platform[]>(["instagram", "facebook"]);
 
-  // Lead Generation state
-  const [location, setLocation] = useState("");
-  const [targetAudience, setTargetAudience] = useState(defaultAudience || "");
-  const [scrapers] = useState<string[]>(["google_maps"]);
-  const [imageMode, setImageMode] = useState<"none" | "campaign" | "per_lead">("none");
-  const [instructions, setInstructions] = useState("");
+  // B2B Lead Gen Specific Inputs
+  const [location, setLocation] = useState("Indiranagar, Bangalore");
+  const [nicheQuery, setNicheQuery] = useState("Cafes & Bakeries");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function toggle(platform: Platform) {
-    setSelected((prev) =>
-      prev.includes(platform)
-        ? prev.filter((p) => p !== platform)
-        : [...prev, platform],
-    );
-  }
-
-  async function generate() {
-    setError(null);
-    setLoading(true);
-    try {
-      let body: any = {
-        product_id: productId,
-        workflow,
-      };
-
-      if (workflow === "lead_generation") {
-        if (!location.trim()) {
-          throw new Error("Location is required for B2B Lead Generation.");
-        }
-        body.config = {
-          location,
-          target_audience: targetAudience,
-          scrapers,
-          image_mode: imageMode,
-          instructions,
-        };
-      } else {
-        if (selected.length === 0) {
-          throw new Error("Select at least one platform.");
-        }
-        body.platforms = selected;
+  const toggle = (p: Platform) => {
+    if (selected.includes(p)) {
+      if (selected.length > 1) {
+        setSelected(selected.filter((item) => item !== p));
       }
+    } else {
+      setSelected([...selected, p]);
+    }
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (workflow === "organic_campaign" && selected.length === 0) return;
+    if (workflow === "lead_generation" && (!location.trim() || !nicheQuery.trim())) return;
+
+    setLoading(true);
+    setError(null);
+    playUISound("agent_start");
+
+    try {
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          product_id: productId,
+          workflow,
+          platforms: workflow === "organic_campaign" ? selected : undefined,
+          target_location: workflow === "lead_generation" ? location : undefined,
+          niche_query: workflow === "lead_generation" ? nicheQuery : undefined,
+        }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || data.detail || "Failed to create campaign");
+      }
+
       router.push(`/campaigns/${data.campaign.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Something went wrong.");
       setLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="space-y-6">
@@ -81,7 +75,7 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
           type="button"
           onClick={() => !loading && setWorkflow("organic_campaign")}
           className={`pb-3 font-heading font-bold text-xs uppercase tracking-wider transition-all relative ${
-            workflow !== "lead_generation" ? "text-primary" : "text-muted hover:text-slate-200"
+            workflow !== "lead_generation" ? "text-primary" : "text-muted hover:text-foreground"
           }`}
           disabled={loading}
         >
@@ -94,7 +88,7 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
           type="button"
           onClick={() => !loading && setWorkflow("lead_generation")}
           className={`pb-3 font-heading font-bold text-xs uppercase tracking-wider transition-all relative ${
-            workflow === "lead_generation" ? "text-primary" : "text-muted hover:text-slate-200"
+            workflow === "lead_generation" ? "text-primary" : "text-muted hover:text-foreground"
           }`}
           disabled={loading}
         >
@@ -108,8 +102,8 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
       {workflow !== "lead_generation" ? (
         <div className="space-y-4">
           <div>
-            <h4 className="font-heading text-sm font-bold text-slate-100">Target Social Networks</h4>
-            <p className="font-sans text-xs text-muted/70">
+            <h4 className="font-heading text-sm font-bold text-foreground">Target Social Networks</h4>
+            <p className="font-sans text-xs text-muted">
               Autonomous agents generate tailored marketing captions, hashtag stacks, and visual assets for each network.
             </p>
           </div>
@@ -123,11 +117,11 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
                   type="button"
                   onClick={() => !loading && toggle(p)}
                   className={`font-mono text-xs px-4 py-2 rounded-lg border font-semibold transition-all duration-200 flex items-center gap-2 ${
-                    on ? "bg-primary/15 border-primary/40 text-primary shadow-sm shadow-primary/10" : "bg-surface/40 border-border text-muted hover:border-primary/30"
+                    on ? "bg-primary/15 border-primary/40 text-primary shadow-sm" : "bg-surface border-border text-muted hover:border-primary/30"
                   }`}
                   disabled={loading}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-primary" : "bg-slate-600"}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-primary" : "bg-muted/40"}`} />
                   {PLATFORM_LABELS[p]}
                 </button>
               );
@@ -137,8 +131,8 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
       ) : (
         <div className="space-y-5">
           <div>
-            <h4 className="font-heading text-sm font-bold text-slate-100">B2B Prospecting Parameters</h4>
-            <p className="font-sans text-xs text-muted/70">
+            <h4 className="font-heading text-sm font-bold text-foreground">B2B Prospecting Parameters</h4>
+            <p className="font-sans text-xs text-muted">
               Search local B2B prospects via Google Maps API, rank profile fit, and generate personalized outreach copy.
             </p>
           </div>
@@ -158,24 +152,14 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
             </div>
 
             <div className="space-y-1.5">
-              <label className="label">Target Niche</label>
+              <label className="label">Niche or Category *</label>
               <input
                 type="text"
-                placeholder="e.g. cafes, bakeries, co-working spaces"
+                placeholder="e.g. Cafes & Bakeries"
                 className="input font-mono text-xs"
-                value={targetAudience}
-                onChange={(e) => setTargetAudience(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="label">Outreach Directive Instructions</label>
-              <textarea
-                placeholder="e.g. Highlight wholesale pricing model and 24/7 delivery SLAs..."
-                className="textarea h-24 font-sans text-xs"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
+                value={nicheQuery}
+                onChange={(e) => setNicheQuery(e.target.value)}
+                required
                 disabled={loading}
               />
             </div>
@@ -184,20 +168,28 @@ export function GenerateForm({ productId, defaultAudience }: { productId: string
       )}
 
       {error && (
-        <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-medium text-rose-400 flex items-center gap-2">
+        <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-500 text-xs font-medium flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      <AnimatedButton
-        onClick={generate}
-        isLoading={loading}
-        className="w-full py-3 font-bold"
-        icon={<Rocket className="h-4 w-4" />}
-      >
-        {workflow === "lead_generation" ? "Launch Lead Discovery" : "Orchestrate Campaign"}
-      </AnimatedButton>
+      <form onSubmit={handleSubmit} className="pt-2">
+        <AnimatedButton
+          type="submit"
+          variant="primary"
+          size="lg"
+          isLoading={loading}
+          icon={workflow === "lead_generation" ? <Search className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
+          className="w-full"
+        >
+          {loading
+            ? "Initializing Multi-Agent Pipeline..."
+            : workflow === "lead_generation"
+            ? "Launch B2B Lead Discovery"
+            : "Orchestrate Campaign Pipeline"}
+        </AnimatedButton>
+      </form>
     </Card>
   );
 }

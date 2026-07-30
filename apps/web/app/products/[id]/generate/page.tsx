@@ -35,11 +35,11 @@ export default async function GenerateCampaignPage({
       />
 
       {/* Product Scope Summary */}
-      <Card className="space-y-3 bg-surface/40">
+      <Card className="space-y-3 bg-surface">
         <div className="flex items-center justify-between border-b border-border/40 pb-2">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" />
-            <h4 className="font-heading text-sm font-bold text-slate-100">{product.name}</h4>
+            <h4 className="font-heading text-sm font-bold text-foreground">{product.name}</h4>
           </div>
           {product.industry && (
             <span className="font-mono text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-semibold uppercase">
@@ -47,19 +47,19 @@ export default async function GenerateCampaignPage({
             </span>
           )}
         </div>
-        <p className="font-sans text-xs text-muted/80 leading-relaxed">
+        <p className="font-sans text-xs text-muted leading-relaxed">
           {product.description || "No description provided."}
         </p>
 
         {product.target_audience && (
-          <div className="pt-2 border-t border-border/30 font-mono text-[11px] text-muted/70 flex items-center gap-2">
+          <div className="pt-2 border-t border-border/30 font-mono text-[11px] text-muted flex items-center gap-2">
             <Users className="h-3.5 w-3.5 text-primary" />
-            <span>Target Persona: <strong className="text-slate-200">{product.target_audience}</strong></span>
+            <span>Target Persona: <strong className="text-foreground">{product.target_audience}</strong></span>
           </div>
         )}
       </Card>
 
-      <GenerateForm productId={product.id} defaultAudience={product.target_audience || ""} />
+      <GenerateForm productId={product.id} />
     </div>
   );
 }

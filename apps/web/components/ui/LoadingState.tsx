@@ -41,7 +41,7 @@ export function LoadingState({ label, stage }: LoadingStateProps) {
   const displayLabel = label || stageInfo?.defaultMsg || "Autonomous AI Agent Executing...";
 
   return (
-    <div className="card py-12 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-panel/80">
+    <div className="card py-12 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-panel">
       {/* Scanning laser beam effect */}
       <motion.div
         animate={{ x: ["-100%", "100%"] }}
@@ -60,13 +60,13 @@ export function LoadingState({ label, stage }: LoadingStateProps) {
         </div>
       </div>
 
-      <h4 className="font-heading text-base font-bold text-slate-100 mb-1.5">{displayLabel}</h4>
+      <h4 className="font-heading text-base font-bold text-foreground mb-1.5">{displayLabel}</h4>
       {stage && (
         <span className="font-mono text-xs font-semibold text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mb-2">
           {stage.replace(/_/g, " ")}
         </span>
       )}
-      <p className="font-mono text-[11px] text-muted/60 tracking-wider">
+      <p className="font-mono text-[11px] text-muted tracking-wider">
         SYS_STATUS: AGENT_REASONING_ACTIVE
       </p>
     </div>

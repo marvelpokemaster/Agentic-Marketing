@@ -14,7 +14,7 @@ export function NetworkGraph({ queries = [], competitors = [] }: NetworkGraphPro
   if (queries.length === 0 && competitors.length === 0) return null;
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-border/60 bg-surface/40 p-6 backdrop-blur-md">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-border bg-surface p-6 backdrop-blur-md">
       {/* Background Neural Grid */}
       <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
@@ -43,7 +43,7 @@ export function NetworkGraph({ queries = [], competitors = [] }: NetworkGraphPro
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.08 }}
                   whileHover={{ scale: 1.05 }}
-                  className="font-mono text-xs px-3 py-1.5 rounded-lg bg-surface/80 border border-primary/30 text-slate-200 flex items-center gap-1.5 shadow-lg"
+                  className="font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-primary/30 text-foreground flex items-center gap-1.5 shadow-lg"
                 >
                   <Search className="h-3 w-3 text-primary shrink-0" />
                   <span>&quot;{q}&quot;</span>
@@ -67,7 +67,7 @@ export function NetworkGraph({ queries = [], competitors = [] }: NetworkGraphPro
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + idx * 0.08 }}
                   whileHover={{ scale: 1.03 }}
-                  className="font-sans text-xs p-2.5 rounded-lg bg-surface/80 border border-secondary/30 text-slate-200 flex items-center gap-2 shadow-lg"
+                  className="font-sans text-xs p-2.5 rounded-lg bg-surface border border-secondary/30 text-foreground flex items-center gap-2 shadow-lg"
                 >
                   <Globe className="h-3.5 w-3.5 text-secondary shrink-0" />
                   <span className="truncate font-semibold">{c.name}</span>

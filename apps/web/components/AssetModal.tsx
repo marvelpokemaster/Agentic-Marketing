@@ -28,7 +28,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/80 backdrop-blur-xl"
+          className="fixed inset-0 bg-bg/80 backdrop-blur-xl"
         />
 
         {/* Floating Glass Showcase Modal */}
@@ -37,7 +37,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-primary/30 bg-panel/95 p-6 md:p-8 shadow-2xl space-y-6"
+          className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-primary/30 bg-panel p-6 md:p-8 shadow-2xl space-y-6"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/40 pb-4">
@@ -50,7 +50,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-surface/60 border border-border/60 text-muted hover:text-slate-100 transition"
+              className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground transition"
             >
               <X className="h-5 w-5" />
             </button>
@@ -66,11 +66,11 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
                 <img
                   src={asset.creative_url}
                   alt="Campaign Creative Showcase"
-                  className="w-full h-80 object-cover rounded-xl border border-border/60 shadow-2xl"
+                  className="w-full h-80 object-cover rounded-xl border border-border shadow-2xl"
                 />
               </div>
             ) : (
-              <div className="h-80 w-full rounded-xl bg-surface/40 border border-border/40 flex items-center justify-center text-xs text-muted">
+              <div className="h-80 w-full rounded-xl bg-surface border border-border flex items-center justify-center text-xs text-muted">
                 No visual creative asset attached
               </div>
             )}
@@ -80,13 +80,13 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
               {asset.headline && (
                 <div>
                   <span className="label">Headline Hook</span>
-                  <h3 className="font-heading text-xl font-bold text-slate-100">{asset.headline}</h3>
+                  <h3 className="font-heading text-xl font-bold text-foreground">{asset.headline}</h3>
                 </div>
               )}
 
               <div>
                 <span className="label">Caption Copy</span>
-                <p className="font-sans text-xs text-slate-200 leading-relaxed bg-surface/60 p-4 rounded-xl border border-border/40 whitespace-pre-wrap">
+                <p className="font-sans text-xs text-foreground leading-relaxed bg-surface p-4 rounded-xl border border-border whitespace-pre-wrap">
                   {asset.body}
                 </p>
               </div>
@@ -110,7 +110,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           <div className="pt-4 border-t border-border/40 flex items-center justify-between">
             {isPublished ? (
               <div className="flex items-center gap-3">
-                <span className="font-sans text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                <span className="font-sans text-xs text-emerald-500 font-semibold flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4" />
                   Published & Verified on Meta
                 </span>

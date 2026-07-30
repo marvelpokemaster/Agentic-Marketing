@@ -47,10 +47,10 @@ export default async function CampaignsPage() {
               <Card interactive className="flex flex-col justify-between space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1 truncate">
-                    <h4 className="font-heading font-bold text-base text-slate-100 group-hover:text-primary transition duration-200 truncate">
+                    <h4 className="font-heading font-bold text-base text-foreground group-hover:text-primary transition duration-200 truncate">
                       {c.product_name}
                     </h4>
-                    <span className="font-mono text-[10px] text-muted/60 flex items-center gap-1">
+                    <span className="font-mono text-[10px] text-muted flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {new Date(c.created_at).toLocaleString(undefined, {
                         month: "short",
@@ -76,13 +76,13 @@ export default async function CampaignsPage() {
                         </span>
                       ))
                     ) : (
-                      <span className="font-mono text-[10px] bg-surface text-slate-400 border border-border/40 py-0.5 px-2.5 rounded font-semibold">
+                      <span className="font-mono text-[10px] bg-surface text-muted border border-border/40 py-0.5 px-2.5 rounded font-semibold">
                         Social Post
                       </span>
                     )}
                   </div>
 
-                  <span className="font-sans text-xs font-semibold text-primary/80 group-hover:text-primary flex items-center gap-1 transition duration-200">
+                  <span className="font-sans text-xs font-semibold text-primary group-hover:text-primary flex items-center gap-1 transition duration-200">
                     <span>Open Stream</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>

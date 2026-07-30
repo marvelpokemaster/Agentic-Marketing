@@ -50,10 +50,10 @@ export default function LoginPage() {
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/30 text-primary shadow-sm mb-2">
             <ShieldCheck className="h-5 w-5 animate-pulse" />
           </div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-100">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
             {mode === "signin" ? "Operator Authentication" : "Register Operator Profile"}
           </h1>
-          <p className="font-sans text-xs text-muted/70 leading-relaxed">
+          <p className="font-sans text-xs text-muted leading-relaxed">
             {mode === "signin" ? "Enter your workspace credentials to access AI Mission Control." : "Create an operator profile to orchestrate autonomous marketing campaigns."}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function LoginPage() {
                 required
                 disabled={loading}
               />
-              <Mail className="h-4 w-4 text-muted/60 absolute left-3.5 top-3 pointer-events-none" />
+              <Mail className="h-4 w-4 text-muted absolute left-3.5 top-3 pointer-events-none" />
             </div>
           </div>
           
@@ -88,12 +88,12 @@ export default function LoginPage() {
                 minLength={6}
                 disabled={loading}
               />
-              <Lock className="h-4 w-4 text-muted/60 absolute left-3.5 top-3 pointer-events-none" />
+              <Lock className="h-4 w-4 text-muted absolute left-3.5 top-3 pointer-events-none" />
             </div>
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-medium text-rose-400 flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-medium text-rose-500 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { firebaseConfig } from "@/lib/firebase/config";
-import { Rocket, Sparkles, ChevronRight, Activity, Cpu, ShieldCheck } from "lucide-react";
+import { Rocket, ChevronRight, Activity, Cpu } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -61,14 +61,14 @@ export default async function HomePage() {
           Autonomous AI Operating System
         </div>
 
-        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-100 leading-[1.08] max-w-4xl mx-auto">
+        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-[1.08] max-w-4xl mx-auto">
           Autonomous Campaign <br className="hidden sm:inline" />
           <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
             Orchestration.
           </span>
         </h1>
 
-        <p className="font-sans text-sm sm:text-base text-muted/80 max-w-2xl mx-auto mt-6 leading-relaxed">
+        <p className="font-sans text-sm sm:text-base text-muted max-w-2xl mx-auto mt-6 leading-relaxed">
           A stateless multi-agent intelligence platform designed to synthesize brand profiles, analyze market competition via SerpAPI, formulate GTM strategy, and broadcast live to Meta feeds.
         </p>
 
@@ -111,8 +111,8 @@ export default async function HomePage() {
                   <span className="font-mono text-xs font-bold text-primary">{s.step}</span>
                   <Cpu className="h-4 w-4 text-primary/50" />
                 </div>
-                <h4 className="font-heading text-sm font-bold text-slate-100">{s.title}</h4>
-                <p className="font-sans text-xs text-muted/70 leading-relaxed">{s.detail}</p>
+                <h4 className="font-heading text-sm font-bold text-foreground">{s.title}</h4>
+                <p className="font-sans text-xs text-muted leading-relaxed">{s.detail}</p>
               </div>
             </Card>
           ))}
@@ -126,28 +126,28 @@ export default async function HomePage() {
             <Activity className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="font-heading text-lg font-bold text-slate-100">Relay Integration Telemetry</h3>
-            <p className="font-mono text-xs text-muted/70">Real-time health status for workspace data nodes and social APIs.</p>
+            <h3 className="font-heading text-lg font-bold text-foreground">Relay Integration Telemetry</h3>
+            <p className="font-mono text-xs text-muted">Real-time health status for workspace data nodes and social APIs.</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface/40 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
             <div>
-              <span className="font-sans text-xs font-semibold text-slate-200 block">Firebase Node</span>
-              <span className="font-mono text-[10px] text-muted/60 block">Campaign Data Persistence</span>
+              <span className="font-sans text-xs font-semibold text-foreground block">Firebase Node</span>
+              <span className="font-mono text-[10px] text-muted block">Campaign Data Persistence</span>
             </div>
-            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${firebase ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
+            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${firebase ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"}`}>
               {firebase ? "Connected" : "Offline"}
             </span>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface/40 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
             <div>
-              <span className="font-sans text-xs font-semibold text-slate-200 block">Meta Graph Relay</span>
-              <span className="font-mono text-[10px] text-muted/60 block">Instagram & Facebook Publishing</span>
+              <span className="font-sans text-xs font-semibold text-foreground block">Meta Graph Relay</span>
+              <span className="font-mono text-[10px] text-muted block">Instagram & Facebook Publishing</span>
             </div>
-            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${meta ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
+            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${meta ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"}`}>
               {meta ? "Configured" : "Offline"}
             </span>
           </div>

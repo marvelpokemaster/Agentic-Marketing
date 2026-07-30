@@ -235,7 +235,7 @@ export function CampaignDashboard({
         metaConfigured={metaConfigured}
       />
 
-      {/* COMPACT CAMPAIGN APPLICATION HEADER (NO SCROLL REQUIRED) */}
+      {/* COMPACT CAMPAIGN APPLICATION HEADER */}
       <GlassPanel className="p-5 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
@@ -255,24 +255,24 @@ export function CampaignDashboard({
             </div>
 
             <div className="flex items-center gap-3">
-              <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-100">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
                 {campaign.product_name || "AI Marketing Mission"}
               </h1>
-              <span className="font-mono text-[11px] text-muted/60">ID: {campaign.id.slice(0, 8)}</span>
+              <span className="font-mono text-[11px] text-muted">ID: {campaign.id.slice(0, 8)}</span>
             </div>
 
             {/* INLINE TELEMETRY CHIPS */}
             <div className="flex flex-wrap items-center gap-4 pt-1 font-mono text-xs">
-              <span className="text-muted/80 flex items-center gap-1.5">
+              <span className="text-muted flex items-center gap-1.5">
                 Queries: <strong className="text-primary font-bold"><AnimatedNumber value={numQueries} /></strong>
               </span>
               <span className="text-border/40">•</span>
-              <span className="text-muted/80 flex items-center gap-1.5">
+              <span className="text-muted flex items-center gap-1.5">
                 Competitors: <strong className="text-secondary font-bold"><AnimatedNumber value={numCompetitors} /></strong>
               </span>
               <span className="text-border/40">•</span>
-              <span className="text-muted/80 flex items-center gap-1.5">
-                Assets: <strong className="text-emerald-400 font-bold"><AnimatedNumber value={numAssets} /></strong>
+              <span className="text-muted flex items-center gap-1.5">
+                Assets: <strong className="text-emerald-500 font-bold"><AnimatedNumber value={numAssets} /></strong>
               </span>
             </div>
           </div>
@@ -312,32 +312,32 @@ export function CampaignDashboard({
                     className="absolute right-0 mt-2 w-56 bg-panel border border-border rounded-xl shadow-2xl z-50 py-2 space-y-1"
                   >
                     <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
                       onClick={() => handleRunCampaign("none")}
                     >
                       <Play className="h-3.5 w-3.5 text-primary" />
                       <span>Smart Execute (Cached)</span>
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
                       onClick={() => handleRunCampaign("research")}
                     >
                       <Search className="h-3.5 w-3.5 text-primary" />
                       <span>Refresh Research Agent</span>
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
                       onClick={() => handleRunCampaign("strategy")}
                     >
                       <Target className="h-3.5 w-3.5 text-primary" />
                       <span>Refresh Strategy Agent</span>
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-slate-200 flex items-center gap-2 border-t border-border/40 pt-2"
+                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-rose-500 flex items-center gap-2 border-t border-border/40 pt-2"
                       onClick={() => handleRunCampaign("everything")}
                     >
-                      <RefreshCw className="h-3.5 w-3.5 text-rose-400" />
-                      <span className="text-rose-300">Force Re-run Pipeline</span>
+                      <RefreshCw className="h-3.5 w-3.5 text-rose-500" />
+                      <span>Force Re-run Pipeline</span>
                     </button>
                   </motion.div>
                 )}
@@ -355,12 +355,12 @@ export function CampaignDashboard({
           className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3">
-            <Zap className="h-5 w-5 text-amber-400 animate-pulse shrink-0" />
+            <Zap className="h-5 w-5 text-amber-500 animate-pulse shrink-0" />
             <div>
-              <span className="font-mono text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+              <span className="font-mono text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
                 MISSION COMPLETE // ALL 6 AGENTS SYNCHRONIZED
               </span>
-              <h3 className="font-heading text-sm font-bold text-slate-100">
+              <h3 className="font-heading text-sm font-bold text-foreground">
                 Campaign Assets Prepared & Verified
               </h3>
             </div>
@@ -379,7 +379,7 @@ export function CampaignDashboard({
       {/* ERROR ALERT BANNER */}
       {researchError && (
         <Card className="border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-3 text-rose-400 text-xs font-medium">
+          <div className="flex items-center gap-3 text-rose-500 text-xs font-medium">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{researchError}</span>
           </div>
@@ -412,7 +412,7 @@ export function CampaignDashboard({
                 setActiveTab(tab.id as any);
               }}
               className={`relative px-4 py-2 rounded-lg font-heading text-xs font-bold transition-all flex items-center gap-2 ${
-                isActive ? "text-slate-100 bg-primary/10 border border-primary/30" : "text-muted hover:text-slate-200 hover:bg-surface/50"
+                isActive ? "text-foreground bg-primary/10 border border-primary/30" : "text-muted hover:text-foreground hover:bg-surface/50"
               }`}
             >
               <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted"}`} />
@@ -468,11 +468,11 @@ export function CampaignDashboard({
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
                     <span className="label">Campaign Objective</span>
-                    <p className="font-sans text-sm font-medium text-slate-100">{strategy.campaign_objective}</p>
+                    <p className="font-sans text-sm font-medium text-foreground">{strategy.campaign_objective}</p>
                   </div>
                   <div>
                     <span className="label">Value Proposition</span>
-                    <p className="font-sans text-sm font-medium text-slate-200">{strategy.value_proposition}</p>
+                    <p className="font-sans text-sm font-medium text-foreground">{strategy.value_proposition}</p>
                   </div>
                 </div>
               </Card>
@@ -482,11 +482,11 @@ export function CampaignDashboard({
                   <h4 className="font-heading text-sm font-bold text-primary uppercase tracking-wide">Positioning & Tone</h4>
                   <div>
                     <span className="label">Market Positioning</span>
-                    <p className="font-sans text-xs text-slate-200">{strategy.positioning}</p>
+                    <p className="font-sans text-xs text-foreground">{strategy.positioning}</p>
                   </div>
                   <div>
                     <span className="label">Messaging Angle</span>
-                    <p className="font-sans text-xs text-slate-200">{strategy.messaging_angle}</p>
+                    <p className="font-sans text-xs text-foreground">{strategy.messaging_angle}</p>
                   </div>
                   <div>
                     <span className="label">Brand Tone</span>
@@ -500,11 +500,11 @@ export function CampaignDashboard({
                   <h4 className="font-heading text-sm font-bold text-primary uppercase tracking-wide">Audience Persona</h4>
                   <div>
                     <span className="label">Target Audience</span>
-                    <p className="font-sans text-xs text-slate-200">{strategy.target_audience}</p>
+                    <p className="font-sans text-xs text-foreground">{strategy.target_audience}</p>
                   </div>
                   <div>
                     <span className="label">Call to Action Strategy</span>
-                    <p className="font-sans text-xs text-slate-200">{strategy.cta_strategy}</p>
+                    <p className="font-sans text-xs text-foreground">{strategy.cta_strategy}</p>
                   </div>
                 </Card>
               </div>
@@ -537,11 +537,11 @@ export function CampaignDashboard({
             <div className="space-y-6">
               <Card className="border-l-4 border-l-primary flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-slate-100">Executive Intelligence Brief</h3>
-                  <p className="font-mono text-xs text-muted/70 mt-1">
+                  <h3 className="font-heading text-lg font-bold text-foreground">Executive Intelligence Brief</h3>
+                  <p className="font-mono text-xs text-muted mt-1">
                     Execution Time: {researchReport.metadata?.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : "Fast"}
                     {campaign.results?.cache_metadata?.cache_hit && (
-                      <span className="ml-2 text-emerald-400 font-semibold">(Reused Cached Intelligence)</span>
+                      <span className="ml-2 text-emerald-500 font-semibold">(Reused Cached Intelligence)</span>
                     )}
                   </p>
                 </div>
@@ -564,15 +564,15 @@ export function CampaignDashboard({
 
               {/* COMPETITORS */}
               <div className="space-y-3">
-                <h3 className="font-heading text-base font-bold text-slate-100">Competitor Insights</h3>
+                <h3 className="font-heading text-base font-bold text-foreground">Competitor Insights</h3>
                 {researchReport.intelligence?.competitors?.length > 0 ? (
                   <div className="grid gap-4 md:grid-cols-3">
                     {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
                       <Card key={i} interactive className="space-y-2 p-4">
-                        <h4 className="font-heading text-sm font-bold text-slate-100">{c.name}</h4>
+                        <h4 className="font-heading text-sm font-bold text-foreground">{c.name}</h4>
                         {renderExternalLink(c.domain, "URL")}
                         {c.reason && (
-                          <p className="font-sans text-xs text-slate-300 bg-surface/60 p-2.5 rounded border border-border/40 leading-snug">
+                          <p className="font-sans text-xs text-foreground bg-surface p-2.5 rounded border border-border leading-snug">
                             {c.reason}
                           </p>
                         )}
@@ -592,10 +592,10 @@ export function CampaignDashboard({
       {/* TAB CONTENT: CONTENT & ASSETS */}
       {activeTab === "content" && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface/50 p-4 rounded-xl border border-border/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface p-4 rounded-xl border border-border">
             <div>
-              <h3 className="font-heading text-lg font-bold text-slate-100">Generated Campaign Assets</h3>
-              <p className="font-sans text-xs text-muted/70">
+              <h3 className="font-heading text-lg font-bold text-foreground">Generated Campaign Assets</h3>
+              <p className="font-sans text-xs text-muted">
                 Multi-platform creative assets ready for review and Meta social broadcasting. Click any card to expand full presentation.
               </p>
             </div>
@@ -640,20 +640,20 @@ export function CampaignDashboard({
                     </span>
                     <div className="flex items-center gap-2">
                       <StatusBadge status={isPublished ? "published" : pubState || asset.status} />
-                      <button className="text-muted hover:text-slate-100 p-1" title="Expand Presentation">
+                      <button className="text-muted hover:text-foreground p-1" title="Expand Presentation">
                         <Maximize2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
 
                   {asset.headline ? (
-                    <h4 className="font-heading text-base font-bold text-slate-100">{asset.headline}</h4>
+                    <h4 className="font-heading text-base font-bold text-foreground">{asset.headline}</h4>
                   ) : isExecuting ? (
                     <Skeleton className="h-6 w-3/4" />
                   ) : null}
 
                   {asset.body ? (
-                    <p className="font-sans text-xs text-slate-300 leading-relaxed bg-surface/50 p-3 rounded-lg border border-border/40 whitespace-pre-wrap line-clamp-3">
+                    <p className="font-sans text-xs text-foreground leading-relaxed bg-surface p-3 rounded-lg border border-border whitespace-pre-wrap line-clamp-3">
                       {asset.body}
                     </p>
                   ) : isExecuting ? (
@@ -667,7 +667,7 @@ export function CampaignDashboard({
                       <img
                         src={asset.creative_url}
                         alt="Campaign Visual Asset"
-                        className="w-full h-52 object-cover rounded-xl border border-border/60"
+                        className="w-full h-52 object-cover rounded-xl border border-border"
                       />
                     </div>
                   ) : isExecuting ? (
@@ -675,15 +675,15 @@ export function CampaignDashboard({
                   ) : null}
 
                   {pubError && (
-                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg font-sans text-xs text-rose-400">
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg font-sans text-xs text-rose-500">
                       {pubError}
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-border/40 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                  <div className="pt-3 border-t border-border flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
                     {isPublished ? (
                       <div className="flex items-center justify-between gap-2 w-full">
-                        <span className="font-sans text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <span className="font-sans text-xs text-emerald-500 font-semibold flex items-center gap-1.5">
                           <CheckCircle2 className="h-4 w-4" />
                           Published to {PLATFORM_LABELS[asset.platform] || asset.platform}
                         </span>
@@ -698,7 +698,7 @@ export function CampaignDashboard({
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
-                          <span className="font-sans text-xs text-muted/60">Permalink unavailable</span>
+                          <span className="font-sans text-xs text-muted">Permalink unavailable</span>
                         )}
                       </div>
                     ) : (
@@ -754,17 +754,17 @@ function MultiAgentTimelineBanner({
   const isReady = execution?.stage === "ready" || (status !== "running" && status !== "researching" && !isFailed && execution);
 
   return (
-    <Card className="space-y-4 border-l-4 border-l-primary bg-panel/95">
+    <Card className="space-y-4 border-l-4 border-l-primary bg-panel">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
             <Sparkles className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="font-heading text-sm font-bold text-slate-100">
+            <h3 className="font-heading text-sm font-bold text-foreground">
               {execution?.current_agent || (isFailed ? "System Alert" : "Multi-Agent Pipeline Execution")}
             </h3>
-            <p className="font-mono text-[11px] text-muted/70">
+            <p className="font-mono text-[11px] text-muted">
               {execution?.current_message || "Orchestrating autonomous agents across sequential capability pipeline..."}
             </p>
           </div>

@@ -17,24 +17,24 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
   const isWarning = ["draft", "partially_published", "scheduled"].includes(normalized);
 
   const style = isSuccess
-    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
     : isRunning
     ? "bg-primary/10 text-primary border-primary/30"
     : isFailed
-    ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+    ? "bg-rose-500/10 text-rose-500 border-rose-500/30"
     : isWarning
-    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-    : "bg-slate-800/50 text-slate-400 border-slate-700/30";
+    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+    : "bg-surface text-muted border-border";
 
   const dotStyle = isSuccess
-    ? "bg-emerald-400"
+    ? "bg-emerald-500"
     : isRunning
     ? "bg-primary"
     : isFailed
-    ? "bg-rose-400"
+    ? "bg-rose-500"
     : isWarning
-    ? "bg-amber-400"
-    : "bg-slate-400";
+    ? "bg-amber-500"
+    : "bg-muted";
 
   const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs";
 

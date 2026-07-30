@@ -57,28 +57,28 @@ export default async function ProductsPage() {
                     </div>
                   )}
                   <div className="truncate">
-                    <h4 className="font-heading font-bold text-slate-100 group-hover:text-primary transition duration-200 truncate">
+                    <h4 className="font-heading font-bold text-foreground group-hover:text-primary transition duration-200 truncate">
                       {p.name}
                     </h4>
-                    <span className="font-mono text-[10px] text-muted/70 block uppercase tracking-wider">
+                    <span className="font-mono text-[10px] text-muted block uppercase tracking-wider">
                       {p.industry || "General Industry"}
                     </span>
                   </div>
                 </div>
 
-                <p className="font-sans text-xs text-muted/80 leading-relaxed line-clamp-3 min-h-[54px]">
+                <p className="font-sans text-xs text-muted leading-relaxed line-clamp-3 min-h-[54px]">
                   {p.description}
                 </p>
 
                 {p.features && p.features.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {p.features.slice(0, 3).map((f) => (
-                      <span key={f} className="font-mono text-[10px] bg-surface/80 text-slate-300 border border-border/60 py-0.5 px-2 rounded">
+                      <span key={f} className="font-mono text-[10px] bg-surface text-foreground border border-border py-0.5 px-2 rounded">
                         {f}
                       </span>
                     ))}
                     {p.features.length > 3 && (
-                      <span className="font-mono text-[10px] bg-surface/80 text-muted/70 border border-border/40 py-0.5 px-2 rounded">
+                      <span className="font-mono text-[10px] bg-surface text-muted border border-border/40 py-0.5 px-2 rounded">
                         +{p.features.length - 3} more
                       </span>
                     )}
@@ -87,7 +87,7 @@ export default async function ProductsPage() {
               </div>
 
               <div className="pt-4 border-t border-border/40 flex items-center justify-between gap-3">
-                <span className="font-mono text-[10px] text-muted/60 flex items-center gap-1">
+                <span className="font-mono text-[10px] text-muted flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Recent"}
                 </span>
