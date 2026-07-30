@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cpu, Check } from "lucide-react";
+import { Cpu } from "lucide-react";
 import { playUISound } from "@/lib/audio";
 
 const BOOT_STEPS = [
@@ -59,7 +59,7 @@ export function AIBootSequence() {
         initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050508] p-6 text-center"
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg p-6 text-center"
       >
         <div className="space-y-6 max-w-md w-full">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/30 text-primary shadow-2xl">
@@ -67,7 +67,7 @@ export function AIBootSequence() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="font-heading text-xl font-bold text-slate-100">
+            <h2 className="font-heading text-xl font-bold text-foreground">
               Agentic Marketing OS
             </h2>
             <p className="font-mono text-xs text-primary uppercase tracking-widest h-6">
@@ -86,7 +86,7 @@ export function AIBootSequence() {
 
           <button
             onClick={handleDismiss}
-            className="font-mono text-[11px] text-muted hover:text-slate-200 transition underline"
+            className="font-mono text-[11px] text-muted hover:text-foreground transition underline"
           >
             Skip Initialization
           </button>

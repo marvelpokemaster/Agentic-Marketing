@@ -11,7 +11,6 @@ export function CustomCursor() {
   const cursorY = useSpring(0, { stiffness: 400, damping: 28 });
 
   useEffect(() => {
-    // Disable on touch devices or prefers-reduced-motion
     if (typeof window === "undefined") return;
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -51,7 +50,7 @@ export function CustomCursor() {
         opacity: hovered ? 0.8 : 0.4,
       }}
       transition={{ duration: 0.15 }}
-      className="pointer-events-none fixed top-0 left-0 z-50 h-8 w-8 rounded-full border border-primary/60 bg-primary/10 backdrop-blur-[2px] shadow-[0_0_20px_rgba(0,102,255,0.4)]"
+      className="pointer-events-none fixed top-0 left-0 z-50 h-8 w-8 rounded-full border border-primary/60 bg-primary/10 backdrop-blur-[2px] shadow-[0_0_20px_var(--glow-color)]"
     />
   );
 }

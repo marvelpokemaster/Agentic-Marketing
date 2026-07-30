@@ -3,6 +3,7 @@
 import React, { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useTheme } from "@/lib/theme";
 
 export type CampaignStageColor = "planning" | "researching" | "analyzing" | "strategizing" | "generating_content" | "generating_images" | "ready" | "published" | "default";
 
@@ -20,9 +21,11 @@ const STAGE_COLORS: Record<CampaignStageColor, string> = {
 
 function EvolvingParticleField({ stage = "default" }: { stage?: CampaignStageColor }) {
   const pointsRef = useRef<THREE.Points>(null!);
-  const count = 220; // Bound particle count for guaranteed 60fps performance
+  const { themeConfig } = useTheme();
+  const count = 220; // Bound particle count for 60fps performance
 
-  const targetColorHex = STAGE_COLORS[stage] || STAGE_COLORS.default;
+  // If default stage, fallback to active theme's primary particle hex
+  const targetColorHex = stage !== "default" ? (STAGE_COLORS[stage] || themeConfig.particleHex) : themeConfig.particleHex;
   const currentColorRef = useRef(new THREE.Color(targetColorHex));
 
   const [positions, colors] = useMemo(() => {
@@ -47,7 +50,7 @@ function EvolvingParticleField({ stage = "default" }: { stage?: CampaignStageCol
     pointsRef.current.rotation.y += delta * 0.05;
     pointsRef.current.rotation.x += delta * 0.02;
 
-    // Smoothly interpolate color transitions
+    // Smoothly interpolate color transitions to theme particle color
     const targetC = new THREE.Color(targetColorHex);
     currentColorRef.current.lerp(targetC, 0.05);
 
@@ -91,7 +94,6 @@ export function BackgroundCanvas({ stage }: { stage?: CampaignStageColor }) {
   const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
-    // Check reduced motion & tab visibility
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (mediaQuery.matches) {
       setShouldRender(false);
