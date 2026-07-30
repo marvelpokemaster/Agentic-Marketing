@@ -5,7 +5,7 @@ import { CustomCursor } from "@/components/CustomCursor";
 import { PageTransition } from "@/components/PageTransition";
 import { HUDHeader } from "@/components/HUDHeader";
 import { AIBootSequence } from "@/components/AIBootSequence";
-import { getCurrentUser } from "@/lib/auth";
+import { getOptionalUser } from "@/lib/auth";
 
 export const metadata = {
   title: "AI Mission Control — Agentic Marketing Platform",
@@ -17,7 +17,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  const user = await getOptionalUser();
 
   return (
     <html lang="en" className="dark">

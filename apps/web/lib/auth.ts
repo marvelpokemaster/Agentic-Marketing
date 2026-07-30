@@ -11,10 +11,10 @@ export const authConfig = {
 };
 
 /**
- * Resolve the current authenticated user.
- * Throws an error if the user is not authenticated.
+ * Resolve the current authenticated user if logged in.
+ * Returns null without throwing an error if the user is unauthenticated.
  */
-export async function getCurrentUser(): Promise<CurrentUser> {
+export async function getOptionalUser(): Promise<CurrentUser | null> {
   // Demo mode fallback
   if (!serverConfig.serviceAccount.privateKey) {
     return {
@@ -24,15 +24,30 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     };
   }
 
-  const tokens = await getTokens(cookies(), authConfig);
+  try {
+    const tokens = await getTokens(cookies(), authConfig);
+    if (!tokens) return null;
 
-  if (!tokens) {
+    return {
+      id: tokens.decodedToken.uid,
+      email: tokens.decodedToken.email ?? null,
+      user_metadata: {},
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the current authenticated user.
+ * Throws an error if the user is not authenticated.
+ */
+export async function getCurrentUser(): Promise<CurrentUser> {
+  const user = await getOptionalUser();
+
+  if (!user) {
     throw new Error("Authentication required.");
   }
 
-  return {
-    id: tokens.decodedToken.uid,
-    email: tokens.decodedToken.email ?? null,
-    user_metadata: {},
-  };
+  return user;
 }
