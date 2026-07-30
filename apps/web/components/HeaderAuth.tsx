@@ -23,10 +23,10 @@ export default function HeaderAuth({ initialEmail }: HeaderAuthProps) {
   return (
     <button
       onClick={handleLogout}
-      className="p-2 rounded-lg bg-surface/50 border border-border/40 text-muted/80 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 transition duration-200"
+      className="p-2 rounded-lg bg-surface border border-border/40 text-muted hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 transition duration-200 flex items-center justify-center shrink-0 overflow-hidden"
       title="Sign Out Operator"
     >
-      <LogOut className="h-4 w-4" />
+      <LogOut className="h-[18px] w-[18px] shrink-0" />
     </button>
   );
 }
