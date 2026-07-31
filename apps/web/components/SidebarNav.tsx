@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Package,
@@ -40,28 +40,35 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
     >
       {/* Top Header & Branding */}
       <div>
-        <div className={`flex items-center ${collapsed ? "justify-center px-2 py-5" : "justify-between px-4 py-5"} border-b border-border/40 overflow-hidden`}>
-          <Link href="/" className="flex items-center gap-3 overflow-hidden">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/30 text-primary shrink-0 overflow-hidden">
+        <div className={`flex items-center ${collapsed ? "justify-center px-0 py-4" : "justify-between px-3.5 py-4 gap-2"} border-b border-border/40 overflow-hidden min-h-[64px]`}>
+          <Link href="/" className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+            {/* Logo Icon Container - Fixed Proportions & Strict Flex Isolation */}
+            <div className="relative flex h-8 w-8 min-w-[32px] min-h-[32px] items-center justify-center rounded-lg bg-primary/10 border border-primary/30 text-primary shrink-0 overflow-hidden">
               <Cpu className="h-[18px] w-[18px] shrink-0 animate-pulse" />
             </div>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col whitespace-nowrap overflow-hidden min-w-0"
-              >
-                <span className="font-heading font-extrabold text-sm tracking-tight text-foreground truncate">
-                  AGENTIC<span className="text-primary">.AI</span>
-                </span>
-                <span className="font-mono text-[9px] font-bold text-muted tracking-widest uppercase truncate">
-                  Mission Control
-                </span>
-              </motion.div>
-            )}
+
+            {/* Logo Typography - Animated Width, Opacity & Truncation */}
+            <AnimatePresence mode="wait">
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-col whitespace-nowrap overflow-hidden min-w-0 flex-1"
+                >
+                  <span className="font-heading font-extrabold text-sm tracking-tight text-foreground truncate block leading-none">
+                    AGENTIC<span className="text-primary">.AI</span>
+                  </span>
+                  <span className="font-mono text-[9px] font-bold text-muted tracking-widest uppercase truncate block mt-1 leading-none">
+                    Mission Control
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Link>
 
+          {/* Collapse/Expand Toggle Button */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-md hover:bg-surface text-muted hover:text-foreground transition-colors shrink-0 flex items-center justify-center overflow-hidden"
@@ -72,18 +79,26 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
         </div>
 
         {/* Telemetry Status Bar */}
-        {!collapsed && (
-          <div className="mx-3 mt-4 p-2.5 rounded-lg bg-surface border border-border/40 flex items-center justify-between overflow-hidden">
-            <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="font-mono text-[10px] font-semibold text-foreground truncate">SYS_READY</span>
-            </div>
-            <ShieldCheck className="h-[18px] w-[18px] text-primary shrink-0" />
-          </div>
-        )}
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mx-3 mt-4 p-2.5 rounded-lg bg-surface border border-border/40 flex items-center justify-between overflow-hidden"
+            >
+              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="font-mono text-[10px] font-semibold text-foreground truncate">SYS_READY</span>
+              </div>
+              <ShieldCheck className="h-[18px] w-[18px] text-primary shrink-0" />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Navigation Items */}
         <nav className="p-3 space-y-1.5 mt-4 overflow-hidden">
