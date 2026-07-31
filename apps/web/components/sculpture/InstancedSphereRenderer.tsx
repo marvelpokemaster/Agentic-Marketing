@@ -14,14 +14,15 @@ interface InstancedSphereRendererProps {
 
 export function InstancedSphereRenderer({
   morphProgress = 0,
-  instanceCount = 40000,
+  instanceCount = 22000,
 }: InstancedSphereRendererProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const { themeConfig } = useTheme();
   const { viewport, pointer } = useThree();
 
-  const cursorWorld = useMemo(() => new THREE.Vector3(999, 999, 999), []);
+  const targetCursor = useMemo(() => new THREE.Vector3(999, 999, 999), []);
+  const smoothedCursor = useMemo(() => new THREE.Vector3(999, 999, 999), []);
 
   // 1. Generate Packed GPU Instanced Attributes (Cached via useMemo)
   const gpuBuffers = useMemo(() => {
@@ -30,7 +31,6 @@ export function InstancedSphereRenderer({
 
   // 2. Optimized Geometry with Attached GPU Instanced Attributes
   const geometry = useMemo(() => {
-    // 20-face Icosahedron for pristine smooth normals & minimal vertex shader load
     const geo = new THREE.IcosahedronGeometry(1, 1);
 
     geo.setAttribute(
@@ -62,23 +62,26 @@ export function InstancedSphereRenderer({
     });
   }, []);
 
-  // 4. Zero CPU Loop Render Engine (60 FPS GPU Execution)
+  // 4. Smooth Spring Cursor Interpolation Render Engine (60 FPS Execution)
   useFrame((state) => {
     if (!materialRef.current) return;
 
     const time = state.clock.getElapsedTime();
 
-    // Map 2D Cursor NDC to 3D World Space Position
-    cursorWorld.set(
+    // Map 2D Pointer NDC to 3D World Space Position
+    targetCursor.set(
       (pointer.x * viewport.width) / 2,
       (pointer.y * viewport.height) / 2,
       0
     );
 
-    // Update GPU Shader Uniforms (Only 4 Uniform Assignments per frame)
+    // Smooth spring lerp tracking (0.14 factor for fluid organic momentum)
+    smoothedCursor.lerp(targetCursor, 0.14);
+
+    // Update GPU Shader Uniforms
     materialRef.current.uniforms.uTime.value = time;
     materialRef.current.uniforms.uMorphProgress.value = morphProgress;
-    materialRef.current.uniforms.uCursor.value.copy(cursorWorld);
+    materialRef.current.uniforms.uCursor.value.copy(smoothedCursor);
     materialRef.current.uniforms.uColor.value.set(themeConfig.primaryHex);
     materialRef.current.uniforms.uCoreColor.value.set(themeConfig.coreHex);
   });

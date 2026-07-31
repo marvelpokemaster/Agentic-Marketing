@@ -26,7 +26,7 @@ export const VolumetricSculptureShader = {
     varying float vDistanceToCursor;
 
     void main() {
-      // 1. Calculate Morphed Base Position
+      // 1. Calculate Morphed Base Position (Immutable Base Reference)
       float p = clamp(uMorphProgress, 0.0, 2.0);
       vec3 basePos;
       if (p <= 1.0) {
@@ -47,21 +47,23 @@ export const VolumetricSculptureShader = {
 
       vec3 targetPos = basePos + breath;
 
-      // 3. GPU 3D Cursor Repulsion with Smoothstep Falloff
+      // 3. GPU 3D Organic Repulsion (Computed relative to immutable target position)
       vec3 diff = targetPos - uCursor;
       float dist = length(diff);
-      float repulsionRadius = 2.2;
-      float repulsionStrength = 2.5;
+      float repulsionRadius = 2.4;
+      float repulsionStrength = 2.4;
 
       vec3 displacedPos = targetPos;
       if (dist < repulsionRadius && dist > 0.001) {
-        float falloff = smoothstep(repulsionRadius, 0.0, dist);
-        displacedPos += normalize(diff) * falloff * falloff * repulsionStrength;
+        float normDist = dist / repulsionRadius;
+        float falloff = smoothstep(1.0, 0.0, normDist);
+        float push = falloff * falloff * repulsionStrength;
+        displacedPos += normalize(diff) * push;
       }
 
       vDistanceToCursor = dist;
 
-      // 4. Transform Local Geometry Position per Instance (Scale increased to 0.038)
+      // 4. Transform Local Geometry Position per Instance
       vec3 instanceLocalPos = position * (scale * 0.038) + displacedPos;
 
       // Calculate World & Screen Position
@@ -105,7 +107,7 @@ export const VolumetricSculptureShader = {
       vec3 rim = uCoreColor * fresnel * 0.6;
 
       // Cursor Proximity Highlight Glow
-      float cursorGlow = smoothstep(1.8, 0.0, vDistanceToCursor) * 0.45;
+      float cursorGlow = smoothstep(2.0, 0.0, vDistanceToCursor) * 0.45;
       vec3 finalColor = diffuse + specular + rim + uCoreColor * cursorGlow;
 
       gl_FragColor = vec4(finalColor, 1.0);
