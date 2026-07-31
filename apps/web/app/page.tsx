@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { AICore3D } from "@/components/AICore3D";
+import { GlassTypography } from "@/components/GlassTypography";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
@@ -61,12 +62,17 @@ export default async function HomePage() {
           Autonomous AI Operating System
         </div>
 
-        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-[1.08] max-w-4xl mx-auto">
-          Autonomous Campaign <br className="hidden sm:inline" />
-          <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-            Orchestration.
-          </span>
-        </h1>
+        {/* 3D Refractive Frosted Glass Hero Typography Engine */}
+        <GlassTypography
+          text="Autonomous Campaign"
+          subtext="Orchestration."
+          roughness={0.2}
+          thickness={1.4}
+          refraction={0.85}
+          frostIntensity={0.5}
+          chromaticAberration={0.035}
+          highlightIntensity={1.5}
+        />
 
         <p className="font-sans text-sm sm:text-base text-muted max-w-2xl mx-auto mt-6 leading-relaxed">
           A stateless multi-agent intelligence platform designed to synthesize brand profiles, analyze market competition via SerpAPI, formulate GTM strategy, and broadcast live to Meta feeds.
