@@ -10,13 +10,13 @@ export interface GPUSculptureBufferData {
 }
 
 /**
- * Samples geometries using MeshSurfaceSampler and generates packed Float32Array GPU attributes
+ * Samples scaled geometries using MeshSurfaceSampler to build a bold, volumetric beaded sculpture.
  */
-export function generateGPUSculptureBuffers(count: number = 40000): GPUSculptureBufferData {
-  // 1. Base Geometries for Surface Sampling
-  const sphereGeo = new THREE.IcosahedronGeometry(1.6, 4);
-  const torusGeo = new THREE.TorusKnotGeometry(1.2, 0.45, 128, 32);
-  const octahedronGeo = new THREE.OctahedronGeometry(1.8, 3);
+export function generateGPUSculptureBuffers(count: number = 22000): GPUSculptureBufferData {
+  // 1. Base Geometries with 30-40% Larger Silhouette Dimensions
+  const sphereGeo = new THREE.IcosahedronGeometry(2.1, 4);
+  const torusGeo = new THREE.TorusKnotGeometry(1.6, 0.55, 128, 32);
+  const octahedronGeo = new THREE.OctahedronGeometry(2.3, 3);
 
   const dummyMat = new THREE.MeshBasicMaterial();
 
@@ -47,7 +47,7 @@ export function generateGPUSculptureBuffers(count: number = 40000): GPUSculpture
   // 2. Packed Instance Parameters Attribute [scale, phase, speed]
   const params = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    params[i * 3 + 0] = 0.6 + Math.random() * 0.8; // scale
+    params[i * 3 + 0] = 0.75 + Math.random() * 0.7; // scale
     params[i * 3 + 1] = Math.random() * Math.PI * 2; // phase
     params[i * 3 + 2] = 0.5 + Math.random() * 1.2; // speed
   }

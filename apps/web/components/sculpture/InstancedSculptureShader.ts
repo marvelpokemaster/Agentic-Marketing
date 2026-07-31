@@ -41,17 +41,17 @@ export const VolumetricSculptureShader = {
       float speed = aParams.z;
 
       vec3 breath;
-      breath.x = sin(uTime * speed + phase) * 0.04;
-      breath.y = cos(uTime * speed * 1.2 + phase) * 0.04;
-      breath.z = sin(uTime * speed * 0.8 + phase) * 0.04;
+      breath.x = sin(uTime * speed + phase) * 0.05;
+      breath.y = cos(uTime * speed * 1.2 + phase) * 0.05;
+      breath.z = sin(uTime * speed * 0.8 + phase) * 0.05;
 
       vec3 targetPos = basePos + breath;
 
       // 3. GPU 3D Cursor Repulsion with Smoothstep Falloff
       vec3 diff = targetPos - uCursor;
       float dist = length(diff);
-      float repulsionRadius = 1.8;
-      float repulsionStrength = 2.2;
+      float repulsionRadius = 2.2;
+      float repulsionStrength = 2.5;
 
       vec3 displacedPos = targetPos;
       if (dist < repulsionRadius && dist > 0.001) {
@@ -61,8 +61,8 @@ export const VolumetricSculptureShader = {
 
       vDistanceToCursor = dist;
 
-      // 4. Transform Local Geometry Position per Instance
-      vec3 instanceLocalPos = position * (scale * 0.024) + displacedPos;
+      // 4. Transform Local Geometry Position per Instance (Scale increased to 0.038)
+      vec3 instanceLocalPos = position * (scale * 0.038) + displacedPos;
 
       // Calculate World & Screen Position
       vec4 worldPosition = modelMatrix * vec4(instanceLocalPos, 1.0);
@@ -105,7 +105,7 @@ export const VolumetricSculptureShader = {
       vec3 rim = uCoreColor * fresnel * 0.6;
 
       // Cursor Proximity Highlight Glow
-      float cursorGlow = smoothstep(1.5, 0.0, vDistanceToCursor) * 0.4;
+      float cursorGlow = smoothstep(1.8, 0.0, vDistanceToCursor) * 0.45;
       vec3 finalColor = diffuse + specular + rim + uCoreColor * cursorGlow;
 
       gl_FragColor = vec4(finalColor, 1.0);
