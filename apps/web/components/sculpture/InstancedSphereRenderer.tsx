@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { generateGPUSculptureBuffers } from "./MeshSampler";
+import { loadVolumetricParticleDatasets, VolumetricParticleBufferData } from "./BinaryParticleLoader";
 import { VolumetricSculptureShader } from "./InstancedSculptureShader";
 import { useTheme } from "@/lib/theme";
 
@@ -14,23 +14,33 @@ interface InstancedSphereRendererProps {
 
 export function InstancedSphereRenderer({
   morphProgress = 0,
-  instanceCount = 22000,
+  instanceCount = 25000,
 }: InstancedSphereRendererProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const { themeConfig } = useTheme();
   const { viewport, pointer } = useThree();
 
+  const [gpuBuffers, setGpuBuffers] = useState<VolumetricParticleBufferData | null>(null);
+
   const targetCursor = useMemo(() => new THREE.Vector3(999, 999, 999), []);
   const smoothedCursor = useMemo(() => new THREE.Vector3(999, 999, 999), []);
 
-  // 1. Generate Packed GPU Instanced Attributes (Cached via useMemo)
-  const gpuBuffers = useMemo(() => {
-    return generateGPUSculptureBuffers(instanceCount);
+  // 1. Fetch & Stream Volumetric Binary Particle Datasets (.bin)
+  useEffect(() => {
+    let isMounted = true;
+    loadVolumetricParticleDatasets(instanceCount).then((data) => {
+      if (isMounted) setGpuBuffers(data);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [instanceCount]);
 
-  // 2. Optimized Geometry with Attached GPU Instanced Attributes
+  // 2. Geometry with Attached GPU Instanced Attributes
   const geometry = useMemo(() => {
+    if (!gpuBuffers) return null;
+
     const geo = new THREE.IcosahedronGeometry(1, 1);
 
     geo.setAttribute(
@@ -62,13 +72,13 @@ export function InstancedSphereRenderer({
     });
   }, []);
 
-  // 4. Smooth Spring Cursor Interpolation Render Engine (60 FPS Execution)
+  // 4. Zero CPU Execution Loop (60 FPS Shader Execution)
   useFrame((state) => {
     if (!materialRef.current) return;
 
     const time = state.clock.getElapsedTime();
 
-    // Map 2D Pointer NDC to 3D World Space Position
+    // Map Pointer NDC to 3D World Space Position
     targetCursor.set(
       (pointer.x * viewport.width) / 2,
       (pointer.y * viewport.height) / 2,
@@ -85,6 +95,8 @@ export function InstancedSphereRenderer({
     materialRef.current.uniforms.uColor.value.set(themeConfig.primaryHex);
     materialRef.current.uniforms.uCoreColor.value.set(themeConfig.coreHex);
   });
+
+  if (!geometry || !gpuBuffers) return null;
 
   return (
     <instancedMesh
