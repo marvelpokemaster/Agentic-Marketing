@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AlertTriangle } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
 import { CampaignDashboard } from "@/components/CampaignDashboard";
@@ -35,18 +36,18 @@ export default async function CampaignPage({
   const metaConfigured = await isMetaConfiguredOnBackend();
 
   return (
-    <div className="space-y-4">
+    <div className="page">
       {campaign.workflow !== "lead_generation" && !metaConfigured && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400 flex items-start gap-3 shadow-md">
-          <div className="mt-0.5 text-amber-400 shrink-0">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div className="space-y-0.5">
-            <span className="font-semibold block text-xs">Meta API integration is not configured on backend</span>
-            <p className="text-muted/90 text-[11px] leading-normal">
-              To publish posts directly to Facebook/Instagram, configure <code>META_ACCESS_TOKEN</code> on Railway. You can still generate and edit all assets here.
+        <div className="mb-8 flex items-start gap-3 rounded-md border border-warning bg-panel p-4">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <div>
+            <span className="block text-xs font-semibold text-foreground">
+              Meta publishing is not configured
+            </span>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Set <code className="code-token">META_ACCESS_TOKEN</code> on the backend to
+              publish to Facebook and Instagram. You can still generate and edit every
+              asset here.
             </p>
           </div>
         </div>

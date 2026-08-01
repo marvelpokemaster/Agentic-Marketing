@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
 import { GenerateForm } from "@/components/GenerateForm";
-import { ArrowLeft, Users, Package } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { ArrowLeft } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -20,44 +19,40 @@ export default async function GenerateCampaignPage({
   if (!product) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 relative z-10">
-      <div>
-        <Link href="/products" className="font-mono text-xs text-primary hover:underline flex items-center gap-1.5 transition">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Product Profiles</span>
-        </Link>
-      </div>
+    <div className="page max-w-[860px]">
+      <Link
+        href="/products"
+        className="mb-8 inline-flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        <span>Products</span>
+      </Link>
 
       <SectionHeader
-        badge="Mission Config"
-        title="Launch AI Campaign Stream"
-        subtitle={`Configure campaign parameters for ${product.name}.`}
+        badge="New campaign"
+        title={product.name}
+        subtitle="Choose what the agents should produce. Everything after this runs on its own."
       />
 
-      {/* Product Scope Summary */}
-      <Card className="space-y-3 bg-surface">
-        <div className="flex items-center justify-between border-b border-border/40 pb-2">
-          <div className="flex items-center gap-2">
-            <Package className="h-4 w-4 text-primary" />
-            <h4 className="font-heading text-sm font-bold text-foreground">{product.name}</h4>
-          </div>
-          {product.industry && (
-            <span className="font-mono text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-semibold uppercase">
-              {product.industry}
-            </span>
-          )}
+      {/* Brief summary */}
+      <dl className="mb-10 grid gap-px border border-border bg-border sm:grid-cols-2">
+        <div className="bg-panel px-5 py-4">
+          <dt className="eyebrow">Industry</dt>
+          <dd className="mt-2 text-sm text-foreground">{product.industry || "Not set"}</dd>
         </div>
-        <p className="font-sans text-xs text-muted leading-relaxed">
-          {product.description || "No description provided."}
-        </p>
-
-        {product.target_audience && (
-          <div className="pt-2 border-t border-border/30 font-mono text-[11px] text-muted flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-primary" />
-            <span>Target Persona: <strong className="text-foreground">{product.target_audience}</strong></span>
-          </div>
-        )}
-      </Card>
+        <div className="bg-panel px-5 py-4">
+          <dt className="eyebrow">Target audience</dt>
+          <dd className="mt-2 text-sm text-foreground">
+            {product.target_audience || "Not set"}
+          </dd>
+        </div>
+        <div className="bg-panel px-5 py-4 sm:col-span-2">
+          <dt className="eyebrow">Description</dt>
+          <dd className="mt-2 text-sm leading-relaxed text-muted">
+            {product.description || "No description provided."}
+          </dd>
+        </div>
+      </dl>
 
       <GenerateForm productId={product.id} />
     </div>

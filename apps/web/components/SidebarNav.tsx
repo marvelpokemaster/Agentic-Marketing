@@ -9,11 +9,9 @@ import {
   Package,
   Megaphone,
   PlusCircle,
-  Activity,
+  LogIn,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  Cpu,
 } from "lucide-react";
 import HeaderAuth from "./HeaderAuth";
 
@@ -29,106 +27,99 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
     { label: "Overview", href: "/", icon: LayoutDashboard },
     { label: "Products", href: "/products", icon: Package },
     { label: "Campaigns", href: "/campaigns", icon: Megaphone },
-    { label: "New Product", href: "/products/new", icon: PlusCircle },
+    { label: "New product", href: "/products/new", icon: PlusCircle },
   ];
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 72 : 256 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="relative flex flex-col justify-between h-screen sticky top-0 bg-panel border-r border-border backdrop-blur-xl z-40 shrink-0 select-none overflow-hidden"
+      // `initial={false}` snaps to the correct width on mount and animates only
+      // on toggle — otherwise the width tweens on every page load, and can be
+      // left part-way open if the tab is backgrounded mid-animation.
+      initial={false}
+      animate={{ width: collapsed ? 68 : 232 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel"
     >
-      {/* Top Header & Branding */}
       <div>
-        <div className={`flex items-center ${collapsed ? "justify-center px-0 py-4" : "justify-between px-3.5 py-4 gap-2"} border-b border-border/40 overflow-hidden min-h-[64px]`}>
-          <Link href="/" className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
-            {/* Logo Icon Container - Fixed Proportions & Strict Flex Isolation */}
-            <div className="relative flex h-8 w-8 min-w-[32px] min-h-[32px] items-center justify-center rounded-lg bg-primary/10 border border-primary/30 text-primary shrink-0 overflow-hidden">
-              <Cpu className="h-[18px] w-[18px] shrink-0 animate-pulse" />
-            </div>
-
-            {/* Logo Typography - Animated Width, Opacity & Truncation */}
+        {/* Wordmark */}
+        <div
+          className={`flex min-h-[57px] items-center border-b border-border ${
+            collapsed ? "justify-center px-0" : "justify-between gap-2 px-4"
+          }`}
+        >
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 overflow-hidden">
+            <span className="h-5 w-5 shrink-0 rounded-[5px] bg-primary" />
             <AnimatePresence mode="wait">
               {!collapsed && (
-                <motion.div
+                <motion.span
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
                   exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col whitespace-nowrap overflow-hidden min-w-0 flex-1"
+                  transition={{ duration: 0.18 }}
+                  className="block truncate whitespace-nowrap font-heading text-sm font-semibold tracking-tight text-foreground"
                 >
-                  <span className="font-heading font-extrabold text-sm tracking-tight text-foreground truncate block leading-none">
-                    AGENTIC<span className="text-primary">.AI</span>
-                  </span>
-                  <span className="font-mono text-[9px] font-bold text-muted tracking-widest uppercase truncate block mt-1 leading-none">
-                    Mission Control
-                  </span>
-                </motion.div>
+                  Agentic
+                </motion.span>
               )}
             </AnimatePresence>
           </Link>
 
-          {/* Collapse/Expand Toggle Button */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-md hover:bg-surface text-muted hover:text-foreground transition-colors shrink-0 flex items-center justify-center overflow-hidden"
-            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : <ChevronLeft className="h-4 w-4 shrink-0" />}
-          </button>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              className="shrink-0 rounded-md p-1.5 text-muted transition-colors hover:bg-surface hover:text-foreground"
+              title="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        {/* Telemetry Status Bar */}
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mx-3 mt-4 p-2.5 rounded-lg bg-surface border border-border/40 flex items-center justify-between overflow-hidden"
+        {collapsed && (
+          <div className="flex justify-center border-b border-border py-2">
+            <button
+              onClick={() => setCollapsed(false)}
+              className="rounded-md p-1.5 text-muted transition-colors hover:bg-surface hover:text-foreground"
+              title="Expand sidebar"
             >
-              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span className="font-mono text-[10px] font-semibold text-foreground truncate">SYS_READY</span>
-              </div>
-              <ShieldCheck className="h-[18px] w-[18px] text-primary shrink-0" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
-        {/* Navigation Items */}
-        <nav className="p-3 space-y-1.5 mt-4 overflow-hidden">
+        {/* Navigation */}
+        <nav className="space-y-0.5 p-2.5 pt-4">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
 
             return (
-              <Link key={item.href} href={item.href} className="relative block overflow-hidden rounded-lg">
+              <Link key={item.href} href={item.href} className="relative block">
                 <div
-                  className={`relative flex items-center ${
-                    collapsed ? "justify-center px-0 py-2.5" : "justify-start px-3 py-2.5 gap-3"
-                  } rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden ${
+                  className={`relative flex items-center rounded-md text-[13px] transition-colors ${
+                    collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2"
+                  } ${
                     isActive
-                      ? "text-foreground font-semibold"
-                      : "text-muted hover:text-foreground hover:bg-surface"
+                      ? "font-medium text-foreground"
+                      : "text-muted hover:bg-surface hover:text-foreground"
                   }`}
+                  title={collapsed ? item.label : undefined}
                 >
                   {isActive && (
-                    <motion.div
+                    <motion.span
                       layoutId="activeNavTab"
-                      className="absolute inset-0 rounded-lg bg-primary/10 border border-primary/30 z-0 overflow-hidden"
-                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 rounded-md bg-surface"
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     />
                   )}
-                  <div className="flex items-center justify-center shrink-0 relative z-10">
-                    <Icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-primary" : "text-muted"}`} />
-                  </div>
+                  <Icon
+                    className={`relative z-10 h-4 w-4 shrink-0 ${
+                      isActive ? "text-primary" : ""
+                    }`}
+                  />
                   {!collapsed && (
-                    <span className="relative z-10 whitespace-nowrap truncate">{item.label}</span>
+                    <span className="relative z-10 truncate whitespace-nowrap">{item.label}</span>
                   )}
                 </div>
               </Link>
@@ -137,17 +128,21 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
         </nav>
       </div>
 
-      {/* Bottom Auth User Bar */}
-      <div className="p-3 border-t border-border/40 overflow-hidden">
+      {/* Account */}
+      <div className="border-t border-border p-3">
         {userEmail ? (
-          <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between gap-2"} overflow-hidden`}>
+          <div
+            className={`flex items-center overflow-hidden ${
+              collapsed ? "justify-center" : "justify-between gap-2"
+            }`}
+          >
             {!collapsed && (
               <div className="min-w-0 flex-1 overflow-hidden">
-                <span className="font-mono text-[9px] font-bold text-muted block uppercase tracking-wider truncate">
-                  OPERATOR
-                </span>
-                <span className="font-sans text-xs font-semibold text-foreground truncate block">
+                <span className="block truncate text-xs font-medium text-foreground">
                   {userEmail}
+                </span>
+                <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-muted">
+                  Signed in
                 </span>
               </div>
             )}
@@ -156,12 +151,11 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
         ) : (
           <Link
             href="/login"
-            className={`w-full btn btn-ghost text-xs py-2 flex items-center ${
-              collapsed ? "justify-center px-0" : "justify-center gap-2"
-            } overflow-hidden rounded-lg`}
+            className={`btn-ghost w-full py-2 text-xs ${collapsed ? "px-0" : ""}`}
+            title={collapsed ? "Sign in" : undefined}
           >
-            <Activity className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && <span className="truncate">Authenticate</span>}
+            <LogIn className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Sign in</span>}
           </Link>
         )}
       </div>

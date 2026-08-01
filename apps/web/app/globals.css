@@ -1,209 +1,234 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── MULTI-THEME ENGINE DESIGN TOKENS ────────────────────────────────────────── */
+/* ── DESIGN TOKENS ───────────────────────────────────────────────────────────
+   Two themes only: warm paper (light) and warm ink (dark).
+   Flat surfaces, hairline rules, no blur, no glow.
+   ─────────────────────────────────────────────────────────────────────────── */
 
-/* Default Theme: Command Center */
 :root,
-[data-theme="command-center"] {
-  color-scheme: dark;
-  --bg-color: #050508;
-  --panel-bg: rgba(10, 12, 18, 0.78);
-  --surface-bg: rgba(16, 20, 30, 0.65);
-  --border-color: rgba(0, 102, 255, 0.2);
-  --border-hover: rgba(56, 189, 248, 0.45);
-  --text-primary: #f8fafc;
-  --text-muted: #94a3b8;
-  --color-primary: #0066ff;
-  --color-primary-hover: #0052cc;
-  --color-accent: #38bdf8;
-  --color-secondary: #8b5cf6;
-  --color-danger: #f43f5e;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --glow-color: rgba(0, 102, 255, 0.35);
-  --glass-bg: radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(10, 12, 18, 0.82) 100%);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-specular: rgba(255, 255, 255, 0.35);
-}
-
-/* Theme 2: AI Laboratory (Apple-inspired White/Silver Optical Glass) */
-[data-theme="laboratory"] {
+[data-theme="light"] {
   color-scheme: light;
-  --bg-color: #f8fafc;
-  --panel-bg: rgba(255, 255, 255, 0.85);
-  --surface-bg: rgba(241, 245, 249, 0.75);
-  --border-color: rgba(2, 132, 199, 0.2);
-  --border-hover: rgba(2, 132, 199, 0.45);
-  --text-primary: #0f172a;
-  --text-muted: #64748b;
-  --color-primary: #0284c7;
-  --color-primary-hover: #0369a1;
-  --color-accent: #06b6d4;
-  --color-secondary: #6366f1;
-  --color-danger: #e11d48;
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --glow-color: rgba(2, 132, 199, 0.2);
-  --glass-bg: radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.82) 100%);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-specular: rgba(255, 255, 255, 0.8);
+
+  --bg-color: #f4f1ea;
+  --panel-bg: #fffdf8;
+  --surface-bg: #eae6dc;
+  --border-color: #dcd6c8;
+  --border-hover: #b9b0a0;
+
+  --text-primary: #17150f;
+  --text-muted: #6b6558;
+
+  --color-primary: #b8502f;
+  --color-primary-hover: #9a4127;
+  --color-primary-soft: rgba(184, 80, 47, 0.09);
+  --color-on-primary: #fffdf8;
+
+  --color-accent: #2f6b62;
+  --color-secondary: #5b5f8a;
+  --color-danger: #a33a2f;
+  --color-success: #3f6b45;
+  --color-warning: #96652a;
+
+  /* Near-black code / terminal panel */
+  --ink-bg: #17150f;
+  --ink-panel: #221f18;
+  --ink-border: #35312a;
+  --ink-text: #ece7da;
+  --ink-muted: #8d8778;
+
+  --shadow-sm: 0 1px 2px rgba(23, 21, 15, 0.05);
+  --shadow-md: 0 2px 8px rgba(23, 21, 15, 0.07);
+  --shadow-lg: 0 8px 28px rgba(23, 21, 15, 0.12);
 }
 
-/* Theme 3: Nebula (Cyberpunk Deep Purple & Neon Cyan Optical Glass) */
-[data-theme="nebula"] {
+[data-theme="dark"] {
   color-scheme: dark;
-  --bg-color: #090514;
-  --panel-bg: rgba(18, 10, 38, 0.8);
-  --surface-bg: rgba(26, 15, 56, 0.68);
-  --border-color: rgba(217, 70, 239, 0.25);
-  --border-hover: rgba(34, 211, 238, 0.5);
-  --text-primary: #fae8ff;
-  --text-muted: #c084fc;
-  --color-primary: #d946ef;
-  --color-primary-hover: #c026d3;
-  --color-accent: #22d3ee;
-  --color-secondary: #06b6d4;
-  --color-danger: #ff0055;
-  --color-success: #10b981;
-  --color-warning: #fbbf24;
-  --glow-color: rgba(217, 70, 239, 0.38);
-  --glass-bg: radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(18, 10, 38, 0.84) 100%);
-  --glass-border: rgba(217, 70, 239, 0.3);
-  --glass-specular: rgba(255, 255, 255, 0.4);
+
+  --bg-color: #14130f;
+  --panel-bg: #1b1a15;
+  --surface-bg: #23211b;
+  --border-color: #302d25;
+  --border-hover: #4a463b;
+
+  --text-primary: #f3efe4;
+  --text-muted: #969080;
+
+  --color-primary: #e0794f;
+  --color-primary-hover: #ee8c62;
+  --color-primary-soft: rgba(224, 121, 79, 0.13);
+  --color-on-primary: #14130f;
+
+  --color-accent: #6bb3a4;
+  --color-secondary: #9ba0d4;
+  --color-danger: #e07a6a;
+  --color-success: #7fb383;
+  --color-warning: #d9a55e;
+
+  --ink-bg: #0d0c09;
+  --ink-panel: #16150f;
+  --ink-border: #2a2721;
+  --ink-text: #ece7da;
+  --ink-muted: #7d7869;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
-/* Theme 4: Solar Gold (Warm Gold & Amber Luxury Optical Glass) */
-[data-theme="solar"] {
-  color-scheme: dark;
-  --bg-color: #0d0905;
-  --panel-bg: rgba(23, 16, 7, 0.82);
-  --surface-bg: rgba(36, 25, 11, 0.7);
-  --border-color: rgba(245, 158, 11, 0.25);
-  --border-hover: rgba(251, 191, 36, 0.5);
-  --text-primary: #fffbeb;
-  --text-muted: #d97706;
-  --color-primary: #f59e0b;
-  --color-primary-hover: #d97706;
-  --color-accent: #fbbf24;
-  --color-secondary: #ea580c;
-  --color-danger: #ef4444;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --glow-color: rgba(245, 158, 11, 0.35);
-  --glass-bg: radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(23, 16, 7, 0.85) 100%);
-  --glass-border: rgba(245, 158, 11, 0.3);
-  --glass-specular: rgba(255, 255, 255, 0.45);
-}
-
-/* Theme 5: OLED Void (Monochrome High-Contrast Optical Glass) */
-[data-theme="void"] {
-  color-scheme: dark;
-  --bg-color: #000000;
-  --panel-bg: rgba(10, 10, 10, 0.88);
-  --surface-bg: rgba(20, 20, 20, 0.75);
-  --border-color: rgba(255, 255, 255, 0.2);
-  --border-hover: rgba(255, 255, 255, 0.5);
-  --text-primary: #ffffff;
-  --text-muted: #a3a3a3;
-  --color-primary: #e5e5e5;
-  --color-primary-hover: #ffffff;
-  --color-accent: #ffffff;
-  --color-secondary: #737373;
-  --color-danger: #f87171;
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --glow-color: rgba(255, 255, 255, 0.28);
-  --glass-bg: radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(10, 10, 10, 0.9) 100%);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-specular: rgba(255, 255, 255, 0.5);
-}
-
-/* Smooth ~400ms Animated Theme Crossfade */
-body,
-.card,
-.glass-panel,
-.input,
-.btn,
-.sidebar,
-header,
-main,
-nav {
-  transition: background 400ms ease, color 400ms ease, border-color 400ms ease, box-shadow 400ms ease, transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+/* Theme switching.
+   Chrome keeps the previous computed colour when a transitioned property is
+   backed by a custom property that changes underneath it, which leaves the page
+   painted in the old theme until the next full reload. `lib/theme.ts` adds this
+   class for one frame while it flips `data-theme`, so the swap applies instantly
+   and per-element hover transitions still work the rest of the time. */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
   letter-spacing: -0.011em;
   overflow-x: hidden;
 }
 
-h1, h2, h3, .font-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: -0.025em;
+h1,
+h2,
+h3,
+h4,
+.font-heading {
+  font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  letter-spacing: -0.028em;
 }
 
-code, kbd, samp, pre, .font-mono {
-  font-family: 'Space Mono', monospace;
+code,
+kbd,
+samp,
+pre,
+.font-mono {
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Custom Scrollbar */
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--text-primary);
+}
+
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-color);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
+  border: 3px solid var(--bg-color);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
+  background: var(--border-hover);
 }
 
-/* ── OPTICAL LIQUID GLASS CARDS & PANELS ───────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────────── */
+
+/* Standard padded page container for app routes. */
+.page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 24px 96px;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 56px 40px 120px;
+  }
+}
+
+/* Reading column for long-form copy. */
+.prose-col {
+  max-width: 62ch;
+}
+
+/* Hairline divider. */
+.rule {
+  height: 1px;
+  width: 100%;
+  background: var(--border-color);
+  border: 0;
+}
+
+/* Small uppercase mono section label. */
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── SURFACES ────────────────────────────────────────────────────────────── */
+
 .card {
-  border-radius: 16px;
+  border-radius: 10px;
   border: 1px solid var(--border-color);
+  background: var(--panel-bg);
   padding: 24px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(1.8) contrast(1.1) brightness(1.05);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8) contrast(1.1) brightness(1.05);
-  box-shadow:
-    inset 0 1px 1px 0 var(--glass-specular),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2),
-    0 16px 40px -8px rgba(0, 0, 0, 0.5),
-    0 0 20px -4px var(--glow-color);
+  box-shadow: var(--shadow-sm);
   position: relative;
-  overflow: hidden;
 }
 
 .card-interactive {
   cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 .card-interactive:hover {
   border-color: var(--border-hover);
-  box-shadow:
-    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.5),
-    0 24px 48px -10px var(--glow-color);
-  transform: translateY(-3px) scale(1.005);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
+
+/* Retained class name — now a flat panel, no glass. */
+.glass-panel,
+.panel {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Near-black terminal/code surface. */
+.ink {
+  background: var(--ink-bg);
+  color: var(--ink-text);
+  border: 1px solid var(--ink-border);
+  border-radius: 10px;
+}
+
+/* ── FORMS ───────────────────────────────────────────────────────────────── */
 
 .label {
   margin-bottom: 8px;
   display: block;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -212,16 +237,18 @@ code, kbd, samp, pre, .font-mono {
 .textarea,
 .select {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: var(--surface-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 10px 16px;
+  background: var(--bg-color);
+  padding: 10px 14px;
   font-size: 14px;
   color: var(--text-primary);
   outline: none;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
 }
 .input:hover,
 .textarea:hover,
@@ -232,9 +259,7 @@ code, kbd, samp, pre, .font-mono {
 .textarea:focus,
 .select:focus {
   border-color: var(--color-primary);
-  box-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.3),
-    0 0 20px var(--glow-color);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .textarea {
@@ -242,27 +267,37 @@ code, kbd, samp, pre, .font-mono {
   resize: vertical;
 }
 
+/* ── BUTTONS ─────────────────────────────────────────────────────────────── */
+
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-primary);
   background-color: var(--color-primary);
-  padding: 10px 20px;
+  padding: 9px 18px;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
-  box-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
-    0 10px 20px -3px var(--glow-color);
+  line-height: 1.2;
+  color: var(--color-on-primary);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 .btn:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
-  box-shadow:
-    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.6),
-    0 14px 28px -3px var(--glow-color);
-  transform: translateY(-1px);
+  border-color: var(--color-primary-hover);
+}
+.btn:disabled,
+.btn-ghost:disabled,
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 15px;
 }
 
 .btn-ghost {
@@ -270,21 +305,19 @@ code, kbd, samp, pre, .font-mono {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: var(--surface-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 10px 20px;
+  background: transparent;
+  padding: 9px 18px;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--text-primary);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 .btn-ghost:hover:not(:disabled) {
   border-color: var(--border-hover);
-  background: var(--panel-bg);
-  box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.3);
+  background: var(--surface-bg);
 }
 
 .btn-outline {
@@ -292,53 +325,69 @@ code, kbd, samp, pre, .font-mono {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   background: transparent;
-  padding: 8px 16px;
+  padding: 7px 14px;
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--text-primary);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 .btn-outline:hover:not(:disabled) {
   border-color: var(--border-hover);
   background: var(--surface-bg);
 }
 
+/* ── CHIPS ───────────────────────────────────────────────────────────────── */
+
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 9999px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
-  padding: 6px 12px;
-  font-size: 12px;
+  background: var(--surface-bg);
+  padding: 4px 10px;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  backdrop-filter: blur(12px);
 }
 .chip-on {
-  border-color: var(--border-hover);
-  background: var(--surface-bg);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
   color: var(--color-primary);
-  box-shadow: 0 1px 4px 0 var(--glow-color);
 }
 
-/* Glass panel elements with Optical Specular & Fresnel Edge Refraction */
-.glass-panel {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(28px) saturate(1.8) contrast(1.15);
-  -webkit-backdrop-filter: blur(28px) saturate(1.8) contrast(1.15);
-  box-shadow:
-    inset 0 1px 1px 0 var(--glass-specular),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.3),
-    0 16px 48px -10px rgba(0, 0, 0, 0.5),
-    0 0 24px var(--glow-color);
+/* Inline code token used inside body copy. */
+.code-token {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.86em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 
-/* Ambient Background Grid */
+/* ── UTILITIES ───────────────────────────────────────────────────────────── */
+
 .grid-bg {
-  background-size: 40px 40px;
-  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-image: linear-gradient(var(--border-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

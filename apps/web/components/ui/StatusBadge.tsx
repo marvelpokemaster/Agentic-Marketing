@@ -16,31 +16,35 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
   const isFailed = ["failed", "error", "offline"].includes(normalized);
   const isWarning = ["draft", "partially_published", "scheduled"].includes(normalized);
 
-  const style = isSuccess
-    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+  const tone = isSuccess
+    ? "text-success"
     : isRunning
-    ? "bg-primary/10 text-primary border-primary/30"
+    ? "text-primary"
     : isFailed
-    ? "bg-rose-500/10 text-rose-500 border-rose-500/30"
+    ? "text-danger"
     : isWarning
-    ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-    : "bg-surface text-muted border-border";
+    ? "text-warning"
+    : "text-muted";
 
-  const dotStyle = isSuccess
-    ? "bg-emerald-500"
+  const dot = isSuccess
+    ? "bg-success"
     : isRunning
     ? "bg-primary"
     : isFailed
-    ? "bg-rose-500"
+    ? "bg-danger"
     : isWarning
-    ? "bg-amber-500"
+    ? "bg-warning"
     : "bg-muted";
 
-  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs";
+  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]";
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md border font-mono font-semibold uppercase tracking-wider ${sizeClasses} ${style}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${dotStyle} ${(pulse || isRunning) ? "animate-pulse" : ""}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface font-mono font-medium uppercase tracking-wider ${sizeClasses} ${tone}`}
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${dot} ${pulse || isRunning ? "animate-pulse" : ""}`}
+      />
       {status.replace(/_/g, " ")}
     </span>
   );

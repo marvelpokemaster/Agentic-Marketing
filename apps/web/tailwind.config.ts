@@ -11,13 +11,16 @@ const config: Config = {
       fontFamily: {
         heading: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
         body: ["var(--font-inter)", "Inter", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "Geist Mono", "JetBrains Mono", "monospace"],
+        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "JetBrains Mono", "monospace"],
       },
       colors: {
         bg: "var(--bg-color)",
         panel: "var(--panel-bg)",
         surface: "var(--surface-bg)",
         border: "var(--border-color)",
+        "border-hover": "var(--border-hover)",
+        foreground: "var(--text-primary)",
         muted: "var(--text-muted)",
         primary: "var(--color-primary)",
         accent: "var(--color-accent)",
@@ -25,16 +28,19 @@ const config: Config = {
         danger: "var(--color-danger)",
         success: "var(--color-success)",
         warning: "var(--color-warning)",
+        ink: "var(--ink-bg)",
+        "ink-panel": "var(--ink-panel)",
+        "ink-border": "var(--ink-border)",
+        "ink-text": "var(--ink-text)",
+        "ink-muted": "var(--ink-muted)",
       },
       borderRadius: {
-        xl: "14px",
-        "2xl": "20px",
+        xl: "10px",
+        "2xl": "14px",
       },
       animation: {
         "fade-in": "fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "slide-up": "slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "pulse-glow": "pulseGlow 2.5s infinite cubic-bezier(0.16, 1, 0.3, 1)",
-        "radar-scan": "radarScan 4s linear infinite",
       },
       keyframes: {
         fadeIn: {
@@ -44,14 +50,6 @@ const config: Config = {
         slideUp: {
           "0%": { opacity: "0", transform: "translateY(16px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        pulseGlow: {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "0.9" },
-        },
-        radarScan: {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
         },
       },
     },

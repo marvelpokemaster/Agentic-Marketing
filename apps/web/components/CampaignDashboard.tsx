@@ -8,7 +8,6 @@ import {
   RefreshCw,
   SlidersHorizontal,
   CheckCircle2,
-  Sparkles,
   ExternalLink,
   Search,
   Target,
@@ -18,7 +17,6 @@ import {
   Layers,
   ChevronDown,
   ArrowLeft,
-  Zap,
   Maximize2,
 } from "lucide-react";
 import {
@@ -27,18 +25,14 @@ import {
   type CampaignAsset,
   type CompetitorResult,
 } from "@/lib/types";
-import { Card } from "./ui/Card";
-import { SectionHeader } from "./ui/SectionHeader";
 import { AnimatedButton } from "./ui/AnimatedButton";
 import { StatusBadge } from "./ui/StatusBadge";
 import { TimelineNode } from "./ui/TimelineNode";
-import { GlassPanel } from "./ui/GlassPanel";
 import { EmptyState } from "./ui/EmptyState";
 import { LoadingState } from "./ui/LoadingState";
 import { Skeleton } from "./ui/Skeleton";
 import { AnimatedNumber } from "./ui/AnimatedNumber";
 import { NetworkGraph } from "./ui/NetworkGraph";
-import { AICore3D } from "./AICore3D";
 import { AssetModal } from "./AssetModal";
 import { playUISound } from "@/lib/audio";
 
@@ -205,7 +199,7 @@ export function CampaignDashboard({
   const strategy = campaign.results?.strategy;
   const planner = campaign.results?.planner;
 
-  const renderExternalLink = (url: string | null | undefined, label: string = "View Source") => {
+  const renderExternalLink = (url: string | null | undefined, label: string = "View source") => {
     if (!url) return null;
     const href = url.startsWith("http") ? url : `https://${url}`;
     return (
@@ -213,9 +207,9 @@ export function CampaignDashboard({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs text-primary hover:underline inline-flex items-center gap-1 mb-2 break-all line-clamp-1"
+        className="inline-flex items-center gap-1 break-all text-xs text-primary transition-opacity hover:opacity-70"
       >
-        <span>{label === "View Source" ? label : url}</span>
+        <span className="line-clamp-1">{label === "View source" ? label : url}</span>
         <ExternalLink className="h-3 w-3 shrink-0" />
       </a>
     );
@@ -226,8 +220,7 @@ export function CampaignDashboard({
   const numAssets = mappedAssets.length;
 
   return (
-    <div className="space-y-6 relative z-10">
-      {/* FULLSCREEN ASSET SHOWCASE MODAL */}
+    <div>
       <AssetModal
         asset={selectedAsset}
         onClose={() => setSelectedAsset(null)}
@@ -235,50 +228,45 @@ export function CampaignDashboard({
         metaConfigured={metaConfigured}
       />
 
-      {/* COMPACT CAMPAIGN APPLICATION HEADER */}
-      <GlassPanel className="p-5 relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/campaigns"
-                className="font-mono text-xs text-primary hover:underline flex items-center gap-1 transition"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Campaigns</span>
-              </Link>
-              <span className="text-border/60">/</span>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-md">
-                {campaign.workflow.replace("_", " ")}
+      {/* HEADER */}
+      <header className="pb-8">
+        <Link
+          href="/campaigns"
+          className="mb-6 inline-flex items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Campaigns</span>
+        </Link>
+
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <StatusBadge status={campaign.status} pulse={isExecuting} size="sm" />
+              <span className="chip">{campaign.workflow.replace("_", " ")}</span>
+              <span className="font-mono text-[11px] text-muted">
+                {campaign.id.slice(0, 8)}
               </span>
-              <StatusBadge status={campaign.status} pulse={isExecuting} />
             </div>
 
-            <div className="flex items-center gap-3">
-              <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
-                {campaign.product_name || "AI Marketing Mission"}
-              </h1>
-              <span className="font-mono text-[11px] text-muted">ID: {campaign.id.slice(0, 8)}</span>
-            </div>
+            <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
+              {campaign.product_name || "Campaign"}
+            </h1>
 
-            {/* INLINE TELEMETRY CHIPS */}
-            <div className="flex flex-wrap items-center gap-4 pt-1 font-mono text-xs">
-              <span className="text-muted flex items-center gap-1.5">
-                Queries: <strong className="text-primary font-bold"><AnimatedNumber value={numQueries} /></strong>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-xs text-muted">
+              <span>
+                <AnimatedNumber value={numQueries} /> queries
               </span>
-              <span className="text-border/40">•</span>
-              <span className="text-muted flex items-center gap-1.5">
-                Competitors: <strong className="text-secondary font-bold"><AnimatedNumber value={numCompetitors} /></strong>
+              <span>
+                <AnimatedNumber value={numCompetitors} /> competitors
               </span>
-              <span className="text-border/40">•</span>
-              <span className="text-muted flex items-center gap-1.5">
-                Assets: <strong className="text-emerald-500 font-bold"><AnimatedNumber value={numAssets} /></strong>
+              <span>
+                <AnimatedNumber value={numAssets} /> assets
               </span>
             </div>
           </div>
 
-          {/* RIGHT ACTION CONTROLS */}
-          <div className="flex items-center gap-3">
+          {/* ACTIONS */}
+          <div className="flex shrink-0 items-center gap-2.5">
             <AnimatedButton
               variant="primary"
               size="md"
@@ -287,106 +275,95 @@ export function CampaignDashboard({
               disabled={isExecuting || triggeringResearch}
               icon={<Rocket className="h-4 w-4" />}
             >
-              {isExecuting ? "Executing..." : "Execute Campaign"}
+              {isExecuting ? "Running…" : "Run campaign"}
             </AnimatedButton>
 
             <div className="relative">
               <AnimatedButton
-                variant="outline"
+                variant="ghost"
                 size="md"
                 onClick={() => setShowRefreshMenu(!showRefreshMenu)}
                 disabled={isExecuting || triggeringResearch}
                 icon={<SlidersHorizontal className="h-4 w-4" />}
               >
-                <span>Options</span>
-                <ChevronDown className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-1.5">
+                  Options
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </span>
               </AnimatedButton>
 
               <AnimatePresence>
                 {showRefreshMenu && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-56 bg-panel border border-border rounded-xl shadow-2xl z-50 py-2 space-y-1"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.12 }}
+                    className="panel absolute right-0 z-50 mt-2 w-60 overflow-hidden p-1"
                   >
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
+                    <MenuItem
+                      icon={<Play className="h-3.5 w-3.5" />}
+                      label="Run with cache"
                       onClick={() => handleRunCampaign("none")}
-                    >
-                      <Play className="h-3.5 w-3.5 text-primary" />
-                      <span>Smart Execute (Cached)</span>
-                    </button>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
+                    />
+                    <MenuItem
+                      icon={<Search className="h-3.5 w-3.5" />}
+                      label="Refresh research"
                       onClick={() => handleRunCampaign("research")}
-                    >
-                      <Search className="h-3.5 w-3.5 text-primary" />
-                      <span>Refresh Research Agent</span>
-                    </button>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-foreground flex items-center gap-2"
+                    />
+                    <MenuItem
+                      icon={<Target className="h-3.5 w-3.5" />}
+                      label="Refresh strategy"
                       onClick={() => handleRunCampaign("strategy")}
-                    >
-                      <Target className="h-3.5 w-3.5 text-primary" />
-                      <span>Refresh Strategy Agent</span>
-                    </button>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-primary/10 text-xs font-medium text-rose-500 flex items-center gap-2 border-t border-border/40 pt-2"
-                      onClick={() => handleRunCampaign("everything")}
-                    >
-                      <RefreshCw className="h-3.5 w-3.5 text-rose-500" />
-                      <span>Force Re-run Pipeline</span>
-                    </button>
+                    />
+                    <div className="mt-1 border-t border-border pt-1">
+                      <MenuItem
+                        icon={<RefreshCw className="h-3.5 w-3.5" />}
+                        label="Re-run everything"
+                        onClick={() => handleRunCampaign("everything")}
+                        danger
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
         </div>
-      </GlassPanel>
+      </header>
 
-      {/* MISSION COMPLETE BANNER (IF READY) */}
+      {/* READY BANNER */}
       {isReady && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3"
-        >
+        <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-md border border-border bg-panel p-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <Zap className="h-5 w-5 text-amber-500 animate-pulse shrink-0" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
             <div>
-              <span className="font-mono text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
-                MISSION COMPLETE // ALL 6 AGENTS SYNCHRONIZED
+              <span className="block text-sm font-medium text-foreground">Campaign ready</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                All stages complete. Assets are ready for review.
               </span>
-              <h3 className="font-heading text-sm font-bold text-foreground">
-                Campaign Assets Prepared & Verified
-              </h3>
             </div>
           </div>
           <AnimatedButton
-            variant="primary"
+            variant="ghost"
             size="sm"
             onClick={handlePublishAll}
             icon={<Share2 className="h-3.5 w-3.5" />}
           >
-            Broadcast Assets Now
+            Publish all assets
           </AnimatedButton>
-        </motion.div>
+        </div>
       )}
 
-      {/* ERROR ALERT BANNER */}
+      {/* ERROR */}
       {researchError && (
-        <Card className="border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-3 text-rose-500 text-xs font-medium">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>{researchError}</span>
-          </div>
-        </Card>
+        <div className="mb-6 flex items-center gap-2 rounded-md border border-danger bg-panel p-4 text-xs font-medium text-danger">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>{researchError}</span>
+        </div>
       )}
 
-      {/* MULTI-AGENT EXECUTION TIMELINE BANNER */}
+      {/* PIPELINE TIMELINE */}
       <MultiAgentTimelineBanner
         execution={campaign.execution}
         status={campaign.status}
@@ -394,16 +371,14 @@ export function CampaignDashboard({
         isExecuting={isExecuting}
       />
 
-      {/* NAVIGATION TABS */}
-      <div className="flex items-center gap-2 border-b border-border/40 pb-2">
+      {/* TABS */}
+      <div className="mt-10 flex gap-8 border-b border-border">
         {[
-          { id: "strategy", label: "Strategy & Positioning", icon: Target, count: strategy ? 1 : 0 },
-          { id: "research", label: "Executive Intelligence", icon: Search, count: researchReport ? 1 : 0 },
-          { id: "content", label: "Content & Assets", icon: Layers, count: mappedAssets.length },
+          { id: "strategy", label: "Strategy", count: strategy ? 1 : 0 },
+          { id: "research", label: "Research", count: researchReport ? 1 : 0 },
+          { id: "content", label: "Assets", count: mappedAssets.length },
         ].map((tab) => {
-          const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-
           return (
             <button
               key={tab.id}
@@ -411,138 +386,105 @@ export function CampaignDashboard({
                 playUISound("click");
                 setActiveTab(tab.id as any);
               }}
-              className={`relative px-4 py-2 rounded-lg font-heading text-xs font-bold transition-all flex items-center gap-2 ${
-                isActive ? "text-foreground bg-primary/10 border border-primary/30" : "text-muted hover:text-foreground hover:bg-surface/50"
+              className={`relative -mb-px flex items-center gap-2 pb-3 text-[13px] font-medium transition-colors ${
+                isActive ? "text-foreground" : "text-muted hover:text-foreground"
               }`}
             >
-              <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted"}`} />
               <span>{tab.label}</span>
               {tab.count > 0 && (
-                <span className="font-mono text-[10px] bg-surface px-2 py-0.5 rounded-full border border-border text-muted">
-                  {tab.count}
-                </span>
+                <span className="font-mono text-[10px] text-muted">{tab.count}</span>
               )}
+              {isActive && <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />}
             </button>
           );
         })}
       </div>
 
-      {/* TAB CONTENT: STRATEGY */}
+      {/* TAB: STRATEGY */}
       {activeTab === "strategy" && (
-        <div className="space-y-6">
-          {isExecuting && !strategy && (
-            <LoadingState stage={currentStage || "strategizing"} />
-          )}
+        <div className="pt-8">
+          {isExecuting && !strategy && <LoadingState stage={currentStage || "strategizing"} />}
 
           {!strategy && !isExecuting && (
             <EmptyState
-              icon={<Target className="h-6 w-6 text-primary" />}
-              title="No Strategy Generated Yet"
-              description="Run the multi-agent pipeline to synthesize competitor research into market positioning, audience personas, and messaging pillars."
+              icon={<Target className="h-7 w-7" />}
+              title="No strategy yet"
+              description="Run the pipeline to turn competitor research into positioning, audience, and messaging pillars."
               action={
-                <AnimatedButton onClick={() => handleRunCampaign("strategy")} disabled={triggeringResearch}>
-                  Generate Strategy
+                <AnimatedButton
+                  onClick={() => handleRunCampaign("strategy")}
+                  disabled={triggeringResearch}
+                >
+                  Generate strategy
                 </AnimatedButton>
               }
             />
           )}
 
           {strategy && (
-            <div className="space-y-6">
-              <Card className="border-l-4 border-l-primary space-y-4">
-                <SectionHeader
-                  badge="GTM Core Architecture"
-                  title="Marketing Strategy & Positioning"
-                  action={
-                    <AnimatedButton
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRunCampaign("strategy")}
-                      disabled={isExecuting || triggeringResearch}
-                      icon={<RefreshCw className="h-3 w-3" />}
-                    >
-                      Refresh Strategy
-                    </AnimatedButton>
-                  }
-                />
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <span className="label">Campaign Objective</span>
-                    <p className="font-sans text-sm font-medium text-foreground">{strategy.campaign_objective}</p>
-                  </div>
-                  <div>
-                    <span className="label">Value Proposition</span>
-                    <p className="font-sans text-sm font-medium text-foreground">{strategy.value_proposition}</p>
-                  </div>
-                </div>
-              </Card>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="space-y-3">
-                  <h4 className="font-heading text-sm font-bold text-primary uppercase tracking-wide">Positioning & Tone</h4>
-                  <div>
-                    <span className="label">Market Positioning</span>
-                    <p className="font-sans text-xs text-foreground">{strategy.positioning}</p>
-                  </div>
-                  <div>
-                    <span className="label">Messaging Angle</span>
-                    <p className="font-sans text-xs text-foreground">{strategy.messaging_angle}</p>
-                  </div>
-                  <div>
-                    <span className="label">Brand Tone</span>
-                    <span className="inline-block px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full font-mono text-xs font-semibold">
-                      {strategy.tone}
-                    </span>
-                  </div>
-                </Card>
-
-                <Card className="space-y-3">
-                  <h4 className="font-heading text-sm font-bold text-primary uppercase tracking-wide">Audience Persona</h4>
-                  <div>
-                    <span className="label">Target Audience</span>
-                    <p className="font-sans text-xs text-foreground">{strategy.target_audience}</p>
-                  </div>
-                  <div>
-                    <span className="label">Call to Action Strategy</span>
-                    <p className="font-sans text-xs text-foreground">{strategy.cta_strategy}</p>
-                  </div>
-                </Card>
+            <div className="space-y-10">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+                  Marketing strategy
+                </h2>
+                <AnimatedButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRunCampaign("strategy")}
+                  disabled={isExecuting || triggeringResearch}
+                  icon={<RefreshCw className="h-3 w-3" />}
+                >
+                  Refresh
+                </AnimatedButton>
               </div>
+
+              <dl className="grid gap-px border border-border bg-border md:grid-cols-2">
+                <Field label="Campaign objective" value={strategy.campaign_objective} />
+                <Field label="Value proposition" value={strategy.value_proposition} />
+                <Field label="Market positioning" value={strategy.positioning} />
+                <Field label="Messaging angle" value={strategy.messaging_angle} />
+                <Field label="Target audience" value={strategy.target_audience} />
+                <Field label="Call to action" value={strategy.cta_strategy} />
+                <Field label="Brand tone" value={strategy.tone} className="md:col-span-2" />
+              </dl>
             </div>
           )}
         </div>
       )}
 
-      {/* TAB CONTENT: RESEARCH */}
+      {/* TAB: RESEARCH */}
       {activeTab === "research" && (
-        <div className="space-y-6">
-          {isExecuting && !researchReport && (
-            <LoadingState stage={currentStage || "researching"} />
-          )}
+        <div className="pt-8">
+          {isExecuting && !researchReport && <LoadingState stage={currentStage || "researching"} />}
 
           {!researchReport && !isExecuting && (
             <EmptyState
-              icon={<Search className="h-6 w-6 text-primary" />}
-              title="No Executive Intelligence Gathered"
-              description="Execute market research via SerpAPI multi-query analysis to extract competitor benchmarks, search trends, and target audience segments."
+              icon={<Search className="h-7 w-7" />}
+              title="No research yet"
+              description="Run market research to pull competitor benchmarks, search trends, and audience segments from SerpAPI."
               action={
-                <AnimatedButton onClick={() => handleRunCampaign("research")} disabled={triggeringResearch}>
-                  Run Research Agent
+                <AnimatedButton
+                  onClick={() => handleRunCampaign("research")}
+                  disabled={triggeringResearch}
+                >
+                  Run research
                 </AnimatedButton>
               }
             />
           )}
 
           {researchReport && (
-            <div className="space-y-6">
-              <Card className="border-l-4 border-l-primary flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-10">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-foreground">Executive Intelligence Brief</h3>
-                  <p className="font-mono text-xs text-muted mt-1">
-                    Execution Time: {researchReport.metadata?.execution_time ? `${researchReport.metadata.execution_time.toFixed(2)}s` : "Fast"}
-                    {campaign.results?.cache_metadata?.cache_hit && (
-                      <span className="ml-2 text-emerald-500 font-semibold">(Reused Cached Intelligence)</span>
-                    )}
+                  <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+                    Market research
+                  </h2>
+                  <p className="mt-1.5 font-mono text-xs text-muted">
+                    {researchReport.metadata?.execution_time
+                      ? `Completed in ${researchReport.metadata.execution_time.toFixed(2)}s`
+                      : "Completed"}
+                    {campaign.results?.cache_metadata?.cache_hit && " · served from cache"}
                   </p>
                 </div>
                 <AnimatedButton
@@ -550,38 +492,39 @@ export function CampaignDashboard({
                   size="sm"
                   onClick={() => handleRunCampaign("research")}
                   disabled={isExecuting || triggeringResearch}
-                  icon={<RefreshCw className="h-3.5 w-3.5" />}
+                  icon={<RefreshCw className="h-3 w-3" />}
                 >
-                  Refresh Research
+                  Refresh
                 </AnimatedButton>
-              </Card>
+              </div>
 
-              {/* LIVING NETWORK GRAPH VISUALIZATION */}
               <NetworkGraph
                 queries={planner?.search_queries}
                 competitors={researchReport.intelligence?.competitors}
               />
 
-              {/* COMPETITORS */}
-              <div className="space-y-3">
-                <h3 className="font-heading text-base font-bold text-foreground">Competitor Insights</h3>
+              <div>
+                <h3 className="font-heading text-base font-semibold text-foreground">
+                  Competitor insights
+                </h3>
+
                 {researchReport.intelligence?.competitors?.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="mt-5 grid gap-px border border-border bg-border md:grid-cols-3">
                     {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
-                      <Card key={i} interactive className="space-y-2 p-4">
-                        <h4 className="font-heading text-sm font-bold text-foreground">{c.name}</h4>
+                      <div key={i} className="space-y-2.5 bg-panel p-5">
+                        <h4 className="font-heading text-sm font-semibold text-foreground">
+                          {c.name}
+                        </h4>
                         {renderExternalLink(c.domain, "URL")}
                         {c.reason && (
-                          <p className="font-sans text-xs text-foreground bg-surface p-2.5 rounded border border-border leading-snug">
-                            {c.reason}
-                          </p>
+                          <p className="text-xs leading-relaxed text-muted">{c.reason}</p>
                         )}
-                        {renderExternalLink(c.source_url, "View Source")}
-                      </Card>
+                        {renderExternalLink(c.source_url, "View source")}
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted">No competitor data extracted.</p>
+                  <p className="mt-4 text-sm text-muted">No competitor data extracted.</p>
                 )}
               </div>
             </div>
@@ -589,21 +532,23 @@ export function CampaignDashboard({
         </div>
       )}
 
-      {/* TAB CONTENT: CONTENT & ASSETS */}
+      {/* TAB: ASSETS */}
       {activeTab === "content" && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface p-4 rounded-xl border border-border">
+        <div className="pt-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h3 className="font-heading text-lg font-bold text-foreground">Generated Campaign Assets</h3>
-              <p className="font-sans text-xs text-muted">
-                Multi-platform creative assets ready for review and Meta social broadcasting. Click any card to expand full presentation.
+              <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+                Generated assets
+              </h2>
+              <p className="mt-1.5 text-sm text-muted">
+                Select any asset to open it full size, edit the copy, or regenerate the image.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               {batchPublishing && batchProgress && (
-                <span className="font-mono text-xs text-primary font-semibold animate-pulse">
-                  Publishing ({batchProgress.current}/{batchProgress.total})
+                <span className="font-mono text-xs text-muted">
+                  {batchProgress.current}/{batchProgress.total}
                 </span>
               )}
               <AnimatedButton
@@ -613,13 +558,12 @@ export function CampaignDashboard({
                 disabled={batchPublishing || mappedAssets.length === 0}
                 icon={<Share2 className="h-4 w-4" />}
               >
-                Publish All Draft Assets
+                Publish all drafts
               </AnimatedButton>
             </div>
           </div>
 
-          {/* ASSET CARDS GRID */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="mt-8 grid gap-px border border-border bg-border md:grid-cols-2">
             {mappedAssets.map((asset: CampaignAsset, idx: number) => {
               const pubState = publishingAssets[asset.id];
               const pubError = publishErrors[asset.id] || asset.error;
@@ -628,32 +572,34 @@ export function CampaignDashboard({
               const canPublish = metaConfigured && !isPublishing && !isPublished;
 
               return (
-                <Card
+                <div
                   key={asset.id || idx}
-                  interactive
                   onClick={() => setSelectedAsset(asset)}
-                  className="space-y-4 cursor-pointer"
+                  className="group cursor-pointer space-y-4 bg-panel p-6 transition-colors hover:bg-surface"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-md">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-foreground">
                       {PLATFORM_LABELS[asset.platform] || asset.platform}
                     </span>
                     <div className="flex items-center gap-2">
-                      <StatusBadge status={isPublished ? "published" : pubState || asset.status} />
-                      <button className="text-muted hover:text-foreground p-1" title="Expand Presentation">
-                        <Maximize2 className="h-3.5 w-3.5" />
-                      </button>
+                      <StatusBadge
+                        status={isPublished ? "published" : pubState || asset.status}
+                        size="sm"
+                      />
+                      <Maximize2 className="h-3.5 w-3.5 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
                   </div>
 
                   {asset.headline ? (
-                    <h4 className="font-heading text-base font-bold text-foreground">{asset.headline}</h4>
+                    <h3 className="font-heading text-base font-semibold text-foreground">
+                      {asset.headline}
+                    </h3>
                   ) : isExecuting ? (
                     <Skeleton className="h-6 w-3/4" />
                   ) : null}
 
                   {asset.body ? (
-                    <p className="font-sans text-xs text-foreground leading-relaxed bg-surface p-3 rounded-lg border border-border whitespace-pre-wrap line-clamp-3">
+                    <p className="line-clamp-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
                       {asset.body}
                     </p>
                   ) : isExecuting ? (
@@ -661,66 +607,107 @@ export function CampaignDashboard({
                   ) : null}
 
                   {asset.creative_url ? (
-                    <div className="space-y-1.5">
-                      <span className="label">Visual Creative</span>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={asset.creative_url}
-                        alt="Campaign Visual Asset"
-                        className="w-full h-52 object-cover rounded-xl border border-border"
-                      />
-                    </div>
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={asset.creative_url}
+                      alt="Campaign creative"
+                      className="h-52 w-full rounded-md border border-border object-cover"
+                    />
                   ) : isExecuting ? (
                     <Skeleton className="h-52 w-full" />
                   ) : null}
 
                   {pubError && (
-                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg font-sans text-xs text-rose-500">
+                    <div className="rounded-md border border-danger p-3 text-xs text-danger">
                       {pubError}
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-border flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex items-center justify-between border-t border-border pt-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {isPublished ? (
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <span className="font-sans text-xs text-emerald-500 font-semibold flex items-center gap-1.5">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Published to {PLATFORM_LABELS[asset.platform] || asset.platform}
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Published
                         </span>
                         {asset.published_url ? (
                           <a
                             href={asset.published_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-sans text-xs text-primary hover:underline font-semibold flex items-center gap-1"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
                           >
-                            <span>View Live Post</span>
+                            <span>View post</span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
-                          <span className="font-sans text-xs text-muted">Permalink unavailable</span>
+                          <span className="text-xs text-muted">Permalink unavailable</span>
                         )}
                       </div>
                     ) : (
                       <AnimatedButton
-                        variant="primary"
+                        variant="outline"
                         size="sm"
                         isLoading={isPublishing}
                         onClick={() => handlePublishAsset(asset)}
                         disabled={!canPublish}
                         icon={<Share2 className="h-3.5 w-3.5" />}
                       >
-                        {pubState === "error" ? "Retry Publish" : `Publish to ${PLATFORM_LABELS[asset.platform] || asset.platform}`}
+                        {pubState === "error" ? "Retry publish" : "Publish"}
                       </AnimatedButton>
                     )}
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`bg-panel px-5 py-5 ${className}`}>
+      <dt className="eyebrow">{label}</dt>
+      <dd className="mt-2.5 text-sm leading-relaxed text-foreground">{value || "—"}</dd>
+    </div>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  danger = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors hover:bg-surface ${
+        danger ? "text-danger" : "text-foreground"
+      }`}
+    >
+      <span className={danger ? "text-danger" : "text-muted"}>{icon}</span>
+      <span>{label}</span>
+    </button>
   );
 }
 
@@ -740,13 +727,13 @@ function MultiAgentTimelineBanner({
   }
 
   const stagesList = [
-    { key: "planning", label: "Planning", agent: "Planner Agent", desc: "Understanding target product context & search intent" },
-    { key: "researching", label: "Research", agent: "Research Agent", desc: "Executing SerpAPI multi-query intelligence" },
-    { key: "analyzing", label: "Analyst", agent: "Analyst Agent", desc: "Filtering market noise & competitor benchmarks" },
-    { key: "strategizing", label: "Strategy", agent: "Strategy Agent", desc: "Formulating GTM positioning & messaging pillars" },
-    { key: "generating_content", label: "Content", agent: "Content Agent", desc: "Generating platform-tailored captions & hooks" },
-    { key: "generating_images", label: "Creative", agent: "Creative Agent", desc: "Generating visual creative assets" },
-    { key: "ready", label: "Ready", agent: "Mission Ready", desc: "Campaign deliverables complete" },
+    { key: "planning", label: "Planning", agent: "Planner", desc: "Reading the product brief and drafting search intents" },
+    { key: "researching", label: "Research", agent: "Research", desc: "Running SerpAPI queries across the market" },
+    { key: "analyzing", label: "Analysis", agent: "Analyst", desc: "Filtering results into competitors and trends" },
+    { key: "strategizing", label: "Strategy", agent: "Strategy", desc: "Forming positioning and messaging pillars" },
+    { key: "generating_content", label: "Content", agent: "Content", desc: "Writing captions, hooks, and hashtags" },
+    { key: "generating_images", label: "Creative", agent: "Creative", desc: "Rendering platform-sized visuals" },
+    { key: "ready", label: "Ready", agent: "Complete", desc: "All deliverables generated" },
   ];
 
   const currentStageKey = execution?.stage || (status === "researching" ? "researching" : status === "running" ? "planning" : "idle");
@@ -754,29 +741,26 @@ function MultiAgentTimelineBanner({
   const isReady = execution?.stage === "ready" || (status !== "running" && status !== "researching" && !isFailed && execution);
 
   return (
-    <Card className="space-y-4 border-l-4 border-l-primary bg-panel">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-            <Sparkles className="h-5 w-5 animate-pulse" />
-          </div>
-          <div>
-            <h3 className="font-heading text-sm font-bold text-foreground">
-              {execution?.current_agent || (isFailed ? "System Alert" : "Multi-Agent Pipeline Execution")}
-            </h3>
-            <p className="font-mono text-[11px] text-muted">
-              {execution?.current_message || "Orchestrating autonomous agents across sequential capability pipeline..."}
-            </p>
-          </div>
+    <section className="border-t border-border pt-8">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div>
+          <span className="eyebrow">Pipeline</span>
+          <h2 className="mt-2 font-heading text-base font-semibold text-foreground">
+            {execution?.current_agent || (isFailed ? "Execution failed" : "Agent pipeline")}
+          </h2>
+          <p className="mt-1 text-xs text-muted">
+            {execution?.current_message ||
+              (isExecuting ? "Running stages in sequence." : "Idle — run the campaign to start.")}
+          </p>
         </div>
         {isFailed && (
           <AnimatedButton variant="danger" size="sm" onClick={onRetry}>
-            Retry Pipeline
+            Retry from last stage
           </AnimatedButton>
         )}
       </div>
 
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 pt-2">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
         {stagesList.map((st, idx) => {
           let nodeStatus: "idle" | "running" | "completed" | "failed" = "idle";
           if (isFailed && currentStageKey === st.key) nodeStatus = "failed";
@@ -795,6 +779,6 @@ function MultiAgentTimelineBanner({
           );
         })}
       </div>
-    </Card>
+    </section>
   );
 }

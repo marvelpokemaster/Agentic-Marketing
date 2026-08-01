@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { firebaseConfig } from "@/lib/firebase/config";
-import { Rocket, ChevronRight, Activity, Cpu } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { GlassPanel } from "@/components/ui/GlassPanel";
-import { AICore3D } from "@/components/AICore3D";
-import { GlassTypography } from "@/components/GlassTypography";
+import { ArrowRight } from "lucide-react";
+import { CodePanel, type CodeLine } from "@/components/ui/CodePanel";
+import { StatRow } from "@/components/ui/StatRow";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
@@ -23,26 +20,67 @@ async function isMetaConfiguredOnBackend(): Promise<boolean> {
   }
 }
 
-const steps = [
+const HERO_LOG: CodeLine[] = [
+  { tone: "comment", text: "# One product brief in. A published campaign out." },
+  { tone: "command", text: "campaign run --workflow organic" },
+  { tone: "dim", text: "" },
+  { tone: "ok", text: "✓ planning       5 search intents drafted", meta: "1.2s" },
+  { tone: "ok", text: "✓ researching    SerpAPI · 5 queries", meta: "8.4s" },
+  { tone: "ok", text: "✓ analyzing      competitors, trends, audience", meta: "3.1s" },
+  { tone: "ok", text: "✓ strategizing   positioning + messaging pillars", meta: "4.7s" },
+  { tone: "ok", text: "✓ content        captions, hashtags, CTAs", meta: "6.0s" },
+  { tone: "ok", text: "✓ creatives      platform-sized visuals", meta: "9.3s" },
+  { tone: "dim", text: "" },
+  { tone: "output", text: "campaign ready — 3 assets awaiting review" },
+];
+
+const STATS = [
+  {
+    value: "6",
+    label: "Agents",
+    detail: "Planner, research, analyst, strategy, content, creative.",
+  },
+  {
+    value: "1",
+    label: "Click to run",
+    detail: "Every downstream stage triggers the one after it.",
+  },
+  {
+    value: "3",
+    label: "Channels",
+    detail: "Instagram, Facebook, and LinkedIn copy per campaign.",
+  },
+  {
+    value: "0",
+    label: "Manual steps",
+    detail: "No database edits, no hand-run tools between stages.",
+  },
+];
+
+const STAGES = [
   {
     step: "01",
-    title: "Synthesize Product Context",
-    detail: "Onboard brand guides, target niches, core product features, and media assets into the active workspace database.",
+    title: "Describe the product once",
+    detail:
+      "Name, description, features, industry, target audience, and imagery. This brief is the only thing every downstream agent reads from.",
   },
   {
     step: "02",
-    title: "Channel & Capability Selection",
-    detail: "Direct campaign pipelines to organic social broadcasting or local B2B lead discovery scrapers.",
+    title: "Pick a campaign type",
+    detail:
+      "Organic runs the full loop through publishing. Content-only stops after assets. Lead generation finds, scores, and drafts outreach instead.",
   },
   {
     step: "03",
-    title: "Multi-Agent Orchestration",
-    detail: "Stateless LLM agents execute reasoning, competitor analysis, GTM positioning, caption generation, and graphics rendering.",
+    title: "Agents run in sequence",
+    detail:
+      "Research feeds planning, planning feeds content, content feeds creatives. Each stage writes its result to the campaign record before handing off.",
   },
   {
     step: "04",
-    title: "Social Broadcasting",
-    detail: "Review generated visual creatives, perform copy edits, and publish live to Instagram and Facebook feeds.",
+    title: "Review, then publish",
+    detail:
+      "Edit any caption or regenerate any image, then publish straight to Instagram and Facebook through the Meta Graph API.",
   },
 ];
 
@@ -51,114 +89,137 @@ export default async function HomePage() {
   const meta = await isMetaConfiguredOnBackend();
 
   return (
-    <div className="space-y-28 py-8 relative z-10">
-      {/* SCENE 1 — CINEMATIC LANDING HERO */}
-      <section className="min-h-[75vh] flex flex-col justify-center items-center text-center max-w-5xl mx-auto py-12 relative">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-xs font-semibold text-primary uppercase tracking-widest mb-6 shadow-xl">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-          </span>
-          Autonomous AI Operating System
-        </div>
+    <div>
+      {/* HERO */}
+      <section className="border-b border-border">
+        <div className="mx-auto w-full max-w-[1180px] px-6 py-20 md:px-10 md:py-28">
+          <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.05fr]">
+            <div>
+              <span className="eyebrow">Autonomous marketing platform</span>
 
-        {/* 3D Refractive Frosted Glass Hero Typography Engine */}
-        <GlassTypography
-          text="Autonomous Campaign"
-          subtext="Orchestration."
-          roughness={0.2}
-          thickness={1.4}
-          refraction={0.85}
-          frostIntensity={0.5}
-          chromaticAberration={0.035}
-          highlightIntensity={1.5}
-        />
+              <h1 className="mt-5 font-heading text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem]">
+                Give it a product.
+                <br />
+                Get back a campaign.
+              </h1>
 
-        <p className="font-sans text-sm sm:text-base text-muted max-w-2xl mx-auto mt-6 leading-relaxed">
-          A stateless multi-agent intelligence platform designed to synthesize brand profiles, analyze market competition via SerpAPI, formulate GTM strategy, and broadcast live to Meta feeds.
-        </p>
+              <p className="prose-col mt-6 text-base leading-relaxed text-muted">
+                A multi-agent system that researches your market, writes the strategy,
+                drafts the copy, renders the creatives, and publishes to Meta — end to
+                end, from a single brief.
+              </p>
 
-        {/* 3D Orbiting AI Core Centerpiece */}
-        <div className="w-full my-6">
-          <AICore3D stage="ready" />
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-          <Link
-            href="/products/new"
-            className="btn btn-lg flex items-center gap-2 shadow-xl shadow-primary/25 hover:shadow-primary/40"
-          >
-            <span>Add Product Profile</span>
-            <Rocket className="h-5 w-5" />
-          </Link>
-          <Link
-            href="/campaigns"
-            className="btn btn-ghost text-sm flex items-center gap-2 px-6 py-3"
-          >
-            <span>Launch Mission Control</span>
-            <ChevronRight className="h-4 w-4 text-muted" />
-          </Link>
-        </div>
-      </section>
-
-      {/* SCENE 2 — MULTI-AGENT PIPELINE ARCHITECTURE */}
-      <section className="space-y-8 max-w-5xl mx-auto">
-        <SectionHeader
-          badge="Capability Architecture"
-          title="Sequential Multi-Agent Pipeline"
-          subtitle="Stateless agent operations executing in sequential capability stages."
-        />
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((s) => (
-            <Card key={s.title} interactive className="flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-primary">{s.step}</span>
-                  <Cpu className="h-4 w-4 text-primary/50" />
-                </div>
-                <h4 className="font-heading text-sm font-bold text-foreground">{s.title}</h4>
-                <p className="font-sans text-xs text-muted leading-relaxed">{s.detail}</p>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <Link href="/products/new" className="btn btn-lg">
+                  <span>Add a product</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/campaigns" className="btn-ghost px-6 py-3 text-[15px]">
+                  View campaigns
+                </Link>
               </div>
-            </Card>
-          ))}
+            </div>
+
+            <CodePanel title="campaign · organic" lines={HERO_LOG} />
+          </div>
         </div>
       </section>
 
-      {/* SYSTEM RELAY HEALTH TELEMETRY */}
-      <GlassPanel className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-            <Activity className="h-5 w-5 animate-pulse" />
-          </div>
-          <div>
-            <h3 className="font-heading text-lg font-bold text-foreground">Relay Integration Telemetry</h3>
-            <p className="font-mono text-xs text-muted">Real-time health status for workspace data nodes and social APIs.</p>
+      {/* STATS */}
+      <section className="border-b border-border">
+        <div className="mx-auto w-full max-w-[1180px] px-6 md:px-10">
+          <StatRow stats={STATS} />
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="border-b border-border">
+        <div className="mx-auto w-full max-w-[1180px] px-6 py-20 md:px-10 md:py-24">
+          <span className="eyebrow">How it works</span>
+          <h2 className="mt-4 max-w-2xl font-heading text-3xl font-semibold tracking-tight text-foreground">
+            Four steps, and only two of them are yours.
+          </h2>
+
+          <div className="mt-14">
+            {STAGES.map((s) => (
+              <div
+                key={s.step}
+                className="grid gap-4 border-t border-border py-8 md:grid-cols-[80px_1fr_1.3fr] md:gap-10 md:py-10"
+              >
+                <span className="font-mono text-xs text-muted">{s.step}</span>
+                <h3 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+                  {s.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted">{s.detail}</p>
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
-            <div>
-              <span className="font-sans text-xs font-semibold text-foreground block">Firebase Node</span>
-              <span className="font-mono text-[10px] text-muted block">Campaign Data Persistence</span>
-            </div>
-            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${firebase ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"}`}>
-              {firebase ? "Connected" : "Offline"}
-            </span>
-          </div>
+      {/* INTEGRATIONS */}
+      <section>
+        <div className="mx-auto w-full max-w-[1180px] px-6 py-20 md:px-10 md:py-24">
+          <span className="eyebrow">Integrations</span>
+          <h2 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
+            Connected services
+          </h2>
+          <p className="prose-col mt-4 text-sm leading-relaxed text-muted">
+            Live status for the two external systems a campaign depends on. Both are
+            checked on page load.
+          </p>
 
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
-            <div>
-              <span className="font-sans text-xs font-semibold text-foreground block">Meta Graph Relay</span>
-              <span className="font-mono text-[10px] text-muted block">Instagram & Facebook Publishing</span>
-            </div>
-            <span className={`px-3 py-1 rounded-md font-mono text-xs font-semibold ${meta ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"}`}>
-              {meta ? "Configured" : "Offline"}
-            </span>
+          <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2">
+            <IntegrationRow
+              name="Firebase"
+              detail="Campaign and product persistence"
+              ok={firebase}
+              okLabel="Connected"
+              offLabel="Not configured"
+            />
+            <IntegrationRow
+              name="Meta Graph API"
+              detail="Instagram and Facebook publishing"
+              ok={meta}
+              okLabel="Configured"
+              offLabel="Not configured"
+            />
           </div>
         </div>
-      </GlassPanel>
+      </section>
+    </div>
+  );
+}
+
+function IntegrationRow({
+  name,
+  detail,
+  ok,
+  okLabel,
+  offLabel,
+}: {
+  name: string;
+  detail: string;
+  ok: boolean;
+  okLabel: string;
+  offLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 bg-panel px-5 py-5">
+      <div className="min-w-0">
+        <span className="block text-sm font-medium text-foreground">{name}</span>
+        <span className="mt-0.5 block text-xs text-muted">{detail}</span>
+      </div>
+      <span
+        className={`inline-flex shrink-0 items-center gap-2 font-mono text-[11px] uppercase tracking-wider ${
+          ok ? "text-success" : "text-muted"
+        }`}
+      >
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-success" : "bg-border-hover"}`}
+        />
+        {ok ? okLabel : offLabel}
+      </span>
     </div>
   );
 }

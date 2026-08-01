@@ -8,16 +8,18 @@ interface GlassPanelProps extends HTMLMotionProps<"div"> {
   className?: string;
 }
 
+/**
+ * Flat bordered panel. Name retained so existing call sites keep working.
+ */
 export function GlassPanel({ children, className = "", ...props }: GlassPanelProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={`glass-panel rounded-2xl p-6 relative overflow-hidden ${className}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      className={`panel p-6 ${className}`}
       {...props}
     >
-      <div className="absolute top-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       {children}
     </motion.div>
   );

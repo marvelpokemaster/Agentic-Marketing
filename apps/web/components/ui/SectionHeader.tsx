@@ -11,24 +11,20 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ title, subtitle, badge, action }: SectionHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2 border-b border-border/40 pb-4 mb-6">
-      <div className="space-y-1">
-        {badge && (
-          <div className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            {badge}
-          </div>
-        )}
-        <h3 className="font-heading text-xl font-bold tracking-tight text-foreground">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="font-sans text-xs text-muted leading-relaxed">
-            {subtitle}
-          </p>
-        )}
+    <div className="mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2 min-w-0">
+          {badge && <span className="eyebrow">{badge}</span>}
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="prose-col text-sm leading-relaxed text-muted">{subtitle}</p>
+          )}
+        </div>
+        {action && <div className="flex shrink-0 items-center gap-3">{action}</div>}
       </div>
-      {action && <div className="flex items-center gap-3 shrink-0">{action}</div>}
+      <hr className="rule mt-6" />
     </div>
   );
 }

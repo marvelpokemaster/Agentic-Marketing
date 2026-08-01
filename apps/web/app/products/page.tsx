@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
-import { Package, Plus, Rocket, Calendar } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { Package, Plus, ArrowRight } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -14,93 +13,95 @@ export default async function ProductsPage() {
   const products = await repo.listProducts(user.id);
 
   return (
-    <div className="space-y-8 relative z-10">
+    <div className="page">
       <SectionHeader
-        badge="Brand Knowledge Base"
-        title="Product Profiles"
-        subtitle="Manage product knowledge bases used by autonomous AI agents during campaign orchestration."
+        badge="Knowledge base"
+        title="Products"
+        subtitle="Each product is the brief every agent reads from when it runs a campaign."
         action={
-          <Link href="/products/new" className="btn text-xs py-2 flex items-center gap-1.5">
+          <Link href="/products/new" className="btn text-[13px]">
             <Plus className="h-4 w-4" />
-            <span>Add New Product</span>
+            <span>New product</span>
           </Link>
         }
       />
 
       {products.length === 0 ? (
         <EmptyState
-          icon={<Package className="h-6 w-6 text-primary" />}
-          title="No Products Onboarded Yet"
-          description="Add your first brand or product profile to seed agent knowledge bases and generate platform-tailored social campaigns."
+          icon={<Package className="h-7 w-7" />}
+          title="No products yet"
+          description="Add a product to seed the agents with a name, description, features, industry, and audience."
           action={
-            <Link href="/products/new" className="btn text-xs py-2">
-              Add Product Profile
+            <Link href="/products/new" className="btn text-[13px]">
+              Add a product
             </Link>
           }
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-px border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <Card key={p.id} interactive className="flex flex-col justify-between group space-y-4">
-              <div className="space-y-3">
+            <div key={p.id} className="group flex flex-col justify-between bg-panel p-6">
+              <div>
                 <div className="flex items-center gap-3">
                   {p.logo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={p.logo_url}
                       alt={p.name}
-                      className="h-11 w-11 rounded-lg object-cover border border-border bg-surface shadow-sm"
+                      className="h-10 w-10 shrink-0 rounded-md border border-border object-cover"
                     />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 border border-primary/30 text-sm font-bold text-primary">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface font-heading text-sm font-semibold text-foreground">
                       {p.name.slice(0, 1).toUpperCase()}
                     </div>
                   )}
-                  <div className="truncate">
-                    <h4 className="font-heading font-bold text-foreground group-hover:text-primary transition duration-200 truncate">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-heading text-[15px] font-semibold text-foreground">
                       {p.name}
-                    </h4>
-                    <span className="font-mono text-[10px] text-muted block uppercase tracking-wider">
-                      {p.industry || "General Industry"}
+                    </h3>
+                    <span className="mt-0.5 block truncate font-mono text-[10px] uppercase tracking-wider text-muted">
+                      {p.industry || "General"}
                     </span>
                   </div>
                 </div>
 
-                <p className="font-sans text-xs text-muted leading-relaxed line-clamp-3 min-h-[54px]">
+                <p className="mt-4 line-clamp-3 min-h-[57px] text-sm leading-relaxed text-muted">
                   {p.description}
                 </p>
 
                 {p.features && p.features.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
+                  <div className="mt-4 flex flex-wrap gap-1.5">
                     {p.features.slice(0, 3).map((f) => (
-                      <span key={f} className="font-mono text-[10px] bg-surface text-foreground border border-border py-0.5 px-2 rounded">
+                      <span key={f} className="chip">
                         {f}
                       </span>
                     ))}
                     {p.features.length > 3 && (
-                      <span className="font-mono text-[10px] bg-surface text-muted border border-border/40 py-0.5 px-2 rounded">
-                        +{p.features.length - 3} more
-                      </span>
+                      <span className="chip">+{p.features.length - 3}</span>
                     )}
                   </div>
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border/40 flex items-center justify-between gap-3">
-                <span className="font-mono text-[10px] text-muted flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Recent"}
+              <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+                  {p.created_at
+                    ? new Date(p.created_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "Recent"}
                 </span>
 
                 <Link
                   href={`/products/${p.id}/generate`}
-                  className="btn text-xs px-3.5 py-1.5 flex items-center gap-1.5"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition-opacity hover:opacity-70"
                 >
-                  <Rocket className="h-3.5 w-3.5" />
-                  <span>Launch Campaign</span>
+                  <span>New campaign</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

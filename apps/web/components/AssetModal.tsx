@@ -22,81 +22,80 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
-        {/* Backdrop blur overlay */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-bg/80 backdrop-blur-xl"
+          className="fixed inset-0 bg-ink/70"
         />
 
-        {/* Floating Glass Showcase Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-primary/30 bg-panel p-6 md:p-8 shadow-2xl space-y-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          className="panel relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto p-6 md:p-8"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border/40 pb-4">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-md">
+          <div className="flex items-center justify-between gap-4 border-b border-border pb-5">
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-foreground">
                 {PLATFORM_LABELS[asset.platform] || asset.platform}
               </span>
-              <StatusBadge status={asset.status} />
+              <StatusBadge status={asset.status} size="sm" />
             </div>
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground transition"
+              className="rounded-md border border-border p-1.5 text-muted transition-colors hover:border-border-hover hover:text-foreground"
+              aria-label="Close"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Asset Body Grid */}
-          <div className="grid gap-6 md:grid-cols-2 items-start">
-            {/* Visual Creative Left */}
+          {/* Body */}
+          <div className="grid items-start gap-8 py-7 md:grid-cols-2">
             {asset.creative_url ? (
-              <div className="space-y-2">
-                <span className="label">Rendered Visual Creative</span>
+              <div>
+                <span className="label">Creative</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={asset.creative_url}
-                  alt="Campaign Creative Showcase"
-                  className="w-full h-80 object-cover rounded-xl border border-border shadow-2xl"
+                  alt="Campaign creative"
+                  className="h-80 w-full rounded-md border border-border object-cover"
                 />
               </div>
             ) : (
-              <div className="h-80 w-full rounded-xl bg-surface border border-border flex items-center justify-center text-xs text-muted">
-                No visual creative asset attached
+              <div className="flex h-80 w-full items-center justify-center rounded-md border border-dashed border-border text-xs text-muted">
+                No creative attached
               </div>
             )}
 
-            {/* Copy Content Right */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {asset.headline && (
                 <div>
-                  <span className="label">Headline Hook</span>
-                  <h3 className="font-heading text-xl font-bold text-foreground">{asset.headline}</h3>
+                  <span className="label">Headline</span>
+                  <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+                    {asset.headline}
+                  </h2>
                 </div>
               )}
 
               <div>
-                <span className="label">Caption Copy</span>
-                <p className="font-sans text-xs text-foreground leading-relaxed bg-surface p-4 rounded-xl border border-border whitespace-pre-wrap">
+                <span className="label">Caption</span>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                   {asset.body}
                 </p>
               </div>
 
               {asset.hashtags?.length > 0 && (
                 <div>
-                  <span className="label">Hashtag Vector Stack</span>
+                  <span className="label">Hashtags</span>
                   <div className="flex flex-wrap gap-1.5">
                     {asset.hashtags.map((tag: string, i: number) => (
-                      <span key={i} className="font-mono text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
+                      <span key={i} className="chip">
                         #{tag.replace(/^#/, "")}
                       </span>
                     ))}
@@ -106,22 +105,22 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
             </div>
           </div>
 
-          {/* Modal Footer Actions */}
-          <div className="pt-4 border-t border-border/40 flex items-center justify-between">
+          {/* Footer */}
+          <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
             {isPublished ? (
-              <div className="flex items-center gap-3">
-                <span className="font-sans text-xs text-emerald-500 font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Published & Verified on Meta
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Published
                 </span>
                 {asset.published_url && (
                   <a
                     href={asset.published_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-sans text-xs text-primary hover:underline font-semibold flex items-center gap-1"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
                   >
-                    <span>View Live Post</span>
+                    <span>View post</span>
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 )}
@@ -134,16 +133,13 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
                   disabled={!metaConfigured}
                   icon={<Share2 className="h-4 w-4" />}
                 >
-                  Publish Asset to {PLATFORM_LABELS[asset.platform] || asset.platform}
+                  Publish to {PLATFORM_LABELS[asset.platform] || asset.platform}
                 </AnimatedButton>
               )
             )}
 
-            <button
-              onClick={onClose}
-              className="btn-ghost text-xs px-4 py-2"
-            >
-              Close Preview
+            <button onClick={onClose} className="btn-ghost text-[13px]">
+              Close
             </button>
           </div>
         </motion.div>

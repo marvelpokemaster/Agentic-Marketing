@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/types";
-import { Card } from "./ui/Card";
 import { AnimatedButton } from "./ui/AnimatedButton";
-import { Rocket, AlertTriangle, Sparkles, MapPin, Search } from "lucide-react";
+import { Rocket, AlertTriangle, Search } from "lucide-react";
 import { playUISound } from "@/lib/audio";
 
 export function GenerateForm({ productId }: { productId: string }) {
@@ -67,129 +66,138 @@ export function GenerateForm({ productId }: { productId: string }) {
     }
   };
 
+  const isLeadGen = workflow === "lead_generation";
+
   return (
-    <Card className="space-y-6">
-      {/* Workflow Tabs */}
-      <div className="border-b border-border/40 pb-1 flex gap-6">
-        <button
-          type="button"
-          onClick={() => !loading && setWorkflow("organic_campaign")}
-          className={`pb-3 font-heading font-bold text-xs uppercase tracking-wider transition-all relative ${
-            workflow !== "lead_generation" ? "text-primary" : "text-muted hover:text-foreground"
-          }`}
-          disabled={loading}
-        >
-          Organic Social Media
-          {workflow !== "lead_generation" && (
-            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => !loading && setWorkflow("lead_generation")}
-          className={`pb-3 font-heading font-bold text-xs uppercase tracking-wider transition-all relative ${
-            workflow === "lead_generation" ? "text-primary" : "text-muted hover:text-foreground"
-          }`}
-          disabled={loading}
-        >
-          B2B Lead Discovery
-          {workflow === "lead_generation" && (
-            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />
-          )}
-        </button>
+    <div>
+      {/* Workflow tabs */}
+      <div className="flex gap-8 border-b border-border">
+        {[
+          { id: "organic_campaign", label: "Organic social" },
+          { id: "lead_generation", label: "Lead generation" },
+        ].map((tab) => {
+          const active = isLeadGen
+            ? tab.id === "lead_generation"
+            : tab.id === "organic_campaign";
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => !loading && setWorkflow(tab.id as typeof workflow)}
+              disabled={loading}
+              className={`relative -mb-px pb-3 text-[13px] font-medium transition-colors ${
+                active
+                  ? "text-foreground"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+              {active && (
+                <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {workflow !== "lead_generation" ? (
-        <div className="space-y-4">
+      <div className="py-8">
+        {!isLeadGen ? (
           <div>
-            <h4 className="font-heading text-sm font-bold text-foreground">Target Social Networks</h4>
-            <p className="font-sans text-xs text-muted">
-              Autonomous agents generate tailored marketing captions, hashtag stacks, and visual assets for each network.
+            <h3 className="font-heading text-base font-semibold text-foreground">
+              Target platforms
+            </h3>
+            <p className="prose-col mt-2 text-sm leading-relaxed text-muted">
+              The content agent writes a separate headline, caption, CTA, and hashtag set
+              for each platform you select.
             </p>
-          </div>
 
-          <div className="flex flex-wrap gap-2.5 pt-1">
-            {ALL_PLATFORMS.map((p) => {
-              const on = selected.includes(p);
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => !loading && toggle(p)}
-                  className={`font-mono text-xs px-4 py-2 rounded-lg border font-semibold transition-all duration-200 flex items-center gap-2 ${
-                    on ? "bg-primary/15 border-primary/40 text-primary shadow-sm" : "bg-surface border-border text-muted hover:border-primary/30"
-                  }`}
+            <div className="mt-6 flex flex-wrap gap-2">
+              {ALL_PLATFORMS.map((p) => {
+                const on = selected.includes(p);
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => !loading && toggle(p)}
+                    disabled={loading}
+                    className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-[13px] font-medium transition-colors ${
+                      on
+                        ? "border-primary bg-panel text-primary"
+                        : "border-border bg-panel text-muted hover:border-border-hover hover:text-foreground"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${on ? "bg-primary" : "bg-border-hover"}`}
+                    />
+                    {PLATFORM_LABELS[p]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h3 className="font-heading text-base font-semibold text-foreground">
+              Prospecting parameters
+            </h3>
+            <p className="prose-col mt-2 text-sm leading-relaxed text-muted">
+              The system searches local businesses matching this niche and location, scores
+              them for fit, and drafts personalized outreach for each.
+            </p>
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="label">Location *</label>
+                <input
+                  type="text"
+                  placeholder="Indiranagar, Bangalore"
+                  className="input"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
                   disabled={loading}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-primary" : "bg-muted/40"}`} />
-                  {PLATFORM_LABELS[p]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-5">
-          <div>
-            <h4 className="font-heading text-sm font-bold text-foreground">B2B Prospecting Parameters</h4>
-            <p className="font-sans text-xs text-muted">
-              Search local B2B prospects via Google Maps API, rank profile fit, and generate personalized outreach copy.
-            </p>
-          </div>
+                />
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="label">Target Location *</label>
-              <input
-                type="text"
-                placeholder="e.g. Indiranagar, Bangalore"
-                className="input font-mono text-xs"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="label">Niche or Category *</label>
-              <input
-                type="text"
-                placeholder="e.g. Cafes & Bakeries"
-                className="input font-mono text-xs"
-                value={nicheQuery}
-                onChange={(e) => setNicheQuery(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div>
+                <label className="label">Niche or category *</label>
+                <input
+                  type="text"
+                  placeholder="Cafes & Bakeries"
+                  className="input"
+                  value={nicheQuery}
+                  onChange={(e) => setNicheQuery(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {error && (
-        <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-500 text-xs font-medium flex items-center gap-2">
+        <div className="mb-6 flex items-center gap-2 rounded-md border border-danger bg-panel p-3 text-xs font-medium text-danger">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="pt-2">
+      <form onSubmit={handleSubmit} className="border-t border-border pt-8">
         <AnimatedButton
           type="submit"
           variant="primary"
           size="lg"
           isLoading={loading}
-          icon={workflow === "lead_generation" ? <Search className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
-          className="w-full"
+          icon={isLeadGen ? <Search className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
         >
           {loading
-            ? "Initializing Multi-Agent Pipeline..."
-            : workflow === "lead_generation"
-            ? "Launch B2B Lead Discovery"
-            : "Orchestrate Campaign Pipeline"}
+            ? "Starting…"
+            : isLeadGen
+            ? "Find leads"
+            : "Create campaign"}
         </AnimatedButton>
       </form>
-    </Card>
+    </div>
   );
 }

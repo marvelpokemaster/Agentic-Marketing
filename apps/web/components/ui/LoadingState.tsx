@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Cpu, Search, Target, FileText, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Cpu, Search, Target, FileText, Image as ImageIcon, Sparkles, Loader2 } from "lucide-react";
 
 interface LoadingStateProps {
   label?: string;
@@ -11,64 +10,49 @@ interface LoadingStateProps {
 
 const STAGE_CONFIGS: Record<string, { icon: React.ReactNode; defaultMsg: string }> = {
   planning: {
-    icon: <Sparkles className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Planner Agent is evaluating product scope and search intent...",
+    icon: <Sparkles className="h-5 w-5" />,
+    defaultMsg: "Planner agent is evaluating product scope and search intent",
   },
   researching: {
-    icon: <Search className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Research Agent is executing SerpAPI multi-query competitor discovery...",
+    icon: <Search className="h-5 w-5" />,
+    defaultMsg: "Research agent is running SerpAPI competitor discovery",
   },
   analyzing: {
-    icon: <Cpu className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Analyst Agent is extracting benchmark metrics and search trends...",
+    icon: <Cpu className="h-5 w-5" />,
+    defaultMsg: "Analyst agent is extracting benchmarks and search trends",
   },
   strategizing: {
-    icon: <Target className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Strategy Agent is formulating GTM positioning & messaging pillars...",
+    icon: <Target className="h-5 w-5" />,
+    defaultMsg: "Strategy agent is forming positioning and messaging pillars",
   },
   generating_content: {
-    icon: <FileText className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Content Agent is drafting platform-tailored hooks and captions...",
+    icon: <FileText className="h-5 w-5" />,
+    defaultMsg: "Content agent is drafting platform-tailored hooks and captions",
   },
   generating_images: {
-    icon: <ImageIcon className="h-6 w-6 text-primary animate-pulse" />,
-    defaultMsg: "Creative Agent is rendering visual assets & marketing creatives...",
+    icon: <ImageIcon className="h-5 w-5" />,
+    defaultMsg: "Creative agent is rendering visual assets",
   },
 };
 
 export function LoadingState({ label, stage }: LoadingStateProps) {
   const stageInfo = stage ? STAGE_CONFIGS[stage] : null;
-  const displayLabel = label || stageInfo?.defaultMsg || "Autonomous AI Agent Executing...";
+  const displayLabel = label || stageInfo?.defaultMsg || "Agent running";
 
   return (
-    <div className="card py-12 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-panel">
-      {/* Scanning laser beam effect */}
-      <motion.div
-        animate={{ x: ["-100%", "100%"] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-        className="absolute top-0 left-0 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent"
-      />
-
-      <div className="relative flex items-center justify-center mb-5">
-        <motion.div
-          animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute h-16 w-16 rounded-full bg-primary/20"
-        />
-        <div className="p-3 rounded-full bg-primary/10 border border-primary/30 text-primary z-10">
-          {stageInfo?.icon || <Cpu className="h-6 w-6 animate-pulse" />}
-        </div>
+    <div className="flex flex-col items-center justify-center rounded-[10px] border border-border bg-panel px-6 py-16 text-center">
+      <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-primary">
+        {stageInfo?.icon || <Loader2 className="h-5 w-5 animate-spin" />}
       </div>
 
-      <h4 className="font-heading text-base font-bold text-foreground mb-1.5">{displayLabel}</h4>
+      <h3 className="font-heading text-base font-semibold text-foreground">{displayLabel}</h3>
+
       {stage && (
-        <span className="font-mono text-xs font-semibold text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mb-2">
+        <span className="mt-3 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted">
+          <Loader2 className="h-3 w-3 animate-spin" />
           {stage.replace(/_/g, " ")}
         </span>
       )}
-      <p className="font-mono text-[11px] text-muted tracking-wider">
-        SYS_STATUS: AGENT_REASONING_ACTIVE
-      </p>
     </div>
   );
 }

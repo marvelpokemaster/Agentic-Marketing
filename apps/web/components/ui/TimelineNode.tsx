@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { CheckCircle2, Circle, AlertCircle, Loader2 } from "lucide-react";
 
 interface TimelineNodeProps {
@@ -12,40 +11,40 @@ interface TimelineNodeProps {
   index: number;
 }
 
-export function TimelineNode({ label, agent, desc, status, index }: TimelineNodeProps) {
+export function TimelineNode({ label, agent, desc, status }: TimelineNodeProps) {
+  const border =
+    status === "running"
+      ? "border-primary"
+      : status === "failed"
+      ? "border-danger"
+      : "border-border";
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`relative p-3.5 rounded-lg border transition-all duration-200 ${
-        status === "running"
-          ? "bg-primary/10 border-primary/40 shadow-lg"
-          : status === "completed"
-          ? "bg-surface/80 border-emerald-500/30 text-foreground"
-          : status === "failed"
-          ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
-          : "bg-surface/30 border-border/40 text-muted opacity-70"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          {status === "running" ? (
-            <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
-          ) : status === "completed" ? (
-            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-          ) : status === "failed" ? (
-            <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
-          ) : (
-            <Circle className="h-4 w-4 text-muted/40 shrink-0" />
-          )}
-          <div>
-            <span className="font-heading text-xs font-bold block text-foreground">{label}</span>
-            <span className="font-mono text-[10px] text-muted block">{agent}</span>
-          </div>
+    <div className={`rounded-[10px] border bg-panel p-4 ${border}`}>
+      <div className="flex items-start gap-2.5">
+        {status === "running" ? (
+          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-primary" />
+        ) : status === "completed" ? (
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+        ) : status === "failed" ? (
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+        ) : (
+          <Circle className="mt-0.5 h-4 w-4 shrink-0 text-border" />
+        )}
+        <div className="min-w-0">
+          <span
+            className={`block font-heading text-sm font-semibold ${
+              status === "idle" ? "text-muted" : "text-foreground"
+            }`}
+          >
+            {label}
+          </span>
+          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-muted">
+            {agent}
+          </span>
         </div>
       </div>
-      <p className="mt-1.5 font-sans text-[11px] text-muted leading-snug">{desc}</p>
-    </motion.div>
+      <p className="mt-2.5 text-xs leading-relaxed text-muted">{desc}</p>
+    </div>
   );
 }
