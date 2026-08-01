@@ -44,6 +44,27 @@ async def publish_asset(platform: str, req: PublishBody) -> dict:
             detail=f"Unsupported platform: {platform}. Supported: {list(_publishers.keys())}",
         )
 
+    if not req.creative_url:
+        raise HTTPException(
+            status_code=400,
+            detail="No creative_url provided — cannot publish asset without an image.",
+        )
+
+    # Pre-flight image accessibility check
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            img_res = await client.get(req.creative_url)
+            if not img_res.is_success:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Creative image reference is unreachable (HTTP {img_res.status_code}). Please regenerate image.",
+                )
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Creative image reference is inaccessible: {exc}",
+        ) from exc
+
     asset = ContentAsset(
         campaign_id=req.campaign_id,
         platform=platform,

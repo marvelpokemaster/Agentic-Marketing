@@ -21,6 +21,26 @@ export async function POST(
     return NextResponse.json({ error: "Asset not found." }, { status: 404 });
   }
 
+  // Duplicate & Premature Publishing Guard
+  if (baseAsset.status === "publishing") {
+    return NextResponse.json(
+      { error: "Publishing is already in progress for this asset." },
+      { status: 409 }
+    );
+  }
+  if (baseAsset.status === "published") {
+    return NextResponse.json(
+      { error: "This asset has already been published." },
+      { status: 400 }
+    );
+  }
+  if ((baseAsset.status as string) === "generating") {
+    return NextResponse.json(
+      { error: "Creative image generation is in progress. Please wait until image is ready." },
+      { status: 400 }
+    );
+  }
+
   // AI generated content is stored in campaign.results.assets (without stable IDs).
   // We merge them by platform so the backend receives the full content.
   const aiAsset = campaign.results?.assets?.find((a: any) => a.platform === baseAsset.platform) || ({} as any);
@@ -33,6 +53,32 @@ export async function POST(
     creative_prompt: baseAsset.creative_prompt || aiAsset.creative_prompt,
     creative_url: baseAsset.creative_url || aiAsset.creative_url,
   };
+
+  if (!asset.creative_url) {
+    return NextResponse.json(
+      { error: "No creative image URL attached to this asset." },
+      { status: 400 }
+    );
+  }
+
+  // Pre-flight image accessibility check before calling backend/Meta
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    const imgCheck = await fetch(asset.creative_url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!imgCheck.ok) {
+      return NextResponse.json(
+        { error: `Creative image URL is unreachable (HTTP ${imgCheck.status}). Please regenerate creative image.` },
+        { status: 400 }
+      );
+    }
+  } catch (imgErr) {
+    return NextResponse.json(
+      { error: "Creative image reference is unreachable or not ready. Please wait or regenerate." },
+      { status: 400 }
+    );
+  }
 
   const body = await request.json().catch(() => ({}));
   const scheduledTime: string | null =

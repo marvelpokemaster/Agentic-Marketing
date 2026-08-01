@@ -26,12 +26,28 @@ export async function POST(
         ? body.creative_prompt
         : asset.creative_prompt;
 
-    const creativeUrl = await generateCreative(prompt, asset.platform);
-    const updated = await repo.updateAsset(params.id, params.assetId, {
-      creative_prompt: prompt,
-      creative_url: creativeUrl,
+    await repo.updateAsset(params.id, params.assetId, {
+      status: "generating" as any,
+      error: null,
     });
-    return NextResponse.json({ asset: updated });
+
+    try {
+      const creativeUrl = await generateCreative(prompt, asset.platform);
+      const updated = await repo.updateAsset(params.id, params.assetId, {
+        creative_prompt: prompt,
+        creative_url: creativeUrl,
+        status: "ready" as any,
+        error: null,
+      });
+      return NextResponse.json({ asset: updated });
+    } catch (genErr) {
+      const msg = genErr instanceof Error ? genErr.message : "Failed to generate creative.";
+      const updated = await repo.updateAsset(params.id, params.assetId, {
+        status: "failed",
+        error: msg,
+      });
+      return NextResponse.json({ asset: updated, error: msg }, { status: 500 });
+    }
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to regenerate creative." },

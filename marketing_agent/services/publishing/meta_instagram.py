@@ -116,6 +116,24 @@ class MetaInstagramPublisher(PublisherService):
             except Exception as e:
                 logger.warning("[MetaInstagramPublisher] failed to fetch permalink: %s", e)
 
+        # Fallback to connected Instagram profile URL if exact permalink not obtained
+        if not published_url:
+            if ig_user_id:
+                try:
+                    async with httpx.AsyncClient(timeout=10.0) as client:
+                        user_res = await client.get(
+                            f"{self._base}/{ig_user_id}",
+                            params={"fields": "username", "access_token": self._token},
+                        )
+                        if user_res.is_success:
+                            username = user_res.json().get("username")
+                            if username:
+                                published_url = f"https://www.instagram.com/{username}"
+                except Exception as e:
+                    logger.warning("[MetaInstagramPublisher] failed to fetch ig username fallback: %s", e)
+            if not published_url:
+                published_url = "https://www.instagram.com/"
+
         return PublishResult(
             external_id=external_id,
             published_url=published_url,

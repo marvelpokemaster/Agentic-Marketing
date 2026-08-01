@@ -29,6 +29,7 @@ from marketing_agent.capabilities.research_planner import ResearchPlannerCapabil
 from marketing_agent.capabilities.strategy import StrategyCapability
 from marketing_agent.capabilities.analyst import ResearchAnalystCapability
 from marketing_agent.capabilities.content import ContentCapability
+from marketing_agent.services.publishing.image_generator import generate_ad_image, verify_and_prepare_image
 
 logger = logging.getLogger(__name__)
 
@@ -335,17 +336,30 @@ async def run_full_campaign_task(campaign_id: str, refresh_type: str = "none", r
         # STAGE 6: 🎨 Creative Agent
         current_stage = "generating_images"
         t0 = time.time()
-        update_execution("🎨 Creative Agent", "Generating visuals for campaign creatives...", "generating_images", "running")
+        update_execution("🎨 Creative Agent", "Generating & verifying visuals for campaign creatives...", "generating_images", "running")
         
         updated_assets = []
         for asset in assets_list:
             asset_dict = dict(asset) if isinstance(asset, dict) else asset.model_dump()
-            if not asset_dict.get("creative_url"):
-                platform = asset_dict.get("platform", "social")
-                headline = asset_dict.get("headline", "Creative")
-                bg_color = "6366f1" if platform == "instagram" else ("0866ff" if platform == "facebook" else "0a66c2")
-                text_clean = headline[:30].replace(" ", "+") or platform.capitalize()
-                asset_dict["creative_url"] = f"https://placehold.co/1080x1080/{bg_color}/ffffff?text={platform.capitalize()}%3A+{text_clean}"
+            platform = asset_dict.get("platform", "instagram")
+            prompt = asset_dict.get("creative_prompt") or f"Professional product ad for {product_name}"
+            
+            # Determine dimensions per platform
+            w = 1080 if platform == "instagram" else 1200
+            h = 1080 if platform == "instagram" else (630 if platform == "facebook" else 627)
+            
+            try:
+                raw_info = generate_ad_image(prompt, width=w, height=h)
+                pollinations_url = raw_info["image_url"]
+                verified_url = await verify_and_prepare_image(pollinations_url)
+                asset_dict["creative_url"] = verified_url
+                asset_dict["status"] = "ready"
+                asset_dict["error"] = None
+            except Exception as img_err:
+                logger.error("[Creative Agent] image generation/verification failed for platform %s: %s", platform, img_err)
+                asset_dict["status"] = "failed"
+                asset_dict["error"] = f"Image generation failed: {img_err}"
+
             updated_assets.append(asset_dict)
             
         results["assets"] = updated_assets

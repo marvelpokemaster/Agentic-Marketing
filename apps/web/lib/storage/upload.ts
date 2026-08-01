@@ -31,6 +31,30 @@ export async function uploadAsset(file: File, userId: string): Promise<string> {
   return fileRef.publicUrl();
 }
 
+/**
+ * Upload a raw Buffer to Firebase Storage and return its public URL.
+ */
+export async function uploadBuffer(
+  buffer: Buffer,
+  contentType: string,
+  filename: string,
+  folder = "creatives"
+): Promise<string> {
+  const app = getFirebaseAdminApp();
+  const bucket = getStorage(app).bucket();
+  const path = `${folder}/${uid()}-${safeName(filename)}`;
+  const fileRef = bucket.file(path);
+
+  await fileRef.save(buffer, {
+    metadata: {
+      contentType: contentType || "image/png",
+    },
+    public: true,
+  });
+
+  return fileRef.publicUrl();
+}
+
 export async function uploadAssets(
   files: File[],
   userId: string,

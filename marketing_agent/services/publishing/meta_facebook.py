@@ -89,6 +89,10 @@ class MetaFacebookPublisher(PublisherService):
             except Exception as e:
                 logger.warning("[MetaFacebookPublisher] failed to fetch permalink_url: %s", e)
 
+        # Fallback to connected Facebook Page URL if exact permalink not obtained
+        if not published_url:
+            published_url = f"https://www.facebook.com/{self._page_id}"
+
         return PublishResult(
             external_id=external_id,
             published_url=published_url,

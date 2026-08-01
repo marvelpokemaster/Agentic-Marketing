@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, CheckCircle2, Share2 } from "lucide-react";
 import { PLATFORM_LABELS, getPublishedLinkInfo, type CampaignAsset } from "@/lib/types";
 import { StatusBadge } from "./ui/StatusBadge";
 import { AnimatedButton } from "./ui/AnimatedButton";
+import { Skeleton } from "./ui/Skeleton";
 
 interface AssetModalProps {
   asset: CampaignAsset | null;
@@ -15,9 +16,15 @@ interface AssetModalProps {
 }
 
 export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetModalProps) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
   if (!asset) return null;
 
+  const isGenerating = (asset.status as string) === "generating";
+  const isPublishing = asset.status === "publishing";
   const isPublished = asset.status === "published";
+  const canPublish = metaConfigured && !!asset.creative_url && !isGenerating && !isPublishing && !isPublished;
 
   return (
     <AnimatePresence>
@@ -43,7 +50,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
               <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-foreground">
                 {PLATFORM_LABELS[asset.platform] || asset.platform}
               </span>
-              <StatusBadge status={asset.status} size="sm" />
+              <StatusBadge status={isGenerating ? "generating" : asset.status} size="sm" />
             </div>
 
             <button
@@ -57,21 +64,39 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
 
           {/* Body */}
           <div className="grid items-start gap-8 py-7 md:grid-cols-2">
-            {asset.creative_url ? (
-              <div>
-                <span className="label">Creative</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={asset.creative_url}
-                  alt="Campaign creative"
-                  className="h-80 w-full rounded-md border border-border object-cover"
-                />
-              </div>
-            ) : (
-              <div className="flex h-80 w-full items-center justify-center rounded-md border border-dashed border-border text-xs text-muted">
-                No creative attached
-              </div>
-            )}
+            <div>
+              <span className="label">Creative</span>
+              {isGenerating ? (
+                <div className="relative h-80 w-full rounded-md border border-border">
+                  <Skeleton className="h-80 w-full" />
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted">
+                    Generating image…
+                  </span>
+                </div>
+              ) : asset.creative_url ? (
+                <div className="relative h-80 w-full overflow-hidden rounded-md border border-border bg-panel">
+                  {!imgLoaded && !imgError && <Skeleton className="h-80 w-full" />}
+                  {imgError ? (
+                    <div className="flex h-80 w-full items-center justify-center text-xs text-muted">
+                      Image failed to load
+                    </div>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={asset.creative_url}
+                      alt="Campaign creative"
+                      onLoad={() => setImgLoaded(true)}
+                      onError={() => setImgError(true)}
+                      className={`h-80 w-full object-cover ${!imgLoaded ? "hidden" : "block"}`}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="flex h-80 w-full items-center justify-center rounded-md border border-dashed border-border text-xs text-muted">
+                  No creative attached
+                </div>
+              )}
+            </div>
 
             <div className="space-y-6">
               {asset.headline && (
@@ -133,10 +158,15 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
                 <AnimatedButton
                   variant="primary"
                   onClick={() => onPublish(asset)}
-                  disabled={!metaConfigured}
+                  isLoading={isPublishing}
+                  disabled={!canPublish}
                   icon={<Share2 className="h-4 w-4" />}
                 >
-                  Publish to {PLATFORM_LABELS[asset.platform] || asset.platform}
+                  {isGenerating
+                    ? "Preparing image…"
+                    : isPublishing
+                    ? "Publishing…"
+                    : `Publish to ${PLATFORM_LABELS[asset.platform] || asset.platform}`}
                 </AnimatedButton>
               )
             )}

@@ -145,6 +145,9 @@ export function CampaignDashboard({
 
   const handlePublishAsset = async (asset: CampaignAsset) => {
     if (!asset.id) return;
+    if (publishingAssets[asset.id] === "publishing" || asset.status === "publishing") return;
+    if ((asset.status as string) === "generating" || !asset.creative_url) return;
+
     setPublishingAssets((prev) => ({ ...prev, [asset.id]: "publishing" }));
     setPublishErrors((prev) => { const n = { ...prev }; delete n[asset.id]; return n; });
     try {
@@ -166,23 +169,36 @@ export function CampaignDashboard({
     }
   };
 
-  const rawAssets = campaign.results?.assets || campaign.assets || [];
-  const mappedAssets = rawAssets.map((a: any) => {
-    if (a.id) return a;
-    const base = campaign.assets?.find((b: any) => b.platform === a.platform);
-    return {
-      ...a,
-      id: base?.id,
-      status: base?.status || "draft",
-      error: base?.error || null,
-      external_id: base?.external_id || null,
-      published_url: base?.published_url || a?.published_url || null,
-    };
-  });
+  const baseAssets = campaign.assets || [];
+  const aiAssets = campaign.results?.assets || [];
+  const mappedAssets = baseAssets.length > 0
+    ? baseAssets.map((base: any) => {
+        const ai: any = aiAssets.find((a: any) => a.platform === base.platform) || {};
+        return {
+          ...ai,
+          ...base,
+          headline: base.headline || ai.headline || "",
+          body: base.body || ai.body || "",
+          hashtags: base.hashtags || ai.hashtags || [],
+          cta: base.cta || ai.cta || "",
+          creative_prompt: base.creative_prompt || ai.creative_prompt || "",
+          creative_url: base.creative_url || ai.creative_url || null,
+          status: base.status || "draft",
+          external_id: base.external_id || null,
+          published_url: base.published_url || ai.published_url || null,
+          error: base.error || null,
+        };
+      })
+    : aiAssets;
 
   const handlePublishAll = async () => {
     const draftAssets = mappedAssets.filter(
-      (a: any) => a.id && (a.status === "draft" || a.status === "failed")
+      (a: any) =>
+        a.id &&
+        (a.status === "draft" || a.status === "ready" || a.status === "failed") &&
+        !!a.creative_url &&
+        a.status !== "generating" &&
+        a.status !== "publishing"
     );
     if (draftAssets.length === 0) return;
     setBatchPublishing(true);
@@ -569,9 +585,18 @@ export function CampaignDashboard({
             {mappedAssets.map((asset: CampaignAsset, idx: number) => {
               const pubState = publishingAssets[asset.id];
               const pubError = publishErrors[asset.id] || asset.error;
-              const isPublishing = pubState === "publishing";
+              const isGenerating = (asset.status as string) === "generating" || (currentStage === "generating_images" && !asset.creative_url);
+              const isPublishing = pubState === "publishing" || asset.status === "publishing";
               const isPublished = asset.status === "published" || pubState === "done";
-              const canPublish = metaConfigured && !isPublishing && !isPublished;
+              const canPublish = metaConfigured && !isGenerating && !isPublishing && !isPublished && !!asset.creative_url;
+
+              const badgeStatus = isPublished
+                ? "published"
+                : isPublishing
+                ? "publishing"
+                : isGenerating
+                ? "generating"
+                : asset.status;
 
               return (
                 <div
@@ -585,7 +610,7 @@ export function CampaignDashboard({
                     </span>
                     <div className="flex items-center gap-2">
                       <StatusBadge
-                        status={isPublished ? "published" : pubState || asset.status}
+                        status={badgeStatus}
                         size="sm"
                       />
                       <Maximize2 className="h-3.5 w-3.5 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
@@ -608,16 +633,11 @@ export function CampaignDashboard({
                     <Skeleton className="h-20 w-full" />
                   ) : null}
 
-                  {asset.creative_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={asset.creative_url}
-                      alt="Campaign creative"
-                      className="h-52 w-full rounded-md border border-border object-cover"
-                    />
-                  ) : isExecuting ? (
-                    <Skeleton className="h-52 w-full" />
-                  ) : null}
+                  <AssetCardImage
+                    src={asset.creative_url}
+                    isGenerating={isGenerating}
+                    isExecuting={isExecuting}
+                  />
 
                   {pubError && (
                     <div className="rounded-md border border-danger p-3 text-xs text-danger">
@@ -659,7 +679,13 @@ export function CampaignDashboard({
                         disabled={!canPublish}
                         icon={<Share2 className="h-3.5 w-3.5" />}
                       >
-                        {pubState === "error" ? "Retry publish" : "Publish"}
+                        {isGenerating
+                          ? "Preparing image…"
+                          : isPublishing
+                          ? "Publishing…"
+                          : pubState === "error" || asset.status === "failed"
+                          ? "Retry publish"
+                          : "Publish"}
                       </AnimatedButton>
                     )}
                   </div>
@@ -668,6 +694,59 @@ export function CampaignDashboard({
             })}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function AssetCardImage({
+  src,
+  isGenerating,
+  isExecuting,
+}: {
+  src?: string | null;
+  isGenerating: boolean;
+  isExecuting: boolean;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (isGenerating || (isExecuting && !src)) {
+    return (
+      <div className="relative h-52 w-full overflow-hidden rounded-md border border-border">
+        <Skeleton className="h-52 w-full" />
+        <span className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted">
+          Generating image…
+        </span>
+      </div>
+    );
+  }
+
+  if (!src) return null;
+
+  return (
+    <div className="relative h-52 w-full overflow-hidden rounded-md border border-border bg-panel">
+      {!loaded && !error && (
+        <div className="relative h-52 w-full">
+          <Skeleton className="h-52 w-full" />
+          <span className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted">
+            Loading image…
+          </span>
+        </div>
+      )}
+      {error ? (
+        <div className="flex h-52 w-full items-center justify-center text-xs text-muted">
+          Image loading failed
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="Campaign creative"
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          className={`h-52 w-full object-cover ${!loaded ? "hidden" : "block"}`}
+        />
       )}
     </div>
   );

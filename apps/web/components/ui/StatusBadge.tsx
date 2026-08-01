@@ -12,7 +12,7 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
   const normalized = status.toLowerCase();
 
   const isSuccess = ["published", "ready", "completed", "configured", "connected"].includes(normalized);
-  const isRunning = ["running", "researching", "publishing", "executing", "generating_content", "generating_images"].includes(normalized);
+  const isRunning = ["running", "researching", "publishing", "executing", "generating", "preparing", "generating_content", "generating_images"].includes(normalized);
   const isFailed = ["failed", "error", "offline"].includes(normalized);
   const isWarning = ["draft", "partially_published", "scheduled"].includes(normalized);
 

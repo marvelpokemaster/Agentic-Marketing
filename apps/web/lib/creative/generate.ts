@@ -60,6 +60,52 @@ async function stabilityImage(prompt: string): Promise<string> {
 }
 
 /**
+ * Bounded retries to verify Pollinations image generation readiness and optional persistent storage.
+ */
+export async function verifyAndPrepareImage(
+  url: string,
+  platform: Platform,
+  retries = 3,
+  backoffMs = 2000
+): Promise<string> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+
+      if (res.ok) {
+        const contentType = res.headers.get("content-type") || "image/png";
+        const arrayBuf = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+
+        if (buffer.length > 500) {
+          // Attempt persistent Firebase Storage upload if available
+          try {
+            const { uploadBuffer } = await import("@/lib/storage/upload");
+            const storageUrl = await uploadBuffer(buffer, contentType, `${platform}.png`, "creatives");
+            if (storageUrl) return storageUrl;
+          } catch (storageErr) {
+            console.warn("[creative] Firebase Storage upload skipped/failed, using verified Pollinations URL:", storageErr);
+          }
+          // Fallback to verified Pollinations URL (now warm in Pollinations cache)
+          return url;
+        }
+      }
+    } catch (err) {
+      console.warn(`[creative] Image readiness check attempt ${attempt}/${retries} failed:`, err);
+    }
+
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    }
+  }
+
+  throw new Error("Generated image is unavailable or non-responsive from provider after retries.");
+}
+
+/**
  * Generate a creative image URL for a platform. Falls back to Pollinations
  * (free, keyless) when a paid provider is unavailable or fails.
  */
@@ -74,5 +120,6 @@ export async function generateCreative(
   } catch (err) {
     console.error("[creative] provider failed, using pollinations:", err);
   }
-  return pollinationsUrl(prompt, platform, seed);
+  const rawUrl = pollinationsUrl(prompt, platform, seed);
+  return await verifyAndPrepareImage(rawUrl, platform);
 }

@@ -121,10 +121,10 @@ export async function POST(request: Request) {
           cta: c.cta,
           creative_prompt: c.creative_prompt,
           creative_url: creativeUrl,
-          status: "draft",
+          status: creativeUrl ? ("ready" as any) : "failed",
           scheduled_time: null,
           external_id: null,
-          error: null,
+          error: creativeUrl ? null : "Creative image generation failed.",
         });
       }
 
