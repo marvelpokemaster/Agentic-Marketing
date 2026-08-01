@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import {
   PLATFORM_LABELS,
+  getPublishedLinkInfo,
   type Campaign,
   type CampaignAsset,
   type CompetitorResult,
@@ -157,6 +158,7 @@ export function CampaignDashboard({
       }
       setPublishingAssets((prev) => ({ ...prev, [asset.id]: "done" }));
       playUISound("publish");
+      await refreshCampaign();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Publish failed.";
       setPublishingAssets((prev) => ({ ...prev, [asset.id]: "error" }));
@@ -628,25 +630,26 @@ export function CampaignDashboard({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {isPublished ? (
-                      <div className="flex w-full items-center justify-between gap-2">
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-success">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Published
-                        </span>
-                        {asset.published_url ? (
-                          <a
-                            href={asset.published_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
-                          >
-                            <span>View post</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted">Permalink unavailable</span>
-                        )}
-                      </div>
+                      (() => {
+                        const linkInfo = getPublishedLinkInfo(asset);
+                        return (
+                          <div className="flex w-full items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Published
+                            </span>
+                            <a
+                              href={linkInfo.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
+                            >
+                              <span>{linkInfo.label}</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        );
+                      })()
                     ) : (
                       <AnimatedButton
                         variant="outline"

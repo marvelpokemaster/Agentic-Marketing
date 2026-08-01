@@ -79,10 +79,11 @@ class MetaFacebookPublisher(PublisherService):
                 async with httpx.AsyncClient(timeout=10.0) as client:
                     permalink_res = await client.get(
                         f"{self._base}/{external_id}",
-                        params={"fields": "permalink_url", "access_token": self._token},
+                        params={"fields": "permalink_url,link", "access_token": self._token},
                     )
                     if permalink_res.is_success:
-                        permalink = permalink_res.json().get("permalink_url")
+                        p_data = permalink_res.json()
+                        permalink = p_data.get("permalink_url") or p_data.get("link")
                         if permalink:
                             published_url = str(permalink)
             except Exception as e:

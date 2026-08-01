@@ -3,7 +3,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, CheckCircle2, Share2 } from "lucide-react";
-import { PLATFORM_LABELS, type CampaignAsset } from "@/lib/types";
+import { PLATFORM_LABELS, getPublishedLinkInfo, type CampaignAsset } from "@/lib/types";
 import { StatusBadge } from "./ui/StatusBadge";
 import { AnimatedButton } from "./ui/AnimatedButton";
 
@@ -108,23 +108,26 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           {/* Footer */}
           <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
             {isPublished ? (
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-success">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Published
-                </span>
-                {asset.published_url && (
-                  <a
-                    href={asset.published_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
-                  >
-                    <span>View post</span>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
-              </div>
+              (() => {
+                const linkInfo = getPublishedLinkInfo(asset);
+                return (
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Published
+                    </span>
+                    <a
+                      href={linkInfo.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-opacity hover:opacity-70"
+                    >
+                      <span>{linkInfo.label}</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                );
+              })()
             ) : (
               onPublish && (
                 <AnimatedButton

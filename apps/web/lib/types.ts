@@ -59,6 +59,44 @@ export interface CampaignAsset {
   error: string | null;
 }
 
+export function getPublishedLinkInfo(asset: {
+  platform: Platform;
+  published_url?: string | null;
+}) {
+  if (asset.published_url) {
+    const href = asset.published_url.startsWith("http")
+      ? asset.published_url
+      : `https://${asset.published_url}`;
+    return {
+      href,
+      label: "View Published Post ↗",
+      isExact: true,
+    };
+  }
+
+  if (asset.platform === "instagram") {
+    return {
+      href: "https://www.instagram.com/",
+      label: "View on Instagram ↗",
+      isExact: false,
+    };
+  }
+
+  if (asset.platform === "facebook") {
+    return {
+      href: "https://www.facebook.com/",
+      label: "View on Facebook ↗",
+      isExact: false,
+    };
+  }
+
+  return {
+    href: `https://www.${asset.platform}.com/`,
+    label: `View on ${PLATFORM_LABELS[asset.platform] || asset.platform} ↗`,
+    isExact: false,
+  };
+}
+
 // ── Polymorphic B2B Lead Gen Types ───────────────────────────────────────────
 export interface Lead {
   id: string;
