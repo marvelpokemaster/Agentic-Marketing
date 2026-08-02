@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ArrowLeft,
   Maximize2,
+  Radio,
 } from "lucide-react";
 import {
   PLATFORM_LABELS,
@@ -38,6 +39,7 @@ import { AssetModal } from "./AssetModal";
 import { playUISound } from "@/lib/audio";
 import { useQuery } from "@tanstack/react-query";
 import { useAgentRunStore } from "@/lib/stores/agentRunStore";
+import { useCampaignStream } from "@/lib/realtime/useCampaignStream";
 
 export function CampaignDashboard({
   campaign: initialCampaign,
@@ -72,7 +74,10 @@ export function CampaignDashboard({
 
   const isReady = currentStage === "ready" || campaign.status === "ready" || campaign.status === "published";
 
-  // TanStack Query with adaptive refetchInterval replacing raw setInterval
+  // SSE Stream integration with fallback polling
+  const { isLive } = useCampaignStream(campaign.id, isExecuting || isPolling);
+
+  // TanStack Query: disabled while isLive, fallback to 2000ms polling when stream drops
   useQuery({
     queryKey: ["campaign", campaign.id],
     queryFn: async () => {
@@ -99,8 +104,8 @@ export function CampaignDashboard({
       }
       return data.campaign;
     },
-    enabled: isExecuting || isPolling,
-    refetchInterval: isExecuting || isPolling ? 2000 : false,
+    enabled: (isExecuting || isPolling) && !isLive,
+    refetchInterval: !isLive && (isExecuting || isPolling) ? 2000 : false,
   });
 
   // Auto scroll to top on mount
@@ -273,6 +278,23 @@ export function CampaignDashboard({
               <span className="font-mono text-[11px] text-muted">
                 {campaign.id.slice(0, 8)}
               </span>
+
+              {isExecuting && (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${
+                    isLive
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                      : "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isLive ? "bg-emerald-500 animate-ping" : "bg-amber-500"
+                    }`}
+                  />
+                  {isLive ? "Live Stream" : "Reconnecting…"}
+                </span>
+              )}
             </div>
 
             <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
