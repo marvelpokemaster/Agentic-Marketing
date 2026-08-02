@@ -3,7 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
+*.log
+.kilo/
 # Virtual env
 .crawlvenv/
 venv/

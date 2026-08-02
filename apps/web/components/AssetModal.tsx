@@ -34,7 +34,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-ink/70"
+          className="fixed inset-0 bg-ink/70 backdrop-blur-sm"
         />
 
         <motion.div

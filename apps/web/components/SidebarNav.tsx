@@ -38,7 +38,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
       initial={false}
       animate={{ width: collapsed ? 68 : 232 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel"
+      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel/85 backdrop-blur-md"
     >
       <div>
         {/* Wordmark */}
