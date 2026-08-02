@@ -381,6 +381,13 @@ export function CampaignDashboard({
         </div>
       )}
 
+      {/* PERSISTENT STAGE RAIL LOADING BANNER */}
+      {isExecuting && (
+        <div className="mb-6">
+          <LoadingState stage={currentStage || "planning"} isExecuting={isExecuting} />
+        </div>
+      )}
+
       {/* PIPELINE TIMELINE */}
       <MultiAgentTimelineBanner
         execution={campaign.execution}
@@ -421,8 +428,6 @@ export function CampaignDashboard({
       {/* TAB: STRATEGY */}
       {activeTab === "strategy" && (
         <div className="pt-8">
-          {isExecuting && !strategy && <LoadingState stage={currentStage || "strategizing"} />}
-
           {!strategy && !isExecuting && (
             <EmptyState
               icon={<Target className="h-7 w-7" />}
@@ -473,8 +478,6 @@ export function CampaignDashboard({
       {/* TAB: RESEARCH */}
       {activeTab === "research" && (
         <div className="pt-8">
-          {isExecuting && !researchReport && <LoadingState stage={currentStage || "researching"} />}
-
           {!researchReport && !isExecuting && (
             <EmptyState
               icon={<Search className="h-7 w-7" />}
