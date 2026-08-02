@@ -42,73 +42,83 @@ function CampaignsListSkeleton() {
 
 async function CampaignsList() {
   const start = Date.now();
-  console.log(`[CAMPAIGNS DEBUG] CampaignsList fetch started at ${start}`);
-  const user = await getCurrentUser();
-  const repo = await getServerRepo();
-  const campaigns = await repo.listCampaigns(user.id);
-  console.log(`[CAMPAIGNS DEBUG] CampaignsList fetch completed in ${Date.now() - start}ms`);
+  console.log(`[CAMPAIGNS DEBUG] component entered at ${start}`);
+  try {
+    const user = await getCurrentUser();
+    console.log(`[CAMPAIGNS DEBUG] auth resolved in ${Date.now() - start}ms (uid: ${user.id})`);
 
-  if (campaigns.length === 0) {
+    const firestoreStart = Date.now();
+    console.log(`[CAMPAIGNS DEBUG] firestore query started at ${firestoreStart}`);
+    const repo = await getServerRepo();
+    const campaigns = await repo.listCampaigns(user.id);
+    console.log(`[CAMPAIGNS DEBUG] firestore query completed in ${Date.now() - firestoreStart}ms (count: ${campaigns.length})`);
+    console.log(`[CAMPAIGNS DEBUG] render completed in total ${Date.now() - start}ms`);
+
+    if (campaigns.length === 0) {
+      return (
+        <EmptyState
+          icon={<Megaphone className="h-7 w-7" />}
+          title="No campaigns yet"
+          description="Pick a product and choose a campaign type to start your first autonomous run."
+          action={
+            <Link href="/products" className="btn text-[13px]">
+              Choose a product
+            </Link>
+          }
+        />
+      );
+    }
+
     return (
-      <EmptyState
-        icon={<Megaphone className="h-7 w-7" />}
-        title="No campaigns yet"
-        description="Pick a product and choose a campaign type to start your first autonomous run."
-        action={
-          <Link href="/products" className="btn text-[13px]">
-            Choose a product
+      <div className="space-y-2">
+        {campaigns.map((c) => (
+          <Link
+            key={c.id}
+            href={`/campaigns/${c.id}`}
+            className="group relative flex flex-col gap-4 rounded-2xl border border-border glass-panel p-5 backdrop-blur-md transition-all duration-200 hover:border-border-hover hover:bg-glass-2-bg-hover hover:shadow-glow sm:flex-row sm:items-center sm:justify-between sm:gap-6 accent-bar-left"
+          >
+            <div className="flex min-w-0 items-center gap-4">
+              <StatusBadge status={c.status} size="sm" />
+              <div className="min-w-0">
+                <h3 className="truncate font-heading text-[15px] font-semibold text-foreground">
+                  {c.product_name}
+                </h3>
+                <span className="mt-0.5 block font-mono text-[11px] text-muted">
+                  {new Date(c.created_at).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-4">
+              <div className="flex flex-wrap gap-1.5">
+                {c.workflow === "lead_generation" ? (
+                  <span className="chip">Lead generation</span>
+                ) : c.platforms && c.platforms.length > 0 ? (
+                  c.platforms.map((p) => (
+                    <span key={p} className="chip">
+                      {PLATFORM_LABELS[p]}
+                    </span>
+                  ))
+                ) : (
+                  <span className="chip">Social post</span>
+                )}
+              </div>
+
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-all group-hover:translate-x-1 group-hover:text-primary" />
+            </div>
           </Link>
-        }
-      />
+        ))}
+      </div>
     );
+  } catch (err) {
+    console.error(`[CAMPAIGNS DEBUG] error in CampaignsList after ${Date.now() - start}ms:`, err);
+    throw err;
   }
-
-  return (
-    <div className="space-y-2">
-      {campaigns.map((c) => (
-        <Link
-          key={c.id}
-          href={`/campaigns/${c.id}`}
-          className="group relative flex flex-col gap-4 rounded-2xl border border-border glass-panel p-5 backdrop-blur-md transition-all duration-200 hover:border-border-hover hover:bg-glass-2-bg-hover hover:shadow-glow sm:flex-row sm:items-center sm:justify-between sm:gap-6 accent-bar-left"
-        >
-          <div className="flex min-w-0 items-center gap-4">
-            <StatusBadge status={c.status} size="sm" />
-            <div className="min-w-0">
-              <h3 className="truncate font-heading text-[15px] font-semibold text-foreground">
-                {c.product_name}
-              </h3>
-              <span className="mt-0.5 block font-mono text-[11px] text-muted">
-                {new Date(c.created_at).toLocaleString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-4">
-            <div className="flex flex-wrap gap-1.5">
-              {c.workflow === "lead_generation" ? (
-                <span className="chip">Lead generation</span>
-              ) : c.platforms && c.platforms.length > 0 ? (
-                c.platforms.map((p) => (
-                  <span key={p} className="chip">
-                    {PLATFORM_LABELS[p]}
-                  </span>
-                ))
-              ) : (
-                <span className="chip">Social post</span>
-              )}
-            </div>
-
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-all group-hover:translate-x-1 group-hover:text-primary" />
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
 }
 
 export default function CampaignsPage() {
