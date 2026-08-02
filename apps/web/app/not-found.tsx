@@ -3,8 +3,16 @@ import { ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto flex w-full max-w-[520px] flex-1 flex-col justify-center px-6 py-24">
-      <span className="eyebrow">404</span>
+    <div className="relative mx-auto flex w-full max-w-[520px] flex-1 flex-col justify-center px-6 py-24">
+      {/* Aurora gradient background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full opacity-25 blur-[80px]"
+          style={{ background: "var(--gradient-glow)" }}
+        />
+      </div>
+
+      <span className="font-heading text-7xl font-extrabold gradient-text">404</span>
       <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
         Page not found
       </h1>

@@ -9,7 +9,7 @@ interface GlassPanelProps extends HTMLMotionProps<"div"> {
 }
 
 /**
- * Flat bordered panel. Name retained so existing call sites keep working.
+ * Premium glass-elevated panel with luminous border and backdrop blur.
  */
 export function GlassPanel({ children, className = "", ...props }: GlassPanelProps) {
   return (
@@ -17,7 +17,7 @@ export function GlassPanel({ children, className = "", ...props }: GlassPanelPro
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-      className={`panel p-6 ${className}`}
+      className={`panel glass-glow p-6 ${className}`}
       {...props}
     >
       {children}

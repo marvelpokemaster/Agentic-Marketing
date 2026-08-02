@@ -152,7 +152,7 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
   }, [activeIdx, isExecuting]);
 
   return (
-    <div ref={containerRef} className="w-full space-y-6">
+    <div ref={containerRef} className="w-full space-y-5">
       {/* 6-Stage Horizontal Rail */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {STAGES.map((s, idx) => {
@@ -166,19 +166,19 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
               ref={(el) => {
                 nodeRefs.current[idx] = el;
               }}
-              className={`relative flex flex-col items-center justify-between rounded-xl border p-3.5 transition-all duration-300 ${
+              className={`relative flex flex-col items-center justify-between rounded-2xl border p-4 transition-all duration-300 backdrop-blur-md ${
                 isActive
-                  ? "border-primary bg-primary/10 shadow-lg shadow-primary/10 scale-[1.02]"
+                  ? "border-primary/30 bg-primary/8 shadow-glow scale-[1.02]"
                   : isDone
-                  ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-500"
-                  : "border-border bg-panel/40 opacity-60"
+                  ? "border-success/20 bg-success/5"
+                  : "border-border bg-glass-bg opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
                 {isDone ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success" style={{ filter: "drop-shadow(0 0 4px rgba(16,185,129,0.5))" }} />
                 ) : isActive ? (
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                  <span className="spinner-gradient shrink-0" />
                 ) : (
                   <Icon className="h-4 w-4 shrink-0 text-muted" />
                 )}
@@ -187,7 +187,7 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
                     isActive
                       ? "text-primary"
                       : isDone
-                      ? "text-emerald-500"
+                      ? "text-success"
                       : "text-muted"
                   }`}
                 >
@@ -195,12 +195,13 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
                 </span>
               </div>
 
-              {/* GSAP Active Shimmer Sweep Bar */}
+              {/* Active Shimmer Sweep Bar */}
               {isActive && (
-                <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-primary/20">
+                <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-primary/15">
                   <div
                     ref={shimmerRef}
-                    className="h-full w-1/2 bg-primary rounded-full"
+                    className="h-full w-1/2 rounded-full"
+                    style={{ background: "var(--gradient-primary)" }}
                   />
                 </div>
               )}
@@ -211,7 +212,7 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
 
       {/* Rotating Microcopy Banner */}
       {isExecuting && (
-        <div className="flex items-center justify-center gap-3 rounded-lg border border-primary/20 bg-panel/80 px-4 py-3 backdrop-blur-md">
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-primary/15 bg-glass-bg px-5 py-3.5 backdrop-blur-xl shadow-glow">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />

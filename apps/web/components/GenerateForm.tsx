@@ -6,6 +6,7 @@ import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/types";
 import { AnimatedButton } from "./ui/AnimatedButton";
 import { Rocket, AlertTriangle, Search } from "lucide-react";
 import { playUISound } from "@/lib/audio";
+import { motion } from "framer-motion";
 
 export function GenerateForm({ productId }: { productId: string }) {
   const router = useRouter();
@@ -93,7 +94,12 @@ export function GenerateForm({ productId }: { productId: string }) {
             >
               {tab.label}
               {active && (
-                <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />
+                <motion.span
+                  layoutId="generateFormTab"
+                  className="absolute bottom-0 left-0 h-[2px] w-full rounded-full"
+                  style={{ background: "var(--gradient-primary)" }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                />
               )}
             </button>
           );
@@ -120,15 +126,16 @@ export function GenerateForm({ productId }: { productId: string }) {
                     type="button"
                     onClick={() => !loading && toggle(p)}
                     disabled={loading}
-                    className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-[13px] font-medium transition-colors ${
+                    className={`inline-flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-[13px] font-medium transition-all ${
                       on
-                        ? "border-primary bg-panel text-primary"
-                        : "border-border bg-panel text-muted hover:border-border-hover hover:text-foreground"
+                        ? "border-primary/30 bg-primary/5 text-primary shadow-[0_0_12px_var(--glow-color)]"
+                        : "border-border bg-glass-bg text-muted backdrop-blur-sm hover:border-border-hover hover:text-foreground"
                     }`}
                   >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${on ? "bg-primary" : "bg-border-hover"}`}
-                    />
+                    <span className="relative flex h-2 w-2">
+                      {on && <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-50" />}
+                      <span className={`relative h-2 w-2 rounded-full ${on ? "bg-primary" : "bg-muted/30"}`} />
+                    </span>
                     {PLATFORM_LABELS[p]}
                   </button>
                 );
@@ -177,7 +184,7 @@ export function GenerateForm({ productId }: { productId: string }) {
       </div>
 
       {error && (
-        <div className="mb-6 flex items-center gap-2 rounded-md border border-danger bg-panel p-3 text-xs font-medium text-danger">
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/5 p-3 text-xs font-medium text-danger backdrop-blur-sm">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>

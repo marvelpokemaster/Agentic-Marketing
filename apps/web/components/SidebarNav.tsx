@@ -32,23 +32,23 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
 
   return (
     <motion.aside
-      // `initial={false}` snaps to the correct width on mount and animates only
-      // on toggle — otherwise the width tweens on every page load, and can be
-      // left part-way open if the tab is backgrounded mid-animation.
       initial={false}
-      animate={{ width: collapsed ? 68 : 232 }}
+      animate={{ width: collapsed ? 68 : 240 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel/85 backdrop-blur-md"
+      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel/80 backdrop-blur-xl"
     >
       <div>
         {/* Wordmark */}
         <div
           className={`flex min-h-[57px] items-center border-b border-border ${
-            collapsed ? "justify-center px-0" : "justify-between gap-2 px-4"
+            collapsed ? "justify-center px-0" : "justify-between gap-2 px-5"
           }`}
         >
           <Link href="/" className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-            <span className="h-5 w-5 shrink-0 rounded-[5px] bg-primary" />
+            {/* Gradient logo mark */}
+            <span className="relative h-6 w-6 shrink-0 rounded-lg" style={{ background: "var(--gradient-primary)" }}>
+              <span className="absolute inset-0 rounded-lg animate-glow-pulse opacity-50" />
+            </span>
             <AnimatePresence mode="wait">
               {!collapsed && (
                 <motion.span
@@ -56,7 +56,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
                   animate={{ opacity: 1, width: "auto" }}
                   exit={{ opacity: 0, width: 0 }}
                   transition={{ duration: 0.18 }}
-                  className="block truncate whitespace-nowrap font-heading text-sm font-semibold tracking-tight text-foreground"
+                  className="block truncate whitespace-nowrap font-heading text-sm font-bold tracking-tight gradient-text"
                 >
                   Agentic
                 </motion.span>
@@ -67,7 +67,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
           {!collapsed && (
             <button
               onClick={() => setCollapsed(true)}
-              className="shrink-0 rounded-md p-1.5 text-muted transition-colors hover:bg-surface hover:text-foreground"
+              className="shrink-0 rounded-lg p-1.5 text-muted transition-all hover:bg-surface hover:text-foreground"
               title="Collapse sidebar"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -79,7 +79,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
           <div className="flex justify-center border-b border-border py-2">
             <button
               onClick={() => setCollapsed(false)}
-              className="rounded-md p-1.5 text-muted transition-colors hover:bg-surface hover:text-foreground"
+              className="rounded-lg p-1.5 text-muted transition-all hover:bg-surface hover:text-foreground"
               title="Expand sidebar"
             >
               <ChevronRight className="h-4 w-4" />
@@ -88,34 +88,52 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
         )}
 
         {/* Navigation */}
-        <nav className="space-y-0.5 p-2.5 pt-4">
+        <nav className="space-y-1 p-3 pt-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
 
             return (
-              <Link key={item.href} href={item.href} className="relative block">
+              <Link key={item.href} href={item.href} className="relative block group">
                 <div
-                  className={`relative flex items-center rounded-md text-[13px] transition-colors ${
-                    collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2"
+                  className={`relative flex items-center rounded-xl text-[13px] transition-all duration-200 ${
+                    collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
                   } ${
                     isActive
                       ? "font-medium text-foreground"
-                      : "text-muted hover:bg-surface hover:text-foreground"
+                      : "text-muted hover:text-foreground"
                   }`}
                   title={collapsed ? item.label : undefined}
                 >
+                  {/* Active indicator — gradient left bar */}
                   {isActive && (
                     <motion.span
                       layoutId="activeNavTab"
-                      className="absolute inset-0 rounded-md bg-surface"
+                      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
+                      style={{ background: "var(--gradient-primary)" }}
                       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     />
                   )}
+
+                  {/* Active background glow */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeNavBg"
+                      className="absolute inset-0 rounded-xl bg-surface"
+                      style={{ boxShadow: "inset 0 0 0 1px var(--border-color)" }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  )}
+
+                  {/* Hover glow for non-active */}
+                  {!isActive && (
+                    <span className="absolute inset-0 rounded-xl bg-surface opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                  )}
+
                   <Icon
-                    className={`relative z-10 h-4 w-4 shrink-0 ${
-                      isActive ? "text-primary" : ""
+                    className={`relative z-10 h-4 w-4 shrink-0 transition-colors duration-200 ${
+                      isActive ? "text-primary" : "group-hover:text-foreground"
                     }`}
                   />
                   {!collapsed && (

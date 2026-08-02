@@ -66,7 +66,14 @@ export function FrostText({
         <span className="text-foreground">{text} </span>
 
         {highlightText && (
-          <span className="relative inline-block bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+          <span
+            className="relative inline-block bg-clip-text text-transparent"
+            style={{
+              backgroundImage: "var(--gradient-text)",
+              backgroundSize: "200% 200%",
+              animation: "gradientShift 6s ease-in-out infinite",
+            }}
+          >
             {highlightText}
           </span>
         )}
@@ -75,7 +82,7 @@ export function FrostText({
         <span
           className="pointer-events-none absolute inset-0 bg-clip-text text-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 hidden sm:block"
           style={{
-            backgroundImage: `radial-gradient(160px circle at var(--fx, 50%) var(--fy, 50%), var(--color-primary-hover), transparent 75%)`,
+            backgroundImage: `radial-gradient(200px circle at var(--fx, 50%) var(--fy, 50%), var(--color-primary), transparent 70%)`,
             WebkitBackgroundClip: "text",
           }}
           aria-hidden="true"

@@ -4,6 +4,7 @@ import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { playUISound } from "@/lib/audio";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -15,11 +16,33 @@ export function ThemeToggle() {
         playUISound("click");
         toggleTheme();
       }}
-      className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-panel text-muted transition-colors hover:border-border-hover hover:text-foreground"
+      className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-glass-bg backdrop-blur-md text-muted transition-all duration-200 hover:border-primary/30 hover:text-foreground hover:shadow-glow"
       title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="sun"
+            initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Sun className="h-4 w-4" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="moon"
+            initial={{ scale: 0.5, rotate: 90, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            exit={{ scale: 0.5, rotate: -90, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="h-4 w-4" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </button>
   );
 }

@@ -48,12 +48,12 @@ export default async function CampaignsPage() {
           }
         />
       ) : (
-        <div className="border-t border-border">
+        <div className="space-y-2">
           {campaigns.map((c) => (
             <Link
               key={c.id}
               href={`/campaigns/${c.id}`}
-              className="group flex flex-col gap-4 border-b border-border py-5 transition-colors hover:bg-panel sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-4"
+              className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-glass-bg p-5 backdrop-blur-md transition-all duration-200 hover:border-border-hover hover:bg-glass-bg-hover hover:shadow-glow sm:flex-row sm:items-center sm:justify-between sm:gap-6 accent-bar-left"
             >
               <div className="flex min-w-0 items-center gap-4">
                 <StatusBadge status={c.status} size="sm" />
@@ -87,7 +87,7 @@ export default async function CampaignsPage() {
                   )}
                 </div>
 
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-all group-hover:translate-x-1 group-hover:text-primary" />
               </div>
             </Link>
           ))}

@@ -13,14 +13,14 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, subtext, icon, trend, badge }: MetricCardProps) {
   return (
-    <div className="card flex flex-col justify-between gap-4">
+    <div className="card glass-glow flex flex-col justify-between gap-4 backdrop-blur-md">
       <div className="flex items-center justify-between gap-3">
         <span className="eyebrow">{label}</span>
         {icon && <span className="text-muted">{icon}</span>}
       </div>
       <div>
         <div className="flex items-baseline justify-between gap-2">
-          <span className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+          <span className="font-heading text-3xl font-bold tracking-tight gradient-text">
             {value}
           </span>
           {badge}

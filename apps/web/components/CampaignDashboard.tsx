@@ -281,23 +281,22 @@ export function CampaignDashboard({
 
               {isExecuting && (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm ${
                     isLive
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-                      : "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                      ? "border-success/20 bg-success/5 text-success"
+                      : "border-warning/20 bg-warning/5 text-warning"
                   }`}
                 >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      isLive ? "bg-emerald-500 animate-ping" : "bg-amber-500"
-                    }`}
-                  />
+                  <span className="relative flex h-1.5 w-1.5">
+                    {isLive && <span className="absolute inset-0 rounded-full bg-success animate-ping opacity-60" />}
+                    <span className={`relative h-1.5 w-1.5 rounded-full ${isLive ? "bg-success" : "bg-warning"}`} />
+                  </span>
                   {isLive ? "Live Stream" : "Reconnecting…"}
                 </span>
               )}
             </div>
 
-            <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
+            <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground">
               {campaign.product_name || "Campaign"}
             </h1>
 
@@ -348,7 +347,7 @@ export function CampaignDashboard({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
                     transition={{ duration: 0.12 }}
-                    className="panel absolute right-0 z-50 mt-2 w-60 overflow-hidden p-1"
+                    className="panel absolute right-0 z-50 mt-2 w-60 overflow-hidden p-1.5 backdrop-blur-xl"
                   >
                     <MenuItem
                       icon={<Play className="h-3.5 w-3.5" />}
@@ -383,11 +382,11 @@ export function CampaignDashboard({
 
       {/* READY BANNER */}
       {isReady && (
-        <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-md border border-border bg-panel p-4 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-2xl border border-success/20 bg-success/5 p-5 backdrop-blur-md sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-success" style={{ filter: "drop-shadow(0 0 6px rgba(16,185,129,0.5))" }} />
             <div>
-              <span className="block text-sm font-medium text-foreground">Campaign ready</span>
+              <span className="block text-sm font-semibold text-foreground">Campaign ready</span>
               <span className="mt-0.5 block text-xs text-muted">
                 All stages complete. Assets are ready for review.
               </span>
@@ -406,7 +405,7 @@ export function CampaignDashboard({
 
       {/* ERROR */}
       {researchError && (
-        <div className="mb-6 flex items-center gap-2 rounded-md border border-danger bg-panel p-4 text-xs font-medium text-danger">
+        <div className="mb-6 flex items-center gap-2 rounded-2xl border border-danger/20 bg-danger/5 p-4 text-xs font-medium text-danger backdrop-blur-sm">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{researchError}</span>
         </div>
@@ -450,7 +449,14 @@ export function CampaignDashboard({
               {tab.count > 0 && (
                 <span className="font-mono text-[10px] text-muted">{tab.count}</span>
               )}
-              {isActive && <span className="absolute bottom-0 left-0 h-[2px] w-full bg-primary" />}
+              {isActive && (
+                <motion.span
+                  layoutId="dashboardTab"
+                  className="absolute bottom-0 left-0 h-[2px] w-full rounded-full"
+                  style={{ background: "var(--gradient-primary)" }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                />
+              )}
             </button>
           );
         })}
@@ -492,7 +498,7 @@ export function CampaignDashboard({
                 </AnimatedButton>
               </div>
 
-              <dl className="grid gap-px border border-border bg-border md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Campaign objective" value={strategy.campaign_objective} />
                 <Field label="Value proposition" value={strategy.value_proposition} />
                 <Field label="Market positioning" value={strategy.positioning} />
@@ -500,7 +506,7 @@ export function CampaignDashboard({
                 <Field label="Target audience" value={strategy.target_audience} />
                 <Field label="Call to action" value={strategy.cta_strategy} />
                 <Field label="Brand tone" value={strategy.tone} className="md:col-span-2" />
-              </dl>
+              </div>
             </div>
           )}
         </div>
@@ -561,9 +567,9 @@ export function CampaignDashboard({
                 </h3>
 
                 {researchReport.intelligence?.competitors?.length > 0 ? (
-                  <div className="mt-5 grid gap-px border border-border bg-border md:grid-cols-3">
+                  <div className="mt-5 grid gap-4 md:grid-cols-3">
                     {researchReport.intelligence.competitors.map((c: CompetitorResult, i: number) => (
-                      <div key={i} className="space-y-2.5 bg-panel p-5">
+                      <div key={i} className="space-y-2.5 rounded-2xl border border-border bg-glass-bg p-5 backdrop-blur-md transition-all hover:border-border-hover hover:shadow-glow">
                         <h4 className="font-heading text-sm font-semibold text-foreground">
                           {c.name}
                         </h4>
@@ -619,7 +625,7 @@ export function CampaignDashboard({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, staggerChildren: 0.08 }}
-            className="mt-8 grid gap-px border border-border bg-border md:grid-cols-2"
+            className="mt-8 grid gap-4 md:grid-cols-2"
           >
             {mappedAssets.map((asset: CampaignAsset, idx: number) => {
               const pubState = publishingAssets[asset.id];
@@ -641,7 +647,7 @@ export function CampaignDashboard({
                 <div
                   key={asset.id || idx}
                   onClick={() => setSelectedAsset(asset)}
-                  className="group cursor-pointer space-y-4 bg-panel p-6 transition-colors hover:bg-surface"
+                  className="group cursor-pointer space-y-4 rounded-2xl border border-border bg-glass-bg p-6 backdrop-blur-md transition-all duration-200 hover:border-border-hover hover:bg-glass-bg-hover hover:shadow-glow"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-foreground">
@@ -679,7 +685,7 @@ export function CampaignDashboard({
                   />
 
                   {pubError && (
-                    <div className="rounded-md border border-danger p-3 text-xs text-danger">
+                    <div className="rounded-xl border border-danger/20 bg-danger/5 p-3 text-xs text-danger">
                       {pubError}
                     </div>
                   )}
@@ -754,10 +760,10 @@ function AssetCardImage({
 
   if (isGenerating || (isExecuting && !src)) {
     return (
-      <div className="relative h-52 w-full overflow-hidden rounded-lg border border-glass-border bg-glass-bg backdrop-blur-md">
+      <div className="relative h-52 w-full overflow-hidden rounded-xl border border-glass-border bg-glass-bg backdrop-blur-md">
         <Skeleton shimmer className="h-52 w-full" />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 p-4 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
             <Share2 className="h-5 w-5 animate-pulse" />
           </div>
           <div>
@@ -776,7 +782,7 @@ function AssetCardImage({
   if (!src) return null;
 
   return (
-    <div className="relative h-52 w-full overflow-hidden rounded-lg border border-border bg-panel">
+    <div className="relative h-52 w-full overflow-hidden rounded-xl border border-border bg-panel">
       {!loaded && !error && (
         <div className="relative h-52 w-full">
           <Skeleton shimmer className="h-52 w-full" />
@@ -787,7 +793,7 @@ function AssetCardImage({
       )}
       {error ? (
         <div className="flex h-52 w-full flex-col items-center justify-center gap-2 text-xs text-muted">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertTriangle className="h-4 w-4 text-warning" />
           <span>Image loading failed</span>
         </div>
       ) : (
@@ -814,7 +820,7 @@ function Field({
   className?: string;
 }) {
   return (
-    <div className={`bg-panel px-5 py-5 ${className}`}>
+    <div className={`rounded-2xl border border-border bg-glass-bg p-5 backdrop-blur-md ${className}`}>
       <dt className="eyebrow">{label}</dt>
       <dd className="mt-2.5 text-sm leading-relaxed text-foreground">{value || "—"}</dd>
     </div>
@@ -835,7 +841,7 @@ function MenuItem({
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors hover:bg-surface ${
+      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] transition-all hover:bg-surface ${
         danger ? "text-danger" : "text-foreground"
       }`}
     >

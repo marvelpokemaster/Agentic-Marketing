@@ -42,7 +42,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="light"
+      data-theme="dark"
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
@@ -50,7 +50,7 @@ export default async function RootLayout({
         {/* Apply the persisted theme before first paint to avoid a flash of the wrong palette. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem("theme_mode");var t=(s==="light"||s==="laboratory")?"light":(s?"dark":(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem("theme_mode");var t=(s==="light")?"light":(s==="dark"?"dark":(window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
           }}
         />
       </head>

@@ -46,9 +46,9 @@ export default async function ProductsPage() {
           }
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <div key={p.id} className="group card card-interactive flex flex-col justify-between p-6">
+            <div key={p.id} className="group card card-interactive flex flex-col justify-between p-6 backdrop-blur-md">
               <div>
                 <div className="flex items-center gap-3">
                   {p.logo_url ? (
@@ -56,10 +56,13 @@ export default async function ProductsPage() {
                     <img
                       src={p.logo_url}
                       alt={p.name}
-                      className="h-10 w-10 shrink-0 rounded-md border border-border object-cover"
+                      className="h-11 w-11 shrink-0 rounded-xl border border-border object-cover"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface font-heading text-sm font-semibold text-foreground">
+                    <div
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/20 font-heading text-sm font-bold text-primary"
+                      style={{ background: "var(--gradient-glow)" }}
+                    >
                       {p.name.slice(0, 1).toUpperCase()}
                     </div>
                   )}
@@ -103,7 +106,7 @@ export default async function ProductsPage() {
 
                 <Link
                   href={`/products/${p.id}/generate`}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition-opacity hover:opacity-70"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition-all hover:gap-2.5"
                 >
                   <span>New campaign</span>
                   <ArrowRight className="h-3.5 w-3.5" />

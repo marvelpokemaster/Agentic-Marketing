@@ -26,7 +26,7 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
     ? "text-warning"
     : "text-muted";
 
-  const dot = isSuccess
+  const dotBg = isSuccess
     ? "bg-success"
     : isRunning
     ? "bg-primary"
@@ -36,15 +36,36 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
     ? "bg-warning"
     : "bg-muted";
 
-  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]";
+  const glowShadow = isSuccess
+    ? "shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+    : isRunning
+    ? "shadow-[0_0_8px_var(--glow-color)]"
+    : isFailed
+    ? "shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+    : "";
+
+  const borderTint = isSuccess
+    ? "border-success/20 bg-success/5"
+    : isRunning
+    ? "border-primary/20 bg-primary/5"
+    : isFailed
+    ? "border-danger/20 bg-danger/5"
+    : isWarning
+    ? "border-warning/20 bg-warning/5"
+    : "border-border bg-surface";
+
+  const sizeClasses = size === "sm" ? "px-2.5 py-0.5 text-[10px]" : "px-3 py-1 text-[11px]";
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface font-mono font-medium uppercase tracking-wider ${sizeClasses} ${tone}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg font-mono font-medium uppercase tracking-wider ${sizeClasses} ${tone} ${borderTint} border backdrop-blur-sm`}
     >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${dot} ${pulse || isRunning ? "animate-pulse" : ""}`}
-      />
+      <span className="relative flex h-1.5 w-1.5">
+        {(pulse || isRunning) && (
+          <span className={`absolute inset-0 rounded-full ${dotBg} animate-ping opacity-60`} />
+        )}
+        <span className={`relative h-1.5 w-1.5 rounded-full ${dotBg} ${glowShadow}`} />
+      </span>
       {status.replace(/_/g, " ")}
     </span>
   );
