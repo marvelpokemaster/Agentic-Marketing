@@ -10,6 +10,7 @@ interface AnimatedButtonProps {
   variant?: "primary" | "ghost" | "outline" | "danger";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
+  loadingText?: string;
   disabled?: boolean;
   className?: string;
   type?: "button" | "submit" | "reset";
@@ -22,6 +23,7 @@ export function AnimatedButton({
   variant = "primary",
   size = "md",
   isLoading = false,
+  loadingText,
   disabled = false,
   className = "",
   type = "button",
@@ -58,8 +60,8 @@ export function AnimatedButton({
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>{children}</span>
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+          <span>{loadingText || children}</span>
         </>
       ) : (
         <>

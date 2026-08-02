@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "fire
 import { auth } from "@/lib/firebase/client";
 import { ArrowRight, AlertTriangle } from "lucide-react";
 import { AnimatedButton } from "@/components/ui/AnimatedButton";
+import { FrostText } from "@/components/ui/FrostText";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,9 +47,14 @@ export default function LoginPage() {
     <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-20">
       <div>
         <span className="eyebrow">{mode === "signin" ? "Sign in" : "Create account"}</span>
-        <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-foreground">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
-        </h1>
+        <div className="mt-4">
+          <FrostText
+            text={mode === "signin" ? "Welcome" : "Create your"}
+            highlightText={mode === "signin" ? "back" : "account"}
+            as="h1"
+            className="text-3xl font-semibold"
+          />
+        </div>
         <p className="mt-3 text-sm leading-relaxed text-muted">
           {mode === "signin"
             ? "Sign in to your workspace to manage products and campaigns."
@@ -96,6 +102,7 @@ export default function LoginPage() {
         <AnimatedButton
           type="submit"
           isLoading={loading}
+          loadingText={mode === "signin" ? "Signing in..." : "Creating account..."}
           className="w-full py-3"
           icon={<ArrowRight className="h-4 w-4" />}
         >

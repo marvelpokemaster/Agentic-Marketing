@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
 import { Package, Plus, ArrowRight } from "lucide-react";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FrostText } from "@/components/ui/FrostText";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +13,26 @@ export default async function ProductsPage() {
   const products = await repo.listProducts(user.id);
 
   return (
-    <div className="page">
-      <SectionHeader
-        badge="Knowledge base"
-        title="Products"
-        subtitle="Each product is the brief every agent reads from when it runs a campaign."
-        action={
-          <Link href="/products/new" className="btn text-[13px]">
-            <Plus className="h-4 w-4" />
-            <span>New product</span>
-          </Link>
-        }
-      />
+    <div className="page space-y-10">
+      <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
+        <div>
+          <span className="eyebrow">Knowledge base</span>
+          <div className="mt-3">
+            <FrostText
+              text="Product"
+              highlightText="Briefs"
+              as="h1"
+              className="text-3xl font-semibold sm:text-4xl"
+              subtitle="Each product profile seeds the multi-agent system with audience, positioning, and brand guidelines."
+            />
+          </div>
+        </div>
+
+        <Link href="/products/new" className="btn text-[13px] shrink-0">
+          <Plus className="h-4 w-4" />
+          <span>New product</span>
+        </Link>
+      </div>
 
       {products.length === 0 ? (
         <EmptyState
@@ -38,9 +46,9 @@ export default async function ProductsPage() {
           }
         />
       ) : (
-        <div className="grid gap-px border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <div key={p.id} className="group flex flex-col justify-between bg-panel p-6">
+            <div key={p.id} className="group card card-interactive flex flex-col justify-between p-6">
               <div>
                 <div className="flex items-center gap-3">
                   {p.logo_url ? (

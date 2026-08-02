@@ -67,15 +67,25 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
             <div>
               <span className="label">Creative</span>
               {isGenerating ? (
-                <div className="relative h-80 w-full rounded-md border border-border">
-                  <Skeleton className="h-80 w-full" />
-                  <span className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted">
-                    Generating image…
-                  </span>
+                <div className="relative h-80 w-full overflow-hidden rounded-lg border border-glass-border bg-glass-bg backdrop-blur-md">
+                  <Skeleton shimmer className="h-80 w-full" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+                      <Share2 className="h-6 w-6 animate-pulse" />
+                    </div>
+                    <div>
+                      <span className="block font-mono text-sm font-semibold text-foreground">
+                        Rendering creative image…
+                      </span>
+                      <span className="mt-1 block font-mono text-xs text-muted">
+                        Generative AI model is creating platform payload
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ) : asset.creative_url ? (
-                <div className="relative h-80 w-full overflow-hidden rounded-md border border-border bg-panel">
-                  {!imgLoaded && !imgError && <Skeleton className="h-80 w-full" />}
+                <div className="relative h-80 w-full overflow-hidden rounded-lg border border-border bg-panel">
+                  {!imgLoaded && !imgError && <Skeleton shimmer className="h-80 w-full" />}
                   {imgError ? (
                     <div className="flex h-80 w-full items-center justify-center text-xs text-muted">
                       Image failed to load
@@ -87,7 +97,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
                       alt="Campaign creative"
                       onLoad={() => setImgLoaded(true)}
                       onError={() => setImgError(true)}
-                      className={`h-80 w-full object-cover ${!imgLoaded ? "hidden" : "block"}`}
+                      className={`h-80 w-full object-cover transition-opacity duration-300 ${!imgLoaded ? "opacity-0" : "opacity-100"}`}
                     />
                   )}
                 </div>

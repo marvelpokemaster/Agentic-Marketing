@@ -701,10 +701,12 @@ export function CampaignDashboard({
 
 function AssetCardImage({
   src,
+  platform = "",
   isGenerating,
   isExecuting,
 }: {
   src?: string | null;
+  platform?: string;
   isGenerating: boolean;
   isExecuting: boolean;
 }) {
@@ -713,11 +715,21 @@ function AssetCardImage({
 
   if (isGenerating || (isExecuting && !src)) {
     return (
-      <div className="relative h-52 w-full overflow-hidden rounded-md border border-border">
-        <Skeleton className="h-52 w-full" />
-        <span className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted">
-          Generating image…
-        </span>
+      <div className="relative h-52 w-full overflow-hidden rounded-lg border border-glass-border bg-glass-bg backdrop-blur-md">
+        <Skeleton shimmer className="h-52 w-full" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 p-4 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+            <Share2 className="h-5 w-5 animate-pulse" />
+          </div>
+          <div>
+            <span className="block font-mono text-xs font-semibold text-foreground">
+              Generating creative asset…
+            </span>
+            <span className="mt-0.5 block font-mono text-[10px] text-muted">
+              Rendering platform-sized visual payload
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -725,18 +737,19 @@ function AssetCardImage({
   if (!src) return null;
 
   return (
-    <div className="relative h-52 w-full overflow-hidden rounded-md border border-border bg-panel">
+    <div className="relative h-52 w-full overflow-hidden rounded-lg border border-border bg-panel">
       {!loaded && !error && (
         <div className="relative h-52 w-full">
-          <Skeleton className="h-52 w-full" />
+          <Skeleton shimmer className="h-52 w-full" />
           <span className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted">
             Loading image…
           </span>
         </div>
       )}
       {error ? (
-        <div className="flex h-52 w-full items-center justify-center text-xs text-muted">
-          Image loading failed
+        <div className="flex h-52 w-full flex-col items-center justify-center gap-2 text-xs text-muted">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <span>Image loading failed</span>
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
@@ -745,7 +758,7 @@ function AssetCardImage({
           alt="Campaign creative"
           onLoad={() => setLoaded(true)}
           onError={() => setError(true)}
-          className={`h-52 w-full object-cover ${!loaded ? "hidden" : "block"}`}
+          className={`h-52 w-full object-cover transition-opacity duration-300 ${!loaded ? "opacity-0" : "opacity-100"}`}
         />
       )}
     </div>

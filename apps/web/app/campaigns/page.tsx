@@ -3,9 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
 import { PLATFORM_LABELS } from "@/lib/types";
 import { Megaphone, ArrowRight, Package } from "lucide-react";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FrostText } from "@/components/ui/FrostText";
 
 export const dynamic = "force-dynamic";
 
@@ -15,18 +15,26 @@ export default async function CampaignsPage() {
   const campaigns = await repo.listCampaigns(user.id);
 
   return (
-    <div className="page">
-      <SectionHeader
-        badge="Runs"
-        title="Campaigns"
-        subtitle="Execution state, generated assets, and publishing status for every campaign."
-        action={
-          <Link href="/products" className="btn-ghost text-[13px]">
-            <Package className="h-4 w-4" />
-            <span>Choose a product</span>
-          </Link>
-        }
-      />
+    <div className="page space-y-10">
+      <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
+        <div>
+          <span className="eyebrow">Runs</span>
+          <div className="mt-3">
+            <FrostText
+              text="Campaign"
+              highlightText="Missions"
+              as="h1"
+              className="text-3xl font-semibold sm:text-4xl"
+              subtitle="Execution state, generated assets, and publishing status for every campaign."
+            />
+          </div>
+        </div>
+
+        <Link href="/products" className="btn-ghost text-[13px] shrink-0">
+          <Package className="h-4 w-4" />
+          <span>Choose a product</span>
+        </Link>
+      </div>
 
       {campaigns.length === 0 ? (
         <EmptyState

@@ -4,7 +4,7 @@
 
 /* ── DESIGN TOKENS ───────────────────────────────────────────────────────────
    Two themes only: warm paper (light) and warm ink (dark).
-   Flat surfaces, hairline rules, no blur, no glow.
+   Layered glass surfaces, hairline rules, subtle depth.
    ─────────────────────────────────────────────────────────────────────────── */
 
 :root,
@@ -43,8 +43,8 @@
   --shadow-lg: 0 8px 28px rgba(23, 21, 15, 0.12);
 
   --glass-bg: rgba(255, 253, 248, 0.82);
-  --glass-bg-hover: rgba(255, 253, 248, 0.92);
-  --glass-border: rgba(220, 214, 200, 0.7);
+  --glass-bg-hover: rgba(255, 253, 248, 0.94);
+  --glass-border: rgba(220, 214, 200, 0.75);
   --glass-shadow: 0 4px 20px -2px rgba(23, 21, 15, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
 }
 
@@ -82,17 +82,11 @@
   --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
 
   --glass-bg: rgba(23, 22, 18, 0.76);
-  --glass-bg-hover: rgba(33, 31, 25, 0.86);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg-hover: rgba(33, 31, 25, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.09);
   --glass-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.38), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Theme switching.
-   Chrome keeps the previous computed colour when a transitioned property is
-   backed by a custom property that changes underneath it, which leaves the page
-   painted in the old theme until the next full reload. `lib/theme.ts` adds this
-   class for one frame while it flips `data-theme`, so the swap applies instantly
-   and per-element hover transitions still work the rest of the time. */
 .theme-switching,
 .theme-switching *,
 .theme-switching *::before,
@@ -154,7 +148,6 @@ pre,
 
 /* ── LAYOUT ──────────────────────────────────────────────────────────────── */
 
-/* Standard padded page container for app routes. */
 .page {
   width: 100%;
   max-width: 1180px;
@@ -168,12 +161,10 @@ pre,
   }
 }
 
-/* Reading column for long-form copy. */
 .prose-col {
   max-width: 62ch;
 }
 
-/* Hairline divider. */
 .rule {
   height: 1px;
   width: 100%;
@@ -181,7 +172,6 @@ pre,
   border: 0;
 }
 
-/* Small uppercase mono section label. */
 .eyebrow {
   display: inline-block;
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -192,18 +182,18 @@ pre,
   color: var(--text-muted);
 }
 
-/* ── SURFACES ────────────────────────────────────────────────────────────── */
+/* ── SURFACES & GLASSMORPHISM ────────────────────────────────────────────── */
 
 .card,
 .glass-panel,
 .panel {
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   box-shadow: var(--glass-shadow);
   position: relative;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .card {
@@ -212,7 +202,7 @@ pre,
 
 .card-interactive {
   cursor: pointer;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease;
+  transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-interactive:hover {
   border-color: var(--border-hover);
@@ -230,12 +220,26 @@ pre,
   }
 }
 
-/* Near-black terminal/code surface. */
 .ink {
   background: var(--ink-bg);
   color: var(--ink-text);
   border: 1px solid var(--ink-border);
   border-radius: 10px;
+}
+
+/* ── SHIMMER KEYFRAMES ─────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 /* ── FORMS ───────────────────────────────────────────────────────────────── */
@@ -379,7 +383,6 @@ pre,
   color: var(--color-primary);
 }
 
-/* Inline code token used inside body copy. */
 .code-token {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 0.86em;
