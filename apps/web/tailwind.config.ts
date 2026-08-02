@@ -41,6 +41,9 @@ const config: Config = {
       animation: {
         "fade-in": "fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "slide-up": "slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "spin-slow": "spin 20s linear infinite",
+        "pulse-glow": "pulseGlow 3s ease-in-out infinite",
+        "glass-shimmer": "shimmer 8s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -50,6 +53,14 @@ const config: Config = {
         slideUp: {
           "0%": { opacity: "0", transform: "translateY(16px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        pulseGlow: {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.8" },
+        },
+        shimmer: {
+          "0%, 100%": { opacity: "0.3", transform: "rotate(0deg)" },
+          "50%": { opacity: "0.6", transform: "rotate(180deg)" },
         },
       },
     },
