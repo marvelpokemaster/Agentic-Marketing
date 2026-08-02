@@ -33,21 +33,36 @@ export async function middleware(request: NextRequest) {
       });
     },
     handleInvalidToken: async (reason) => {
-      console.info("Missing or malformed credentials", { reason });
-      if (request.nextUrl.pathname.startsWith("/api/")) {
+      const pathname = request.nextUrl.pathname;
+      const isPublicPath = PUBLIC_PATHS.includes(pathname);
+
+      // Expected anonymous access to a public route (e.g. /login or /login?redirect=...)
+      // Do not log warning/error for expected anonymous access to public routes
+      if (isPublicPath) {
+        return redirectToLogin(request, {
+          path: "/login",
+          publicPaths: PUBLIC_PATHS,
+        });
+      }
+
+      if (pathname.startsWith("/api/")) {
+        console.warn(`[AUTH] Missing credentials on protected API route: ${pathname}`, { reason });
         return NextResponse.json(
           { error: "Unauthorized", reason },
           { status: 401 }
         );
       }
+
+      console.warn(`[AUTH] Missing credentials on protected page: ${pathname}`, { reason });
       return redirectToLogin(request, {
         path: "/login",
         publicPaths: PUBLIC_PATHS,
       });
     },
     handleError: async (error) => {
-      console.error("Unhandled authentication error", { error });
-      if (request.nextUrl.pathname.startsWith("/api/")) {
+      const pathname = request.nextUrl.pathname;
+      console.error(`[AUTH] Unhandled authentication error on ${pathname}:`, { error });
+      if (pathname.startsWith("/api/")) {
         return NextResponse.json(
           { error: "Internal authentication error" },
           { status: 500 }
