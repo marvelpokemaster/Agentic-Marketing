@@ -11,7 +11,7 @@ interface LoadingStateProps {
 
 export function LoadingState({ label, stage = "planning", isExecuting = true }: LoadingStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-glass-border bg-glass-bg p-8 shadow-glass backdrop-blur-md text-center space-y-6">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-glass-2-border glass-panel p-8 backdrop-blur-md text-center space-y-6">
       <div className="space-y-1">
         <h3 className="font-heading text-lg font-semibold text-foreground">
           {label || "Autonomous Campaign Execution in Progress"}

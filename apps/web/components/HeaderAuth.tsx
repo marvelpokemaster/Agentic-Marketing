@@ -23,7 +23,7 @@ export default function HeaderAuth({ initialEmail }: HeaderAuthProps) {
   return (
     <button
       onClick={handleLogout}
-      className="flex shrink-0 items-center justify-center rounded-md border border-border bg-panel p-1.5 text-muted transition-colors hover:border-danger hover:text-danger"
+      className="flex shrink-0 items-center justify-center rounded-xl border border-border glass-panel p-2 text-muted transition-all hover:border-danger hover:text-danger hover:shadow-glow"
       title="Sign out"
     >
       <LogOut className="h-4 w-4 shrink-0" />

@@ -35,18 +35,18 @@ export default async function GenerateCampaignPage({
       />
 
       {/* Brief summary */}
-      <dl className="mb-10 grid gap-px border border-border bg-border sm:grid-cols-2">
-        <div className="bg-panel px-5 py-4">
+      <dl className="mb-10 grid gap-4 sm:grid-cols-2">
+        <div className="glass-panel px-5 py-4">
           <dt className="eyebrow">Industry</dt>
           <dd className="mt-2 text-sm text-foreground">{product.industry || "Not set"}</dd>
         </div>
-        <div className="bg-panel px-5 py-4">
+        <div className="glass-panel px-5 py-4">
           <dt className="eyebrow">Target audience</dt>
           <dd className="mt-2 text-sm text-foreground">
             {product.target_audience || "Not set"}
           </dd>
         </div>
-        <div className="bg-panel px-5 py-4 sm:col-span-2">
+        <div className="glass-panel px-5 py-4 sm:col-span-2">
           <dt className="eyebrow">Description</dt>
           <dd className="mt-2 text-sm leading-relaxed text-muted">
             {product.description || "No description provided."}

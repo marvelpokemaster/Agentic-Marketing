@@ -28,6 +28,15 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
   const [pendingPath, setPendingPath] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isPending) {
+      console.log(`[NAV DEBUG] isPending=true for pendingPath=${pendingPath} at ${Date.now()}`);
+    } else {
+      console.log(`[NAV DEBUG] isPending=false at ${Date.now()}`);
+    }
+  }, [isPending, pendingPath]);
+
+  useEffect(() => {
+    console.log(`[NAV DEBUG] pathname changed to ${pathname} at ${Date.now()}`);
     setPendingPath(null);
   }, [pathname]);
 
@@ -39,17 +48,14 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
   ];
 
   const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // If it's the exact same path, let standard Link behavior apply or do nothing.
-    // However, in Next.js pushing the same path might still trigger a refresh if we want,
-    // but usually we just let it go.
     if (href === pathname) return;
-
-    // Open in new tab check (allow standard behavior if ctrl/meta key pressed)
     if (e.ctrlKey || e.metaKey || e.shiftKey) return;
 
     e.preventDefault();
+    console.log(`[NAV DEBUG] Nav clicked: ${href} at ${Date.now()}`);
     setPendingPath(href);
     startTransition(() => {
+      console.log(`[NAV DEBUG] startTransition router.push(${href}) at ${Date.now()}`);
       router.push(href);
     });
   };
@@ -59,7 +65,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
       initial={false}
       animate={{ width: collapsed ? 68 : 240 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border bg-panel/80 backdrop-blur-xl"
+      className="sticky top-0 z-40 flex h-screen shrink-0 select-none flex-col justify-between overflow-hidden border-r border-border glass-shell glass-shell-hover"
     >
       <div>
         {/* Wordmark */}

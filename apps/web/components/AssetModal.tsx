@@ -42,7 +42,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.98 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="panel relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto p-6 backdrop-blur-xl md:p-8"
+          className="glass-elevated glass-elevated-hover relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto p-6 md:p-8"
         >
           {/* Gradient top accent */}
           <div
@@ -59,9 +59,9 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
               <StatusBadge status={isGenerating ? "generating" : asset.status} size="sm" />
             </div>
 
-            <button
+<button
               onClick={onClose}
-              className="rounded-xl border border-border p-2 text-muted transition-all hover:border-border-hover hover:text-foreground hover:shadow-glow"
+              className="rounded-xl border border-border glass-panel p-2 text-muted transition-all hover:border-border-hover hover:text-foreground hover:shadow-glow"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -73,7 +73,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
             <div>
               <span className="label">Creative</span>
               {isGenerating ? (
-                <div className="relative h-80 w-full overflow-hidden rounded-xl border border-glass-border bg-glass-bg backdrop-blur-md">
+                <div className="relative h-80 w-full overflow-hidden rounded-xl border border-glass-2-border glass-panel backdrop-blur-md">
                   <Skeleton shimmer className="h-80 w-full" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
@@ -90,7 +90,7 @@ export function AssetModal({ asset, onClose, onPublish, metaConfigured }: AssetM
                   </div>
                 </div>
               ) : asset.creative_url ? (
-                <div className="relative h-80 w-full overflow-hidden rounded-xl border border-border bg-panel">
+                <div className="relative h-80 w-full overflow-hidden rounded-xl border border-border glass-panel">
                   {!imgLoaded && !imgError && <Skeleton shimmer className="h-80 w-full" />}
                   {imgError ? (
                     <div className="flex h-80 w-full items-center justify-center text-xs text-muted">

@@ -56,7 +56,7 @@ export default function NewProductPage() {
             <label className="label">Product name *</label>
             <input
               name="name"
-              className="input"
+              className="input-glass"
               placeholder="Acme Analytics Platform"
               required
               disabled={submitting}
@@ -67,7 +67,7 @@ export default function NewProductPage() {
             <label className="label">Description</label>
             <textarea
               name="description"
-              className="textarea h-24"
+              className="textarea-glass h-24"
               placeholder="What the product does, who it's for, and the problem it solves."
               disabled={submitting}
             />
@@ -77,7 +77,7 @@ export default function NewProductPage() {
             <label className="label">Key features — one per line</label>
             <textarea
               name="features"
-              className="textarea h-28 font-mono text-xs"
+              className="textarea-glass h-28 font-mono text-xs"
               placeholder={"Realtime event tracking\nMulti-touch attribution\nAutomated cohort reporting"}
               disabled={submitting}
             />
@@ -89,7 +89,7 @@ export default function NewProductPage() {
               <label className="label">Target audience</label>
               <input
                 name="target_audience"
-                className="input"
+                className="input-glass"
                 placeholder="Growth marketers, developers"
                 disabled={submitting}
               />
@@ -98,7 +98,7 @@ export default function NewProductPage() {
               <label className="label">Industry</label>
               <input
                 name="industry"
-                className="input"
+                className="input-glass"
                 placeholder="Analytics / SaaS"
                 disabled={submitting}
               />

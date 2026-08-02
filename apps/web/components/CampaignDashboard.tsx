@@ -647,7 +647,7 @@ export function CampaignDashboard({
                 <div
                   key={asset.id || idx}
                   onClick={() => setSelectedAsset(asset)}
-                  className="group cursor-pointer space-y-4 rounded-2xl border border-border bg-glass-bg p-6 backdrop-blur-md transition-all duration-200 hover:border-border-hover hover:bg-glass-bg-hover hover:shadow-glow"
+                  className="glass-panel card-interactive group space-y-4 p-6"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-foreground">

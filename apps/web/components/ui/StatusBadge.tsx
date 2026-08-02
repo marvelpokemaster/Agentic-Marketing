@@ -47,7 +47,7 @@ export function StatusBadge({ status, pulse = false, size = "md" }: StatusBadgeP
   const borderTint = isSuccess
     ? "border-success/20 bg-success/5"
     : isRunning
-    ? "border-primary/20 bg-primary/5"
+    ? "border-primary/20 glass-active"
     : isFailed
     ? "border-danger/20 bg-danger/5"
     : isWarning

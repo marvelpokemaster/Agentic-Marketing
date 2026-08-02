@@ -11,6 +11,7 @@
 [data-theme="light"] {
   color-scheme: light;
 
+  /* Base colors */
   --bg-color: #f5f5f7;
   --bg-deeper: #ebebef;
   --panel-bg: #ffffff;
@@ -26,7 +27,6 @@
   --color-primary-hover: #6d28d9;
   --color-primary-soft: rgba(124, 58, 237, 0.08);
   --color-on-primary: #ffffff;
-
   --color-accent: #06b6d4;
   --color-secondary: #8b5cf6;
   --color-danger: #ef4444;
@@ -39,22 +39,53 @@
   --gradient-glow: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
   --gradient-text: linear-gradient(135deg, #7c3aed 0%, #06b6d4 50%, #3b82f6 100%);
 
-  /* Ink / code panels — still dark even in light mode */
+  /* Ink / code panels */
   --ink-bg: #1a1a2e;
   --ink-panel: #1e1e32;
   --ink-border: #2a2a40;
   --ink-text: #e4e4f0;
   --ink-muted: #8888a0;
 
+  /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
   --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.15), 0 0 60px rgba(124, 58, 237, 0.05);
 
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-hover: rgba(255, 255, 255, 0.88);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  /* Glass Level 0 — Ambient Background */
+  --glass-0-bg: transparent;
+  --glass-0-border: transparent;
+  --glass-0-shadow: none;
+
+  /* Glass Level 1 — Shell (Navigation, Header, Sidebar) */
+  --glass-1-bg: rgba(255, 255, 255, 0.78);
+  --glass-1-bg-hover: rgba(255, 255, 255, 0.92);
+  --glass-1-border: rgba(0, 0, 0, 0.05);
+  --glass-1-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+
+  /* Glass Level 2 — Panel (Cards, Sections, Forms) */
+  --glass-2-bg: rgba(255, 255, 255, 0.72);
+  --glass-2-bg-hover: rgba(255, 255, 255, 0.88);
+  --glass-2-border: rgba(0, 0, 0, 0.06);
+  --glass-2-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+
+  /* Glass Level 3 — Elevated (Modals, Dropdowns, Popovers) */
+  --glass-3-bg: rgba(255, 255, 255, 0.82);
+  --glass-3-bg-hover: rgba(255, 255, 255, 0.96);
+  --glass-3-border: rgba(0, 0, 0, 0.08);
+  --glass-3-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(124, 58, 237, 0.06);
+
+  /* Glass Level 4 — Interactive/Active (Selected tabs, Active stages, Primary actions) */
+  --glass-4-bg: rgba(255, 255, 255, 0.88);
+  --glass-4-bg-hover: rgba(255, 255, 255, 1);
+  --glass-4-border: rgba(124, 58, 237, 0.2);
+  --glass-4-shadow: 0 8px 32px -4px rgba(124, 58, 237, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(124, 58, 237, 0.12);
+
+  /* Legacy aliases (backward compat) */
+  --glass-bg: var(--glass-2-bg);
+  --glass-bg-hover: var(--glass-2-bg-hover);
+  --glass-border: var(--glass-2-border);
+  --glass-shadow: var(--glass-2-shadow);
 
   --glow-color: rgba(124, 58, 237, 0.2);
   --glow-accent: rgba(6, 182, 212, 0.2);
@@ -77,7 +108,6 @@
   --color-primary-hover: #a78bfa;
   --color-primary-soft: rgba(139, 92, 246, 0.12);
   --color-on-primary: #ffffff;
-
   --color-accent: #22d3ee;
   --color-secondary: #a78bfa;
   --color-danger: #f87171;
@@ -100,10 +130,39 @@
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.2), 0 0 80px rgba(139, 92, 246, 0.06);
 
-  --glass-bg: rgba(17, 17, 22, 0.7);
-  --glass-bg-hover: rgba(24, 24, 31, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  /* Glass Level 0 */
+  --glass-0-bg: transparent;
+  --glass-0-border: transparent;
+  --glass-0-shadow: none;
+
+  /* Glass Level 1 — Shell */
+  --glass-1-bg: rgba(17, 17, 22, 0.75);
+  --glass-1-bg-hover: rgba(24, 24, 31, 0.9);
+  --glass-1-border: rgba(255, 255, 255, 0.05);
+  --glass-1-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+
+  /* Glass Level 2 — Panel */
+  --glass-2-bg: rgba(24, 24, 31, 0.7);
+  --glass-2-bg-hover: rgba(31, 31, 38, 0.85);
+  --glass-2-border: rgba(255, 255, 255, 0.06);
+  --glass-2-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+
+  /* Glass Level 3 — Elevated */
+  --glass-3-bg: rgba(24, 24, 31, 0.85);
+  --glass-3-bg-hover: rgba(31, 31, 38, 0.95);
+  --glass-3-border: rgba(255, 255, 255, 0.08);
+  --glass-3-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.08);
+
+  /* Glass Level 4 — Interactive/Active */
+  --glass-4-bg: rgba(31, 31, 38, 0.9);
+  --glass-4-bg-hover: rgba(38, 38, 45, 1);
+  --glass-4-border: rgba(139, 92, 246, 0.2);
+  --glass-4-shadow: 0 8px 32px -4px rgba(139, 92, 246, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(139, 92, 246, 0.15);
+
+  --glass-bg: var(--glass-2-bg);
+  --glass-bg-hover: var(--glass-2-bg-hover);
+  --glass-border: var(--glass-2-border);
+  --glass-shadow: var(--glass-2-shadow);
 
   --glow-color: rgba(139, 92, 246, 0.25);
   --glow-accent: rgba(34, 211, 238, 0.25);
@@ -210,13 +269,47 @@ pre,
 
 /* ── SURFACES & GLASSMORPHISM ────────────────────────────────────────────── */
 
-.card,
+/* Glass Level 1 — Shell (Navigation, Header, Sidebar) */
+.glass-shell {
+  border-radius: 16px;
+  border: 1px solid var(--glass-1-border);
+  background: var(--glass-1-bg);
+  box-shadow: var(--glass-1-shadow);
+  position: relative;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+/* Glass Level 2 — Panel (Cards, Sections, Forms, Campaign/Asset cards) */
 .glass-panel,
+.card,
 .panel {
   border-radius: 16px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-2-border);
+  background: var(--glass-2-bg);
+  box-shadow: var(--glass-2-shadow);
+  position: relative;
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/* Glass Level 3 — Elevated (Modals, Dropdowns, Popovers, Overlays) */
+.glass-elevated {
+  border-radius: 20px;
+  border: 1px solid var(--glass-3-border);
+  background: var(--glass-3-bg);
+  box-shadow: var(--glass-3-shadow);
+  position: relative;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+/* Glass Level 4 — Interactive/Active (Selected tabs, Active stages, Primary actions, Focused controls) */
+.glass-active {
+  border-radius: 16px;
+  border: 1px solid var(--glass-4-border);
+  background: var(--glass-4-bg);
+  box-shadow: var(--glass-4-shadow);
   position: relative;
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
@@ -236,7 +329,7 @@ pre,
 }
 .card-interactive:hover {
   border-color: var(--border-hover);
-  background: var(--glass-bg-hover);
+  background: var(--glass-2-bg-hover);
   box-shadow: var(--shadow-md), var(--shadow-glow);
   transform: translateY(-2px);
 }
@@ -247,14 +340,107 @@ pre,
 }
 .glass-glow:hover {
   border-color: rgba(139, 92, 246, 0.2);
-  box-shadow: var(--glass-shadow), var(--shadow-glow);
+  box-shadow: var(--glass-2-shadow), var(--shadow-glow);
+}
+
+/* Glass shell hover variant */
+.glass-shell-hover {
+  transition: border-color 250ms ease, background-color 250ms ease, box-shadow 250ms ease;
+}
+.glass-shell-hover:hover {
+  border-color: var(--border-hover);
+  background: var(--glass-1-bg-hover);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+/* Glass elevated hover variant */
+.glass-elevated-hover {
+  transition: border-color 250ms ease, background-color 250ms ease, box-shadow 250ms ease;
+}
+.glass-elevated-hover:hover {
+  border-color: var(--border-hover);
+  background: var(--glass-3-bg-hover);
+  box-shadow: var(--glass-3-shadow), var(--shadow-glow);
+}
+
+/* Form elements with glass integration */
+.input-glass,
+.textarea-glass,
+.select-glass {
+  border-radius: 12px;
+  border: 1px solid var(--glass-2-border);
+  background: var(--glass-2-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+.input-glass:hover,
+.textarea-glass:hover,
+.select-glass:hover {
+  border-color: var(--border-hover);
+  background: var(--glass-2-bg-hover);
+}
+.input-glass:focus,
+.textarea-glass:focus,
+.select-glass:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft), var(--shadow-glow);
+  background: var(--glass-2-bg-hover);
+}
+
+/* Skeleton with glass hierarchy */
+.skeleton-glass {
+  background: var(--glass-2-bg);
+  border-radius: 12px;
+  border: 1px solid var(--glass-2-border);
+  box-shadow: inset 0 0 0 1px var(--glass-2-border);
+}
+
+/* Focus ring utility */
+.focus-ring {
+  outline: none;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.focus-ring:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft), var(--shadow-glow);
+}
+
+/* Mobile glass performance adjustments */
+@media (max-width: 768px) {
+  .glass-shell,
+  .glass-panel,
+  .card,
+  .panel {
+    backdrop-filter: blur(8px) saturate(130%);
+    -webkit-backdrop-filter: blur(8px) saturate(130%);
+  }
+  .glass-elevated,
+  .glass-active {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .card,
+  .glass-shell,
   .glass-panel,
-  .panel {
+  .card,
+  .panel,
+  .glass-elevated,
+  .glass-active {
     background: var(--panel-bg);
+    border-color: var(--border-color);
+  }
+  .input-glass,
+  .textarea-glass,
+  .select-glass {
+    background: var(--surface-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .skeleton-glass {
+    background: var(--surface-bg);
     border-color: var(--border-color);
   }
 }
@@ -371,14 +557,15 @@ pre,
 .select {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--surface-bg);
+  border: 1px solid var(--glass-2-border);
+  background: var(--glass-2-bg);
   padding: 11px 16px;
   font-size: 14px;
   color: var(--text-primary);
   outline: none;
   transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
 }
 .input::placeholder,
 .textarea::placeholder {
@@ -388,14 +575,14 @@ pre,
 .textarea:hover,
 .select:hover {
   border-color: var(--border-hover);
-  background: var(--glass-bg-hover);
+  background: var(--glass-2-bg-hover);
 }
 .input:focus,
 .textarea:focus,
 .select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-soft), var(--shadow-glow);
-  background: var(--glass-bg-hover);
+  background: var(--glass-2-bg-hover);
 }
 
 .textarea {

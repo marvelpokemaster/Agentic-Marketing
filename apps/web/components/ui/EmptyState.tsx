@@ -11,7 +11,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="relative flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-glass-bg px-8 py-24 text-center backdrop-blur-md overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center rounded-2xl border border-dashed border-glass-2-border glass-panel px-8 py-24 text-center backdrop-blur-md overflow-hidden">
       {/* Subtle aurora background */}
       <div
         className="absolute inset-0 pointer-events-none opacity-30"

@@ -126,10 +126,10 @@ export function GenerateForm({ productId }: { productId: string }) {
                     type="button"
                     onClick={() => !loading && toggle(p)}
                     disabled={loading}
-                    className={`inline-flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-[13px] font-medium transition-all ${
+                    className={`inline-flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-[13px] font-medium transition-all ${
                       on
-                        ? "border-primary/30 bg-primary/5 text-primary shadow-[0_0_12px_var(--glow-color)]"
-                        : "border-border bg-glass-bg text-muted backdrop-blur-sm hover:border-border-hover hover:text-foreground"
+                        ? "glass-active text-primary shadow-[0_0_12px_var(--glow-color)]"
+                        : "glass-panel text-muted hover:border-border-hover hover:text-foreground"
                     }`}
                   >
                     <span className="relative flex h-2 w-2">
@@ -155,28 +155,28 @@ export function GenerateForm({ productId }: { productId: string }) {
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <div>
                 <label className="label">Location *</label>
-                <input
-                  type="text"
-                  placeholder="Indiranagar, Bangalore"
-                  className="input"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  required
-                  disabled={loading}
-                />
+<input
+                    type="text"
+                    placeholder="Indiranagar, Bangalore"
+                    className="input-glass"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
               </div>
 
               <div>
                 <label className="label">Niche or category *</label>
-                <input
-                  type="text"
-                  placeholder="Cafes & Bakeries"
-                  className="input"
-                  value={nicheQuery}
-                  onChange={(e) => setNicheQuery(e.target.value)}
-                  required
-                  disabled={loading}
-                />
+<input
+                    type="text"
+                    placeholder="Cafes & Bakeries"
+                    className="input-glass"
+                    value={nicheQuery}
+                    onChange={(e) => setNicheQuery(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
               </div>
             </div>
           </div>

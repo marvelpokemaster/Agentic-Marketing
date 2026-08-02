@@ -54,7 +54,7 @@ export default function LoginPage() {
       </div>
 
       {/* Glass card container */}
-      <div className="relative rounded-2xl border border-border bg-glass-bg p-8 backdrop-blur-xl shadow-glass">
+      <div className="relative rounded-2xl border border-border glass-elevated p-8 backdrop-blur-xl shadow-glass">
         {/* Gradient top accent bar */}
         <div
           className="absolute top-0 left-6 right-6 h-[2px] rounded-full"
@@ -86,7 +86,7 @@ export default function LoginPage() {
             <input
               type="email"
               placeholder="you@company.com"
-              className="input"
+              className="input-glass"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="••••••••"
-              className="input"
+              className="input-glass"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

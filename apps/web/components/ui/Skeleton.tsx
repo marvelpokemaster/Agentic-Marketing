@@ -5,12 +5,15 @@ import React from "react";
 interface SkeletonProps {
   className?: string;
   shimmer?: boolean;
+  level?: 2 | 3;
 }
 
-export function Skeleton({ className = "", shimmer = false }: SkeletonProps) {
+export function Skeleton({ className = "", shimmer = false, level = 2 }: SkeletonProps) {
+  const levelClass = level === 3 ? "glass-elevated" : "skeleton-glass";
+
   return (
     <div
-      className={`relative overflow-hidden rounded-md bg-surface/60 ${
+      className={`relative overflow-hidden rounded-lg ${levelClass} ${
         shimmer ? "" : "animate-pulse"
       } ${className}`}
     >
