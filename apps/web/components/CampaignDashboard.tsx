@@ -36,6 +36,8 @@ import { AnimatedNumber } from "./ui/AnimatedNumber";
 import { NetworkGraph } from "./ui/NetworkGraph";
 import { AssetModal } from "./AssetModal";
 import { playUISound } from "@/lib/audio";
+import { useQuery } from "@tanstack/react-query";
+import { useAgentRunStore } from "@/lib/stores/agentRunStore";
 
 export function CampaignDashboard({
   campaign: initialCampaign,
@@ -58,6 +60,8 @@ export function CampaignDashboard({
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<CampaignAsset | null>(null);
 
+  const { updateStage, completeRun, failRun } = useAgentRunStore();
+
   const currentStage = campaign.execution?.stage || "";
   const isExecuting =
     campaign.status === "running" ||
@@ -68,31 +72,36 @@ export function CampaignDashboard({
 
   const isReady = currentStage === "ready" || campaign.status === "ready" || campaign.status === "published";
 
-  // Poll campaign status if active execution
-  useEffect(() => {
-    if (isExecuting || isPolling) {
-      const interval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/campaigns/${campaign.id}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.campaign) {
-              setCampaign(data.campaign);
-              const stage = data.campaign.execution?.stage;
-              const stat = data.campaign.status;
-              if (stage === "ready" || stage === "failed" || (stat !== "running" && stat !== "researching" && !stage)) {
-                setIsPolling(false);
-                if (stage === "ready") playUISound("complete");
-              }
-            }
-          }
-        } catch (e) {
-          console.error("Polling error:", e);
+  // TanStack Query with adaptive refetchInterval replacing raw setInterval
+  useQuery({
+    queryKey: ["campaign", campaign.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/campaigns/${campaign.id}`);
+      if (!res.ok) throw new Error("Failed to fetch campaign");
+      const data = await res.json();
+      if (data.campaign) {
+        setCampaign(data.campaign);
+        const stage = data.campaign.execution?.stage;
+        const stat = data.campaign.status;
+
+        if (stage) {
+          updateStage(campaign.id, stage);
         }
-      }, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [campaign.id, campaign.status, campaign.execution?.stage, isPolling, isExecuting]);
+
+        if (stage === "ready" || stat === "ready" || stat === "published") {
+          setIsPolling(false);
+          completeRun(campaign.id);
+          playUISound("complete");
+        } else if (stage === "failed" || stat === "failed") {
+          setIsPolling(false);
+          failRun(campaign.id, data.campaign.execution?.current_message || "Campaign failed");
+        }
+      }
+      return data.campaign;
+    },
+    enabled: isExecuting || isPolling,
+    refetchInterval: isExecuting || isPolling ? 2000 : false,
+  });
 
   // Auto scroll to top on mount
   useEffect(() => {

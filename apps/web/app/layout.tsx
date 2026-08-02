@@ -4,6 +4,7 @@ import { SidebarNav } from "@/components/SidebarNav";
 import { PageTransition } from "@/components/PageTransition";
 import { HUDHeader } from "@/components/HUDHeader";
 import { getOptionalUser } from "@/lib/auth";
+import { QueryProvider } from "@/lib/providers/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -54,17 +55,19 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-bg text-foreground font-body min-h-screen antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
-        <div className="flex min-h-screen">
-          <SidebarNav userEmail={user?.email || null} />
+        <QueryProvider>
+          <div className="flex min-h-screen">
+            <SidebarNav userEmail={user?.email || null} />
 
-          <div className="flex-1 flex flex-col min-w-0">
-            <HUDHeader />
+            <div className="flex-1 flex flex-col min-w-0">
+              <HUDHeader />
 
-            <main className="flex-1 min-w-0 flex flex-col">
-              <PageTransition>{children}</PageTransition>
-            </main>
+              <main className="flex-1 min-w-0 flex flex-col">
+                <PageTransition>{children}</PageTransition>
+              </main>
+            </div>
           </div>
-        </div>
+        </QueryProvider>
       </body>
     </html>
   );
