@@ -1,11 +1,10 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useEffect } from "react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Card } from "@/components/ui/Card";
 import { TimelineNode } from "@/components/ui/TimelineNode";
 import { Brain, Search, BarChart3, Target, FileText, Image } from "lucide-react";
+import { loadGsap } from "@/lib/motion/registerGsap";
 
 const PIPELINE_STAGES = [
   {
@@ -53,28 +52,83 @@ const PIPELINE_STAGES = [
 ];
 
 export function ScenePipeline() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let ctx: any = null;
+
+    loadGsap().then((instances) => {
+      if (!instances) return;
+      const { gsap } = instances;
+
+      const el = gridRef.current;
+      if (!el) return;
+
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const cards = Array.from(el.children);
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: "power2.out",
+            clearProps: "transform",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        const cards = Array.from(el.children);
+        gsap.fromTo(
+          cards,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.2,
+            clearProps: "all",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 90%",
+              once: true,
+            },
+          }
+        );
+      });
+
+      ctx = mm;
+    });
+
+    return () => {
+      if (ctx && typeof ctx.revert === "function") {
+        ctx.revert();
+      }
+    };
+  }, []);
+
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-6 md:px-10">
+    <div ref={containerRef} className="mx-auto w-full max-w-[1180px] px-6 md:px-10">
       <SectionHeader
         badge="Capability Pipeline"
         title="Sequential Multi-Agent Architecture"
         subtitle="Six specialized AI agents working in sequence, each consuming upstream state and writing structured findings to the campaign record."
       />
 
-      {/* Grid of Agent Nodes */}
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Grid of Agent Nodes with GSAP ScrollTrigger Entrance */}
+      <div ref={gridRef} className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {PIPELINE_STAGES.map((stage, idx) => {
           return (
-            <motion.div
-              key={stage.step}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.4,
-                delay: idx * 0.08,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            >
+            <div key={stage.step}>
               <TimelineNode
                 label={stage.label}
                 agent={stage.agent}
@@ -82,7 +136,7 @@ export function ScenePipeline() {
                 status={idx < 4 ? "completed" : "idle"}
                 index={idx}
               />
-            </motion.div>
+            </div>
           );
         })}
       </div>

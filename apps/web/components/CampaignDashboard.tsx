@@ -615,7 +615,12 @@ export function CampaignDashboard({
             </div>
           </div>
 
-          <div className="mt-8 grid gap-px border border-border bg-border md:grid-cols-2">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, staggerChildren: 0.08 }}
+            className="mt-8 grid gap-px border border-border bg-border md:grid-cols-2"
+          >
             {mappedAssets.map((asset: CampaignAsset, idx: number) => {
               const pubState = publishingAssets[asset.id];
               const pubError = publishErrors[asset.id] || asset.error;
@@ -726,7 +731,7 @@ export function CampaignDashboard({
                 </div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

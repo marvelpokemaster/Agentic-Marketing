@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Sparkles, Search, Cpu, Target, FileText, Image as ImageIcon, CheckCircle2, Loader2 } from "lucide-react";
+import { loadGsap } from "@/lib/motion/registerGsap";
 
 export interface StageRailProps {
   currentStage?: string;
@@ -80,6 +81,10 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
   const activeStageObj = STAGES[activeIdx] || STAGES[0];
   const [copyIdx, setCopyIdx] = useState(0);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const shimmerRef = useRef<HTMLDivElement>(null);
+  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -93,19 +98,74 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
     return () => clearInterval(interval);
   }, [activeStageObj, isExecuting]);
 
+  // GSAP animations for active shimmer and completed node pulse
+  useEffect(() => {
+    let ctx: any = null;
+
+    loadGsap().then((instances) => {
+      if (!instances) return;
+      const { gsap } = instances;
+
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Active stage shimmer sweep
+        if (shimmerRef.current && isExecuting) {
+          gsap.fromTo(
+            shimmerRef.current,
+            { xPercent: -100 },
+            {
+              xPercent: 100,
+              duration: 1.2,
+              repeat: -1,
+              ease: "none",
+            }
+          );
+        }
+
+        // Pulse completed stage node on stage transition
+        const nodeEl = nodeRefs.current[activeIdx - 1];
+        if (nodeEl) {
+          gsap.fromTo(
+            nodeEl,
+            { scale: 1 },
+            {
+              scale: 1.06,
+              duration: 0.2,
+              yoyo: true,
+              repeat: 1,
+              ease: "power1.inOut",
+              clearProps: "transform",
+            }
+          );
+        }
+      });
+
+      ctx = mm;
+    });
+
+    return () => {
+      if (ctx && typeof ctx.revert === "function") {
+        ctx.revert();
+      }
+    };
+  }, [activeIdx, isExecuting]);
+
   return (
-    <div className="w-full space-y-6">
+    <div ref={containerRef} className="w-full space-y-6">
       {/* 6-Stage Horizontal Rail */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {STAGES.map((s, idx) => {
           const Icon = s.icon;
           const isDone = idx < activeIdx;
           const isActive = idx === activeIdx && isExecuting;
-          const isPending = idx > activeIdx;
 
           return (
             <div
               key={s.id}
+              ref={(el) => {
+                nodeRefs.current[idx] = el;
+              }}
               className={`relative flex flex-col items-center justify-between rounded-xl border p-3.5 transition-all duration-300 ${
                 isActive
                   ? "border-primary bg-primary/10 shadow-lg shadow-primary/10 scale-[1.02]"
@@ -135,10 +195,13 @@ export function StageRail({ currentStage = "planning", isExecuting = true }: Sta
                 </span>
               </div>
 
-              {/* Shimmer Progress Line under active stage */}
+              {/* GSAP Active Shimmer Sweep Bar */}
               {isActive && (
                 <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-primary/20">
-                  <div className="h-full w-1/2 animate-shimmer bg-primary rounded-full" />
+                  <div
+                    ref={shimmerRef}
+                    className="h-full w-1/2 bg-primary rounded-full"
+                  />
                 </div>
               )}
             </div>
