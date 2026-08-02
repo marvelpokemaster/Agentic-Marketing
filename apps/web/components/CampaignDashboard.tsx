@@ -82,6 +82,11 @@ export function CampaignDashboard({
     queryKey: ["campaign", campaign.id],
     queryFn: async () => {
       const res = await fetch(`/api/campaigns/${campaign.id}`);
+      if (res.status === 401) {
+        setIsPolling(false);
+        setResearchError("Authentication session expired. Please refresh the page or log in again.");
+        throw new Error("UNAUTHORIZED");
+      }
       if (!res.ok) throw new Error("Failed to fetch campaign");
       const data = await res.json();
       if (data.campaign) {
@@ -105,7 +110,14 @@ export function CampaignDashboard({
       return data.campaign;
     },
     enabled: (isExecuting || isPolling) && !isLive,
-    refetchInterval: !isLive && (isExecuting || isPolling) ? 2000 : false,
+    refetchInterval: (query) => {
+      if (query.state.error?.message === "UNAUTHORIZED") return false;
+      return !isLive && (isExecuting || isPolling) ? 2000 : false;
+    },
+    retry: (failureCount, error: any) => {
+      if (error?.message === "UNAUTHORIZED") return false;
+      return failureCount < 3;
+    },
   });
 
   // Auto scroll to top on mount

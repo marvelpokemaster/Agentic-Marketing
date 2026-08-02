@@ -70,7 +70,7 @@ export function useCampaignStream(campaignId: string, enabled: boolean) {
       }
     });
 
-    // PHASE 3 HOOK: Token streaming handler for live LLM streaming
+    // Token streaming handler for live LLM streaming
     es.addEventListener("token", (e: MessageEvent) => {
       try {
         const data = JSON.parse(e.data);
@@ -79,6 +79,16 @@ export function useCampaignStream(campaignId: string, enabled: boolean) {
         }
       } catch (err) {
         console.error("Failed to parse SSE token event:", err);
+      }
+    });
+
+    // Auth error handler: halt reconnect loop immediately
+    es.addEventListener("auth_error", () => {
+      console.warn("[SSE AUTH ERROR] Authentication failed. Closing SSE stream to halt reconnect loop.");
+      setIsLive(false);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     });
 
@@ -95,7 +105,7 @@ export function useCampaignStream(campaignId: string, enabled: boolean) {
     es.onerror = () => {
       retryCountRef.current += 1;
       if (retryCountRef.current >= 3) {
-        console.debug("SSE dropped after 3 retries, falling back to polling:", campaignId);
+        console.warn("[SSE ERROR] SSE connection dropped after retries. Closing stream:", campaignId);
         setIsLive(false);
         if (eventSourceRef.current) {
           eventSourceRef.current.close();

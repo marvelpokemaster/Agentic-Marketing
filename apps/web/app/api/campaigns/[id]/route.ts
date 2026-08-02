@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
-import { backendClient } from "@/lib/backend";
+import { backendClient, BackendClientError } from "@/lib/backend";
 import type { CampaignStatus } from "@/lib/types";
 
 export async function GET(
@@ -68,7 +68,14 @@ export async function GET(
           }
       }
     } catch (backendError) {
-        console.error("Error syncing with backend:", backendError);
+      if (backendError instanceof BackendClientError && (backendError.status === 401 || backendError.code === "MISSING_CREDENTIALS")) {
+        console.warn(`[AUTH PROPAGATION] Backend auth failed for campaign ${campaignId}: returning 401 to browser.`);
+        return NextResponse.json(
+          { error: "Authentication required.", code: "UNAUTHORIZED" },
+          { status: 401 }
+        );
+      }
+      console.error("Error syncing with backend:", backendError);
     }
 
     return NextResponse.json({ campaign: localCampaign });

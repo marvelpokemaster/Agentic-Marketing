@@ -1,6 +1,7 @@
 import { getTokens } from "next-firebase-auth-edge";
 import { cookies } from "next/headers";
 import { authConfig } from "@/lib/auth";
+import { serverConfig } from "@/lib/firebase/config";
 import type { WorkflowType, ResearchReport } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
@@ -35,27 +36,58 @@ export class BackendClientError extends Error {
     message: string,
     public status?: number,
     public body?: any,
+    public code?: string,
   ) {
     super(message);
     this.name = "BackendClientError";
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+export interface RequestOptions extends RequestInit {
+  requiresAuth?: boolean;
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { requiresAuth = true, ...fetchOptions } = options;
   const url = `${BACKEND_API_URL.replace(/\/$/, "")}${path}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const tokens = await getTokens(cookies(), authConfig);
-    const authHeaders = tokens ? { Authorization: `Bearer ${tokens.token}` } : {};
+    let authHeader: Record<string, string> = {};
+
+    if (requiresAuth) {
+      // Demo mode fallback: if Firebase is not fully configured, send demo token
+      if (!serverConfig.serviceAccount.privateKey) {
+        authHeader = { Authorization: "Bearer demo-token" };
+        console.log(`[AUTH DIAGNOSTIC] Path: ${path} | Mode: Demo | Auth required: yes | Token present: yes (demo)`);
+      } else {
+        const tokens = await getTokens(cookies(), authConfig);
+
+        // DO NOT CALL RAILWAY IF CRENDENTIALS ARE UNAVAILABLE/EXPIRED
+        if (!tokens || !tokens.token) {
+          console.warn(`[AUTH DIAGNOSTIC] Path: ${path} | Auth required: yes | Token present: no | Action: Aborting Railway request`);
+          throw new BackendClientError(
+            "Authentication credentials unavailable",
+            401,
+            { detail: "MISSING_CREDENTIALS" },
+            "MISSING_CREDENTIALS"
+          );
+        }
+
+        authHeader = { Authorization: `Bearer ${tokens.token}` };
+        console.log(`[AUTH DIAGNOSTIC] Path: ${path} | Auth required: yes | Token present: yes | UID: ${tokens.decodedToken.uid}`);
+      }
+    } else {
+      console.log(`[AUTH DIAGNOSTIC] Path: ${path} | Auth required: no`);
+    }
 
     const response = await fetch(url, {
-      ...options,
+      ...fetchOptions,
       headers: {
         "Content-Type": "application/json",
-        ...(tokens ? { Authorization: `Bearer ${tokens.token}` } : {}),
-        ...(options.headers as Record<string, string> || {}),
+        ...authHeader,
+        ...(fetchOptions.headers as Record<string, string> || {}),
       } as Record<string, string>,
       signal: controller.signal,
     });
@@ -77,6 +109,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
           : `API request failed with status ${response.status}`,
         response.status,
         responseData,
+        response.status === 401 ? "UNAUTHORIZED" : undefined
       );
     }
 
@@ -97,21 +130,28 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const backendClient = {
   /**
-   * Health check / ping.
+   * Health check / ping (Public).
    */
   async health(): Promise<{ status: string }> {
-    return request<{ status: string }>("/health");
+    return request<{ status: string }>("/health", { requiresAuth: false });
   },
 
   /**
-   * Get list of available workflows.
+   * Check publish status (Public).
+   */
+  async publishStatus(): Promise<{ configured: boolean; facebook: boolean; instagram: boolean }> {
+    return request<{ configured: boolean; facebook: boolean; instagram: boolean }>("/publish/status", { requiresAuth: false });
+  },
+
+  /**
+   * Get list of available workflows (Authenticated).
    */
   async workflows(): Promise<string[]> {
-    return request<string[]>("/workflows");
+    return request<string[]>("/workflows", { requiresAuth: true });
   },
 
   /**
-   * Create a campaign resource in the backend.
+   * Create a campaign resource in the backend (Authenticated).
    */
   async createCampaign(
     id: string,
@@ -121,6 +161,7 @@ export const backendClient = {
   ): Promise<BackendCampaignState> {
     return request<BackendCampaignState>("/campaigns", {
       method: "POST",
+      requiresAuth: true,
       body: JSON.stringify({
         id,
         name,
@@ -131,14 +172,14 @@ export const backendClient = {
   },
 
   /**
-   * Get a campaign resource from the backend.
+   * Get a campaign resource from the backend (Authenticated).
    */
   async getCampaign(id: string): Promise<BackendCampaignState> {
-    return request<BackendCampaignState>(`/campaigns/${id}`);
+    return request<BackendCampaignState>(`/campaigns/${id}`, { requiresAuth: true });
   },
 
   /**
-   * Update campaign config/metadata in the backend.
+   * Update campaign config/metadata in the backend (Authenticated).
    */
   async updateCampaign(
     id: string,
@@ -150,16 +191,18 @@ export const backendClient = {
   ): Promise<BackendCampaignState> {
     return request<BackendCampaignState>(`/campaigns/${id}`, {
       method: "PATCH",
+      requiresAuth: true,
       body: JSON.stringify(patch),
     });
   },
 
   /**
-   * Trigger execution of the campaign's workflow.
+   * Trigger execution of the campaign's workflow (Authenticated).
    */
   async runCampaign(id: string, options?: { refresh_type?: "none" | "research" | "strategy" | "everything"; resume?: boolean }): Promise<BackendCampaignState> {
     return request<BackendCampaignState>(`/campaigns/${id}/run`, {
       method: "POST",
+      requiresAuth: true,
       body: JSON.stringify({
         refresh_type: options?.refresh_type || "none",
         resume: options?.resume || false,
@@ -168,12 +211,13 @@ export const backendClient = {
   },
 
   /**
-   * Trigger research phase for a campaign in the backend.
+   * Trigger research phase for a campaign in the backend (Authenticated).
    */
   async runCampaignResearch(id: string, forceRefresh: boolean = false): Promise<BackendCampaignState> {
     const url = `/campaigns/${id}/research` + (forceRefresh ? "?force_refresh=true" : "");
     return request<BackendCampaignState>(url, {
       method: "POST",
+      requiresAuth: true,
     });
   },
 };

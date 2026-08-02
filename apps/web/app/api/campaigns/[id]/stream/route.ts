@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getServerRepo } from "@/lib/db/repo";
-import { backendClient } from "@/lib/backend";
+import { backendClient, BackendClientError } from "@/lib/backend";
 import type { CampaignStatus } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -127,8 +127,19 @@ export async function GET(
                   }
                 }
               }
-            } catch {
-              // Ignore backend sync failure, fallback to local doc
+            } catch (err) {
+              if (err instanceof BackendClientError && (err.status === 401 || err.code === "MISSING_CREDENTIALS")) {
+                console.warn(`[AUTH SSE] Auth error during stream poll for campaign ${campaignId}. Closing SSE stream.`);
+                const authErrData = JSON.stringify({ status: 401, error: "Authentication required" });
+                try {
+                  controller.enqueue(encoder.encode(`event: auth_error\ndata: ${authErrData}\n\n`));
+                } catch {}
+                cleanup();
+                try {
+                  controller.close();
+                } catch {}
+                return;
+              }
             }
 
             const execution = (localCampaign as any).execution || {};
