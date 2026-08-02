@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
   LogIn,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import HeaderAuth from "./HeaderAuth";
 
@@ -21,7 +22,14 @@ interface SidebarNavProps {
 
 export function SidebarNav({ userEmail }: SidebarNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingPath(null);
+  }, [pathname]);
 
   const navItems = [
     { label: "Overview", href: "/", icon: LayoutDashboard },
@@ -29,6 +37,22 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
     { label: "Campaigns", href: "/campaigns", icon: Megaphone },
     { label: "New product", href: "/products/new", icon: PlusCircle },
   ];
+
+  const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // If it's the exact same path, let standard Link behavior apply or do nothing.
+    // However, in Next.js pushing the same path might still trigger a refresh if we want,
+    // but usually we just let it go.
+    if (href === pathname) return;
+
+    // Open in new tab check (allow standard behavior if ctrl/meta key pressed)
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+    e.preventDefault();
+    setPendingPath(href);
+    startTransition(() => {
+      router.push(href);
+    });
+  };
 
   return (
     <motion.aside
@@ -93,21 +117,27 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
             const Icon = item.icon;
             const isActive =
               pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            const isItemPending = isPending && pendingPath === item.href;
 
             return (
-              <Link key={item.href} href={item.href} className="relative block group">
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                onClick={(e) => handleNav(e, item.href)}
+                className="relative block group"
+              >
                 <div
                   className={`relative flex items-center rounded-xl text-[13px] transition-all duration-200 ${
                     collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
                   } ${
-                    isActive
+                    isActive || isItemPending
                       ? "font-medium text-foreground"
                       : "text-muted hover:text-foreground"
-                  }`}
+                  } ${isItemPending ? "animate-pulse" : ""}`}
                   title={collapsed ? item.label : undefined}
                 >
                   {/* Active indicator — gradient left bar */}
-                  {isActive && (
+                  {isActive && !isItemPending && (
                     <motion.span
                       layoutId="activeNavTab"
                       className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
@@ -117,7 +147,7 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
                   )}
 
                   {/* Active background glow */}
-                  {isActive && (
+                  {(isActive || isItemPending) && (
                     <motion.span
                       layoutId="activeNavBg"
                       className="absolute inset-0 rounded-xl bg-surface"
@@ -127,15 +157,20 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
                   )}
 
                   {/* Hover glow for non-active */}
-                  {!isActive && (
+                  {!isActive && !isItemPending && (
                     <span className="absolute inset-0 rounded-xl bg-surface opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                   )}
 
-                  <Icon
-                    className={`relative z-10 h-4 w-4 shrink-0 transition-colors duration-200 ${
-                      isActive ? "text-primary" : "group-hover:text-foreground"
-                    }`}
-                  />
+                  {isItemPending ? (
+                    <Loader2 className="relative z-10 h-4 w-4 shrink-0 animate-spin text-primary" />
+                  ) : (
+                    <Icon
+                      className={`relative z-10 h-4 w-4 shrink-0 transition-colors duration-200 ${
+                        isActive ? "text-primary" : "group-hover:text-foreground"
+                      }`}
+                    />
+                  )}
+                  
                   {!collapsed && (
                     <span className="relative z-10 truncate whitespace-nowrap">{item.label}</span>
                   )}
