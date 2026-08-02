@@ -34,6 +34,12 @@ export async function middleware(request: NextRequest) {
     },
     handleInvalidToken: async (reason) => {
       console.info("Missing or malformed credentials", { reason });
+      if (request.nextUrl.pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Unauthorized", reason },
+          { status: 401 }
+        );
+      }
       return redirectToLogin(request, {
         path: "/login",
         publicPaths: PUBLIC_PATHS,
@@ -41,6 +47,12 @@ export async function middleware(request: NextRequest) {
     },
     handleError: async (error) => {
       console.error("Unhandled authentication error", { error });
+      if (request.nextUrl.pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Internal authentication error" },
+          { status: 500 }
+        );
+      }
       return redirectToLogin(request, {
         path: "/login",
         publicPaths: PUBLIC_PATHS,
@@ -52,8 +64,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
-    "/((?!_next|favicon.ico|api|.*\\.).*)",
-    "/api/login",
-    "/api/logout",
+    "/((?!_next|favicon.ico|.*\\.).*)",
   ],
 };
